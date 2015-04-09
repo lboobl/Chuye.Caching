@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Demo {
+namespace Chuye.Persistent.Demo {
     public class JobMap : ClassMap<Job> {
         public JobMap() {
             Id(x => x.Id)/*.GeneratedBy.Assigned()*/;

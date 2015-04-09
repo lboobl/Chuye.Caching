@@ -18,7 +18,7 @@ using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
 using FluentNHibernate.Mapping;
 
-namespace Demo {
+namespace Chuye.Persistent.Demo {
     class Program {
         static void Main(string[] args) {
             Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));

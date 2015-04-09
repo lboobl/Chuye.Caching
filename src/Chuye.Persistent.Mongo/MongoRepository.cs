@@ -86,7 +86,7 @@ namespace Chuye.Persistent.Mongo {
         }
     }
 
-    public static class MongoDatabaseExtensio {        
+    public static class MongoDatabaseExtension {        
 
         public static MongoCollection<TEntry> GetCollection<TEntry>(this MongoDatabase mongoDatabase) {
             return mongoDatabase.GetCollection<TEntry>(MongoEntryMapperFactory.Mapger.Map<TEntry>());

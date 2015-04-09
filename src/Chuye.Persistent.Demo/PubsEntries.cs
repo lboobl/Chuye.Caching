@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Chuye.Persistent;
 
-namespace Demo {
+namespace Chuye.Persistent.Demo {
     [PetaPoco.TableName("job")]
     public class Job : IAggregate
     {
