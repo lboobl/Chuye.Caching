@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Demo {
 
-    [Export(typeof(IEventHandler))]
+    //[Export(typeof(IEventHandler))]
     public class FansFollowEventHandler : IEventHandler<FansFollowEvent> {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 

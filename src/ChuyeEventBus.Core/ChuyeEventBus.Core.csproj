@@ -47,7 +47,6 @@
     <Compile Include="EventBus.cs" />
     <Compile Include="EventHandlerAttribute.cs" />
     <Compile Include="EventHandlerExtension.cs" />
-    <Compile Include="EventPathFinder.cs" />
     <Compile Include="IEvent.cs" />
     <Compile Include="IEventHandler.cs" />
     <Compile Include="IEventHandler`.cs" />

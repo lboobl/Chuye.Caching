@@ -14,8 +14,8 @@ namespace ChuyeEventBus.Host {
         public Int32 Quantity { get; private set; }
         public event Action<IEnumerable<Message>> MultipleMessageQueueReceived;
 
-        public MultipleMessageChannel(String path, Int32 quantity)
-            : base(path) {
+        public MultipleMessageChannel(Func<MessageQueue> messageQueueFunction, Int32 quantity)
+            : base(messageQueueFunction) {
             if (quantity < 1 || quantity > 10000) {
                 throw new ArgumentOutOfRangeException("quantity");
             }
@@ -23,9 +23,7 @@ namespace ChuyeEventBus.Host {
         }
 
         public override void Startup() {
-            Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventChannel \"{1}\" Startup",
-                DateTime.Now, Path));
-            var messageQueue = _messageQueueFactory.Apply(Path);
+            var messageQueue = _messageQueueFunction();
             messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan), messageQueue, new AsyncCallback(MessageQueueEndReceive));
         }
 
@@ -59,14 +57,14 @@ namespace ChuyeEventBus.Host {
                     lock (_sync) {
                         var messages = _messageBag.ToArray();
                         MultipleMessageQueueReceived(messages);
-                        ClearMessageBag();    
+                        ClearMessageBag();
                     }
                 }
             }
         }
 
         public override object Clone() {
-            var channel = new MultipleMessageChannel(Path, Quantity);
+            var channel = new MultipleMessageChannel(_messageQueueFunction, Quantity);
             channel.MultipleMessageQueueReceived = this.MultipleMessageQueueReceived;
             return channel;
         }

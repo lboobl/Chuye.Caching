@@ -18,7 +18,13 @@ namespace ChuyeEventBus.Core {
             Dispose();
         }
 
-        public MessageQueue Apply(String path) {
+        public MessageQueue ApplyQueue(IEvent eventEntry) {
+            var eventType = eventEntry.GetType();
+            return ApplyQueue(eventType);
+        }
+
+        public MessageQueue ApplyQueue(Type eventType) {
+            var path = FindMessagePath(eventType);
             MessageQueue messageQueue;
             if (_queues.TryGetValue(path, out messageQueue)) {
                 return messageQueue;
@@ -28,9 +34,31 @@ namespace ChuyeEventBus.Core {
                     MessageQueue.Create(path);
                 }
                 messageQueue = new MessageQueue(path);
-                messageQueue.Formatter = new MyMessageFormatter();
+                messageQueue.Formatter = FindMessageFormatter(eventType);
                 return messageQueue;
             }
+        }
+
+        public String FindMessagePath(Type eventType) {
+            var eventAttr = eventType.GetCustomAttribute<EventAttribute>();
+            String label;
+            if (eventAttr != null && !String.IsNullOrWhiteSpace(eventAttr.Label)) {
+                label = eventAttr.Label;
+            }
+            else {
+                label = eventType.FullName.ToString().Replace('.', '_').ToLower();
+            }
+            return String.Format(@".\Private$\{0}", label);
+            //return String.Format(@"FormatName:Direct=TCP:192.168.0.230\private$\{0}", label);
+            //return String.Format(@"FormatName:DIRECT=TCP:192.168.0.230\{0}", label);
+        }
+
+        private IMessageFormatter FindMessageFormatter(Type eventType) {
+            var eventAttr = eventType.GetCustomAttribute<EventAttribute>();
+            if (eventAttr == null || eventAttr.Formatter == null) {
+                return new BinaryMessageFormatter();
+            }
+            return (IMessageFormatter)Activator.CreateInstance(eventAttr.Formatter);
         }
 
         public void Dispose() {
@@ -40,55 +68,56 @@ namespace ChuyeEventBus.Core {
             }
             _queues.Clear();
         }
+    }
 
-        internal class MyMessageFormatter : IMessageFormatter {
-            private static readonly ConcurrentDictionary<String, Type> _knownTypes
-                = new ConcurrentDictionary<String, Type>();
 
-            public bool CanRead(Message message) {
-                var stream = message.BodyStream;
-                return stream != null && stream.CanRead && stream.Length > 0;
+    public class InnerMessageFormatter : IMessageFormatter {
+        private static readonly ConcurrentDictionary<String, Type> _knownTypes
+            = new ConcurrentDictionary<String, Type>();
+
+        public bool CanRead(Message message) {
+            var stream = message.BodyStream;
+            return stream != null && stream.CanRead && stream.Length > 0;
+        }
+
+        public object Read(Message message) {
+            if (!CanRead(message)) {
+                throw new NotSupportedException("Message can not be readed");
             }
 
-            public object Read(Message message) {
-                if (!CanRead(message)) {
-                    throw new NotSupportedException("Message can not be readed");
-                }
+            using (var reader = new StreamReader(message.BodyStream, Encoding.UTF8)) {
+                var msgTypeName = reader.ReadLine();
+                Type msgType = _knownTypes.GetOrAdd(msgTypeName, key => {
+                    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                    var eventType = typeof(IEvent);
+                    msgType = assemblies.SelectMany(t => t.ExportedTypes)
+                        .Where(r => eventType.IsAssignableFrom(r))
+                        .First(r => r.FullName == key);
+                    if (msgType == null) {
+                        throw new Exception(String.Format("Unknonw type \"{0}\"", key));
+                    }
+                    return msgType;
+                });
 
-                using (var reader = new StreamReader(message.BodyStream, Encoding.UTF8)) {
-                    var msgTypeName = reader.ReadLine();
-                    Type msgType = _knownTypes.GetOrAdd(msgTypeName, key => {
-                        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-                        var eventType = typeof(IEvent);
-                        msgType = assemblies.SelectMany(t => t.ExportedTypes)
-                            .Where(r => eventType.IsAssignableFrom(r))
-                            .First(r => r.FullName == key);
-                        if (msgType == null) {
-                            throw new Exception(String.Format("Unknonw type \"{0}\"", key));
-                        }
-                        return msgType;
-                    });
-
-                    String json = reader.ReadToEnd();
-                    return JsonConvert.DeserializeObject(json, msgType);
-                }
+                String json = reader.ReadToEnd();
+                return JsonConvert.DeserializeObject(json, msgType);
             }
+        }
 
-            public void Write(Message message, object obj) {
-                message.BodyStream = new MemoryStream();
-                var writer = new StreamWriter(message.BodyStream);
-                writer.WriteLine(obj.GetType().FullName);
-                String json = JsonConvert.SerializeObject(obj, Formatting.None);
-                writer.WriteLine(json);
-                writer.Flush();
-                //message.BodyStream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-                //Need to reset the body type, in case the same message is reused by some other formatter.
-                message.BodyType = 0;
-            }
+        public void Write(Message message, object obj) {
+            message.BodyStream = new MemoryStream();
+            var writer = new StreamWriter(message.BodyStream);
+            writer.WriteLine(obj.GetType().FullName);
+            String json = JsonConvert.SerializeObject(obj, Formatting.None);
+            writer.WriteLine(json);
+            writer.Flush();
+            //message.BodyStream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            //Need to reset the body type, in case the same message is reused by some other formatter.
+            message.BodyType = 0;
+        }
 
-            public object Clone() {
-                return new MyMessageFormatter();
-            }
+        public object Clone() {
+            return new InnerMessageFormatter();
         }
     }
 }

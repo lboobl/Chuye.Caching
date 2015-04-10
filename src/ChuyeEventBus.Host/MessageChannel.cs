@@ -7,27 +7,21 @@ using System.Messaging;
 namespace ChuyeEventBus.Host {
     public class MessageChannel : IMessageChannel {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        protected static MessageQueueFactory _messageQueueFactory = new MessageQueueFactory();
-        
-        public const Int32 WaitSpan = 10;
-        public String Path { get; private set; }
+        protected Func<MessageQueue> _messageQueueFunction;
 
+        public const Int32 WaitSpan = 10;
         public event Action<Message> MessageQueueReceived;
 
-        public MessageChannel(String path) {
-            Path = path;
+        public MessageChannel(Func<MessageQueue> messageQueueFunction) {
+            _messageQueueFunction = messageQueueFunction;
         }
 
         public virtual void Startup() {
-            Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventChannel \"{1}\" Startup",
-                DateTime.Now, Path));
-            var messageQueue = _messageQueueFactory.Apply(Path);
+            var messageQueue = _messageQueueFunction();
             messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan), messageQueue, new AsyncCallback(MessageQueueEndReceive));
         }
 
         protected virtual void MessageQueueEndReceive(IAsyncResult ir) {
-            ((IMessageChannel)this.Clone()).Startup();
-
             MessageQueue messageQueue = null;
             Message message = null;
             try {
@@ -48,10 +42,11 @@ namespace ChuyeEventBus.Host {
                     message.Dispose();
                 }
             }
+            ((IMessageChannel)this.Clone()).Startup();
         }
 
         public virtual Object Clone() {
-            var channel = new MessageChannel(Path);
+            var channel = new MessageChannel(_messageQueueFunction);
             channel.MessageQueueReceived = this.MessageQueueReceived;
             return channel;
         }

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace ChuyeEventBus.Demo {
 
     [EventHandler(SupportMultiple = true, Quantity = 10)]
-    [Export(typeof(IEventHandler))]
+    //[Export(typeof(IEventHandler))]
     public class WorkUpdateEventHandler : IEventHandler<WorkUpdateEvent> {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 

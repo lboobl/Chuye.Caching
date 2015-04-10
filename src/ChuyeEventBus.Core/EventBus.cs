@@ -10,10 +10,8 @@ using System.Threading.Tasks;
 namespace ChuyeEventBus.Core {
     public class EventBus {
         private static readonly EventBus _singleton = new EventBus();
-        private Dictionary<Type, List<IEventHandler>> _eventHandlers
-            = new Dictionary<Type, List<IEventHandler>>();
-        private static readonly EventHandlerEqualityComparer _comparer
-            = new EventHandlerEqualityComparer();
+        private Dictionary<Type, List<IEventHandler>> _eventHandlers = new Dictionary<Type, List<IEventHandler>>();
+        private static readonly EventHandlerEqualityComparer _comparer = new EventHandlerEqualityComparer();
         public Action<Exception> ErrorHandler;
 
         public static EventBus Singleton {

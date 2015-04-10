@@ -14,8 +14,6 @@ namespace ChuyeEventBus.Host {
 #pragma warning disable
         private Boolean _initialized = false;
 
-        private readonly EventPathFinder _eventPathFinder = new EventPathFinder();
-
         public IEnumerable<IEventHandler> Handlers {
             get {
                 return _handlers;
@@ -36,22 +34,23 @@ namespace ChuyeEventBus.Host {
                 var container = new CompositionContainer(catalog);
                 container.ComposeParts(this);
 
+                var factory = new MessageQueueFactory();
                 EventBus.Singleton.UnsubscribeAll();
                 foreach (var handler in Handlers) {
                     EventBus.Singleton.Subscribe(handler);
                 }
 
                 foreach (var handler in Handlers) {
-                    var path = _eventPathFinder.FindPath(handler.EventType);
+                    var path = factory.FindMessagePath(handler.EventType);
                     var quantity = 1;
                     if (handler.SupportMultiple(out quantity)) {
-                        IMultipleMessageChannel channel = new MultipleMessageChannel(path, quantity);
+                        IMultipleMessageChannel channel = new MultipleMessageChannel(() => factory.ApplyQueue(handler.EventType), quantity);
                         channel.MessageQueueReceived += channel_MessageQueueReceived;
                         channel.MultipleMessageQueueReceived += channel_MultipleMessageQueueReceived;
                         channel.Startup();
                     }
                     else {
-                        IMessageChannel channel = new MessageChannel(path);
+                        IMessageChannel channel = new MessageChannel(() => factory.ApplyQueue(handler.EventType));
                         channel.MessageQueueReceived += channel_MessageQueueReceived;
                         channel.Startup();
                     }

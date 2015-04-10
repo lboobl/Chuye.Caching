@@ -8,9 +8,8 @@ namespace ChuyeEventBus.Core {
             Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} Send {1}",
                     DateTime.Now, eventEntry.GetType().Name));
             var factory = new MessageQueueFactory();
-            var pathFinder = new EventPathFinder();
-            var path = pathFinder.FindPath(eventEntry);
-            factory.Apply(path).Send(eventEntry);
+            var queue = factory.ApplyQueue(eventEntry);
+            queue.Send(eventEntry);
         }
     }
 }

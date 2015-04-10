@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {
     public class EventAttribute : Attribute {
-        public String Label { get; private set; }
-        public EventAttribute(String label) {
-            Label = label;
-        }
+        public String Label { get; set; }
+        public Type Formatter { get; set; }
     }
 }
