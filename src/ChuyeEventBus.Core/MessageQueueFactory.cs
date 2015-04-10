@@ -7,6 +7,7 @@ using System.Messaging;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace ChuyeEventBus.Core {
     public class MessageQueueFactory : IDisposable {
@@ -42,7 +43,8 @@ namespace ChuyeEventBus.Core {
     }
 
     public class MyMessageFormatter : IMessageFormatter {
-        private static readonly Dictionary<String, Type> _knownTypes = new Dictionary<String, Type>();
+        private static readonly ConcurrentDictionary<String, Type> _knownTypes
+            = new ConcurrentDictionary<String, Type>();
 
         public bool CanRead(Message message) {
             var stream = message.BodyStream;
@@ -56,18 +58,17 @@ namespace ChuyeEventBus.Core {
 
             using (var reader = new StreamReader(message.BodyStream, Encoding.UTF8)) {
                 var msgTypeName = reader.ReadLine();
-                Type msgType;
-                if (!_knownTypes.TryGetValue(msgTypeName, out msgType)) {
+                Type msgType = _knownTypes.GetOrAdd(msgTypeName, key => {
                     var assemblies = AppDomain.CurrentDomain.GetAssemblies();
                     var eventType = typeof(IEvent);
                     msgType = assemblies.SelectMany(t => t.ExportedTypes)
                         .Where(r => eventType.IsAssignableFrom(r))
-                        .First(r => r.FullName == msgTypeName);
+                        .First(r => r.FullName == key);
                     if (msgType == null) {
-                        throw new Exception(String.Format("Unknonw type \"{0}\"", msgTypeName));
+                        throw new Exception(String.Format("Unknonw type \"{0}\"", key));
                     }
-                    _knownTypes.Add(msgTypeName, msgType);
-                }
+                    return msgType;
+                });
 
                 String json = reader.ReadToEnd();
                 return JsonConvert.DeserializeObject(json, msgType);

@@ -22,12 +22,12 @@ namespace ChuyeEventBus.Demo {
             get { return typeof(FansFollowEvent); }
         }
 
-        public void Handle(FansFollowEvent @event) {
+        public void Handle(FansFollowEvent eventEntry) {
             _logger.Trace("FansFollowEventHandler: 用户 {0} Follow 用户 {1}",
-                @event.FromId, @event.ToId);
+                eventEntry.FromId, eventEntry.ToId);
         }
-        public void Handle(IEvent @event) {
-            Handle((FansFollowEvent)@event);
+        public void Handle(IEvent eventEntry) {
+            Handle((FansFollowEvent)eventEntry);
         }
 
         public void Handle(IEnumerable<IEvent> events) {

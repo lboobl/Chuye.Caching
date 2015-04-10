@@ -21,12 +21,12 @@ namespace ChuyeEventBus.Demo {
             get { return typeof(WorkPublishEvent); }
         }
 
-        public void Handle(WorkPublishEvent @event) {
-            _logger.Trace("WorkPublishEventHandler 作品 [{0}] 发布", @event.WorkId);
+        public void Handle(WorkPublishEvent eventEntry) {
+            _logger.Trace("WorkPublishEventHandler 作品 [{0}] 发布", eventEntry.WorkId);
         }
 
-        public void Handle(IEvent @event) {
-            Handle((WorkPublishEvent)@event);
+        public void Handle(IEvent eventEntry) {
+            Handle((WorkPublishEvent)eventEntry);
         }
         
         public void Handle(IEnumerable<IEvent> events) {

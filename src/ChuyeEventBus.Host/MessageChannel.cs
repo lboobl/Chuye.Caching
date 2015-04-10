@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
-    public interface IMessageChannel {
+    public interface IMessageChannel : ICloneable {
         void Startup();
         event Action<Message> MessageQueueReceived;
     }
@@ -24,29 +24,32 @@ namespace ChuyeEventBus.Host {
         private static MessageQueueFactory _messageQueueFactory
             = new MessageQueueFactory();
         public const Int32 WaitSpan = 10;
-        private String _path;
+        public String Path { get; private set; }
 
         public event Action<Message> MessageQueueReceived;
 
         public MessageChannel(String path) {
-            _path = path;
+            Path = path;
         }
 
         public virtual void Startup() {
             Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventChannel \"{1}\" Startup",
-                DateTime.Now, _path));
-            var messageQueue = _messageQueueFactory.Apply(_path);
+                DateTime.Now, Path));
+            var messageQueue = _messageQueueFactory.Apply(Path);
             messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan), messageQueue, new AsyncCallback(MessageQueueEndReceive));
         }
 
         protected virtual void MessageQueueEndReceive(IAsyncResult ir) {
-            //new EventChannel(_path).Startup();
+            ((IMessageChannel)this.Clone()).Startup();
 
             MessageQueue messageQueue = null;
             Message message = null;
             try {
                 messageQueue = (MessageQueue)ir.AsyncState;
                 message = messageQueue.EndReceive(ir);
+                if (MessageQueueReceived != null) {
+                    MessageQueueReceived(message);
+                }
 
             }
             catch (MessageQueueException ex) {
@@ -58,8 +61,13 @@ namespace ChuyeEventBus.Host {
                 if (message != null) {
                     message.Dispose();
                 }
-                new MessageChannel(_path).Startup();
             }
+        }
+
+        public virtual Object Clone() {
+            var channel = new MessageChannel(Path);
+            channel.MessageQueueReceived = this.MessageQueueReceived;
+            return channel;
         }
     }
 
@@ -76,6 +84,12 @@ namespace ChuyeEventBus.Host {
 
         protected override void MessageQueueEndReceive(IAsyncResult ir) {
             base.MessageQueueEndReceive(ir);
+        }
+
+        public override object Clone() {
+            var channel = new MultipleMessageChannel(Path);
+            //channel.MessageQueueReceived = this.MessageQueueReceived;
+            return channel;
         }
     }
 }

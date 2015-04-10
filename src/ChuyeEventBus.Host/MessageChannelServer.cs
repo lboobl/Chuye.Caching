@@ -16,6 +16,8 @@ namespace ChuyeEventBus.Host {
 #pragma warning disable
         private Boolean _initialized = false;
 
+        private readonly EventPathFinder _eventPathFinder = new EventPathFinder();
+
         public IEnumerable<IEventHandler> Handlers {
             get {
                 return _handlers;
@@ -42,35 +44,33 @@ namespace ChuyeEventBus.Host {
                 }
 
                 foreach (var handler in Handlers) {
-                    var path = MessageQueueUtil.GetPath(handler.EventType);
-                    //new EventChannel(path).Startup();
-
-                    if (!handler.SupportMultiple) {
+                    var path =_eventPathFinder.FindPath(handler.EventType);
+                    if (!handler.SupportMultiple()) {
                         IMessageChannel channel = new MessageChannel(path);
                         channel.MessageQueueReceived += channel_MessageQueueReceived;
+                        channel.Startup();
                     }
                     else {
                         IMultipleMessageChannel channel = new MultipleMessageChannel(path);
                         channel.MessageQueueReceived += channel_MessageQueueReceived;
                         channel.MultipleMessageQueueReceived += channel_MultipleMessageQueueReceived;
+                        channel.Startup();
                     }
                 }
             }
         }
 
         void channel_MessageQueueReceived(Message message) {
-            var @event = message.Body as IEvent;
-            if (@event == null) {
+            var eventEntry = message.Body as IEvent;
+            if (eventEntry == null) {
                 throw new ArgumentOutOfRangeException(String.Format("Unexpected message type of '{0}'", message.Body.GetType()));
             }
-            EventBus.Singleton.Publish(@event);
+            EventBus.Singleton.Publish(eventEntry);
         }
 
-
-
         void channel_MultipleMessageQueueReceived(IEnumerable<Message> messages) {
-            var events = messages.Select(m => m.Body as IEvent);
-            EventBus.Singleton.Publish(events);
+            var eventEntries = messages.Select(m => m.Body as IEvent);
+            EventBus.Singleton.Publish(eventEntries);
         }
     }
 }

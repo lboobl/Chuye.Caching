@@ -22,17 +22,17 @@ namespace ChuyeEventBus.Demo {
             get { return typeof(WorkUpdateEvent); }
         }
 
-        public void Handle(WorkUpdateEvent @event) {
-            if (@event.UpdateType == WorkUpdateType.Access) {
-                _logger.Trace("WorkUpdateEventHandler  作品 [{0}] 计数增加", @event.WorkId);
+        public void Handle(WorkUpdateEvent eventEntry) {
+            if (eventEntry.UpdateType == WorkUpdateType.Access) {
+                _logger.Trace("WorkUpdateEventHandler  作品 [{0}] 计数增加", eventEntry.WorkId);
             }
             else {
-                _logger.Trace("WorkUpdateEventHandler  作品 [{0}] 分享增加", @event.WorkId);
+                _logger.Trace("WorkUpdateEventHandler  作品 [{0}] 分享增加", eventEntry.WorkId);
             }
         }
 
-        public void Handle(IEvent @event) {
-            Handle((WorkUpdateEvent)@event);
+        public void Handle(IEvent eventEntry) {
+            Handle((WorkUpdateEvent)eventEntry);
         }
 
         public void Handle(IEnumerable<IEvent> events) {
