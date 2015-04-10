@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Demo {
 
+    [EventHandler(Quantity = 10, SupportMultiple = true)]
     [Export(typeof(IEventHandler))]
     public class WorkUpdateEventHandler : IEventHandler<WorkUpdateEvent> {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
@@ -36,7 +37,7 @@ namespace ChuyeEventBus.Demo {
         }
 
         public void Handle(IEnumerable<IEvent> events) {
-            _logger.Trace("WorkUpdateEventHandler.Handle(IEnumerable<IEvent> events)");
+            _logger.Trace("WorkUpdateEventHandler 批量更新 {0}", events.Count());
         }
     }
 }

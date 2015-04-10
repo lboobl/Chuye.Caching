@@ -10,19 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
-    public interface IMessageChannel : ICloneable {
-        void Startup();
-        event Action<Message> MessageQueueReceived;
-    }
-
-    public interface IMultipleMessageChannel : IMessageChannel {
-        event Action<IEnumerable<Message>> MultipleMessageQueueReceived;
-    }
-
     public class MessageChannel : IMessageChannel {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private static MessageQueueFactory _messageQueueFactory
-            = new MessageQueueFactory();
+        protected static MessageQueueFactory _messageQueueFactory = new MessageQueueFactory();
+        
         public const Int32 WaitSpan = 10;
         public String Path { get; private set; }
 
@@ -67,28 +58,6 @@ namespace ChuyeEventBus.Host {
         public virtual Object Clone() {
             var channel = new MessageChannel(Path);
             channel.MessageQueueReceived = this.MessageQueueReceived;
-            return channel;
-        }
-    }
-
-    public class MultipleMessageChannel : MessageChannel, IMultipleMessageChannel {
-        public event Action<IEnumerable<Message>> MultipleMessageQueueReceived;
-
-        public MultipleMessageChannel(String path)
-            : base(path) {
-        }
-
-        public override void Startup() {
-            base.Startup();
-        }
-
-        protected override void MessageQueueEndReceive(IAsyncResult ir) {
-            base.MessageQueueEndReceive(ir);
-        }
-
-        public override object Clone() {
-            var channel = new MultipleMessageChannel(Path);
-            //channel.MessageQueueReceived = this.MessageQueueReceived;
             return channel;
         }
     }

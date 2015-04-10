@@ -44,17 +44,19 @@ namespace ChuyeEventBus.Host {
                 }
 
                 foreach (var handler in Handlers) {
-                    var path =_eventPathFinder.FindPath(handler.EventType);
-                    if (!handler.SupportMultiple()) {
-                        IMessageChannel channel = new MessageChannel(path);
-                        channel.MessageQueueReceived += channel_MessageQueueReceived;
-                        channel.Startup();
-                    }
-                    else {
-                        IMultipleMessageChannel channel = new MultipleMessageChannel(path);
+                    var path = _eventPathFinder.FindPath(handler.EventType);
+                    var quantity = 1;
+                    if (handler.SupportMultiple(out quantity)) {
+                        IMultipleMessageChannel channel = new MultipleMessageChannel(path, quantity);
                         channel.MessageQueueReceived += channel_MessageQueueReceived;
                         channel.MultipleMessageQueueReceived += channel_MultipleMessageQueueReceived;
                         channel.Startup();
+                    }
+                    else {
+                        IMessageChannel channel = new MessageChannel(path);
+                        channel.MessageQueueReceived += channel_MessageQueueReceived;
+                        channel.Startup();
+                        
                     }
                 }
             }

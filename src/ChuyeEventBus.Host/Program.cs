@@ -14,8 +14,8 @@ namespace ChuyeEventBus.Host {
         static void Main(string[] args) {
             //Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
             StartServer();
-            //MockClient();
-            MockClientAsync();
+            MockClient();
+            //MockClientAsync();
 
             _logger.Trace("Press <ENTER> to exit");
             Console.ReadLine();
@@ -62,7 +62,7 @@ namespace ChuyeEventBus.Host {
             Task.Run(action: () => {
                 while (true) {
                     var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-                    _logger.Trace("[{0:D2}] WorkPublishEvent 入队, id {1}", 
+                    _logger.Trace("[{0:D2}] WorkPublishEvent 入队, id {1}",
                         Thread.CurrentThread.ManagedThreadId, id);
                     MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = id });
                     Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 3000 + 2000));
