@@ -38,18 +38,20 @@ namespace ChuyeEventBus.Host {
         static void MockClient() {
             var works = new[] { 67, 75, 92, 99 };
             var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-            _logger.Trace("WorkPublishEvent 入队, id {0}", id);
+            _logger.Trace("[{0:D2}] PublishEvent 入队, id {0}",
+                 Thread.CurrentThread.ManagedThreadId, id); 
             MessageQueueUtil.Send(new WorkPublishEvent() {
                 WorkId = id
             });
             id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-            _logger.Trace("WorkUpdateEvent  入队, id {0}", id);
+            _logger.Trace("[{0:D2}] UpdateEvent  入队, id {0}",
+                 Thread.CurrentThread.ManagedThreadId, id); 
             MessageQueueUtil.Send(new WorkUpdateEvent() {
                 WorkId = id,
                 UpdateType = WorkUpdateType.Access
             });
             id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-            _logger.Trace("[{0:D2}] WorkUpdateEvent  入队, id {1}",
+            _logger.Trace("[{0:D2}] UpdateEvent  入队, id {1}",
                 Thread.CurrentThread.ManagedThreadId, id); 
             MessageQueueUtil.Send(new WorkUpdateEvent() {
                 WorkId = id,
@@ -62,7 +64,7 @@ namespace ChuyeEventBus.Host {
             Task.Run(action: () => {
                 while (true) {
                     var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-                    _logger.Trace("[{0:D2}] WorkPublishEvent 入队, id {1}",
+                    _logger.Trace("[{0:D2}] PublishEvent 入队, id {1}",
                         Thread.CurrentThread.ManagedThreadId, id);
                     MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = id });
                     Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 3000 + 2000));
@@ -72,7 +74,7 @@ namespace ChuyeEventBus.Host {
             Task.Run(action: () => {
                 while (true) {
                     var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-                    _logger.Trace("[{0:D2}] WorkUpdateEvent  入队, id {1}",
+                    _logger.Trace("[{0:D2}] UpdateEvent  入队, id {1}",
                         Thread.CurrentThread.ManagedThreadId, id);
                     MessageQueueUtil.Send(new WorkUpdateEvent() { WorkId = id, UpdateType = WorkUpdateType.Access });
                     Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 3000 + 2000));
@@ -82,7 +84,7 @@ namespace ChuyeEventBus.Host {
             Task.Run(action: () => {
                 while (true) {
                     var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-                    _logger.Trace("[{0:D2}] WorkUpdateEvent  入队, id {1}",
+                    _logger.Trace("[{0:D2}] UpdateEvent  入队, id {1}",
                         Thread.CurrentThread.ManagedThreadId, id);
                     MessageQueueUtil.Send(new WorkUpdateEvent() { WorkId = id, UpdateType = WorkUpdateType.Share });
                     Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 3000 + 2000));
