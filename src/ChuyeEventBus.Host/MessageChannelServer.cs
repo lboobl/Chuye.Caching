@@ -56,10 +56,10 @@ namespace ChuyeEventBus.Host {
                         IMessageChannel channel = new MessageChannel(path);
                         channel.MessageQueueReceived += channel_MessageQueueReceived;
                         channel.Startup();
-                        
                     }
                 }
             }
+            _initialized = true;
         }
 
         void channel_MessageQueueReceived(Message message) {
