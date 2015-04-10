@@ -20,8 +20,6 @@ namespace ChuyeEventBus.Core {
             get { return _singleton; }
         }
 
-
-
         private EventBus() {
         }
 
@@ -59,24 +57,37 @@ namespace ChuyeEventBus.Core {
             }
         }
 
-        public void Publish(IEvent @event) {
-            var eventType = @event.GetType();
+        public void Publish(IEvent eventEntry) {
+            var eventType = eventEntry.GetType();
             Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventBus: 发布事件 {1}",
-                DateTime.Now, @event.GetType().Name));
+                DateTime.Now, eventType.Name));
             List<IEventHandler> eventhandlers;
             if (_eventHandlers.TryGetValue(eventType, out eventhandlers)) {
                 foreach (var eventHandler in eventhandlers) {
                     try {
-                        eventHandler.Handle(@event);
+                        eventHandler.Handle(eventEntry);
                     }
                     catch (Exception ex) {
                         OnErrorOccur(ex);
                     }
                 }
+            }
+        }
 
-                //var domain = AppDomain.CreateDomain(eventType.FullName);
-                //domain.DoCallBack(new CrossAppDomainDelegate());
-                //AppDomain.Unload(domain);
+        public void Publish(IEnumerable<IEvent> eventEntries) {
+            var eventType = eventEntries.First().GetType();
+            Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventBus: 发布事件 {1}",
+                DateTime.Now, eventType.Name));
+            List<IEventHandler> eventhandlers;
+            if (_eventHandlers.TryGetValue(eventType, out eventhandlers)) {
+                foreach (var eventHandler in eventhandlers) {
+                    try {
+                        eventHandler.Handle(eventEntries);
+                    }
+                    catch (Exception ex) {
+                        OnErrorOccur(ex);
+                    }
+                }
             }
         }
 

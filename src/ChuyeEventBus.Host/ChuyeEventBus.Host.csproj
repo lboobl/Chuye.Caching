@@ -51,8 +51,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EventChannel.cs" />
-    <Compile Include="EventChannelServer.cs" />
+    <Compile Include="MessageChannel.cs" />
+    <Compile Include="MessageChannelServer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
-    public class EventChannelServer {
+    public class MessageChannelServer {
 #pragma warning disable
         [ImportMany]
         private IEnumerable<IEventHandler> _handlers;
@@ -43,9 +43,34 @@ namespace ChuyeEventBus.Host {
 
                 foreach (var handler in Handlers) {
                     var path = MessageQueueUtil.GetPath(handler.EventType);
-                    new EventChannel(path).Startup();
+                    //new EventChannel(path).Startup();
+
+                    if (!handler.SupportMultiple) {
+                        IMessageChannel channel = new MessageChannel(path);
+                        channel.MessageQueueReceived += channel_MessageQueueReceived;
+                    }
+                    else {
+                        IMultipleMessageChannel channel = new MultipleMessageChannel(path);
+                        channel.MessageQueueReceived += channel_MessageQueueReceived;
+                        channel.MultipleMessageQueueReceived += channel_MultipleMessageQueueReceived;
+                    }
                 }
             }
+        }
+
+        void channel_MessageQueueReceived(Message message) {
+            var @event = message.Body as IEvent;
+            if (@event == null) {
+                throw new ArgumentOutOfRangeException(String.Format("Unexpected message type of '{0}'", message.Body.GetType()));
+            }
+            EventBus.Singleton.Publish(@event);
+        }
+
+
+
+        void channel_MultipleMessageQueueReceived(IEnumerable<Message> messages) {
+            var events = messages.Select(m => m.Body as IEvent);
+            EventBus.Singleton.Publish(events);
         }
     }
 }

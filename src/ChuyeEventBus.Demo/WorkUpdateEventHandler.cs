@@ -13,6 +13,11 @@ namespace ChuyeEventBus.Demo {
     [Export(typeof(IEventHandler))]
     public class WorkUpdateEventHandler : IEventHandler<WorkUpdateEvent> {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+        public bool SupportMultiple {
+            get { return true; }
+        }
+
         public Type EventType {
             get { return typeof(WorkUpdateEvent); }
         }
@@ -28,6 +33,10 @@ namespace ChuyeEventBus.Demo {
 
         public void Handle(IEvent @event) {
             Handle((WorkUpdateEvent)@event);
+        }
+
+        public void Handle(IEnumerable<IEvent> events) {
+            _logger.Trace("WorkUpdateEventHandler.Handle(IEnumerable<IEvent> events)");
         }
     }
 }
