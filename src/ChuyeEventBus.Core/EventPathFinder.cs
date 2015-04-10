@@ -13,10 +13,14 @@ namespace ChuyeEventBus.Core {
 
         public String FindPath(Type eventType) {
             var eventAttr = eventType.GetCustomAttribute<EventAttribute>();
+            String label;
             if (eventAttr != null) {
-                return eventAttr.Path;
+                label = eventAttr.Label;
             }
-            var label = eventType.FullName.ToString().Replace('.', '_').ToLower();
+            else {
+                label = eventType.FullName.ToString().Replace('.', '_').ToLower();
+            }
+
             return String.Format(@".\Private$\{0}", label);
             //return String.Format(@"FormatName:Direct=TCP:192.168.0.230\private$\{0}", label);
             //return String.Format(@"FormatName:DIRECT=TCP:192.168.0.230\{0}", label);
