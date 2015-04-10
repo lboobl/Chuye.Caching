@@ -1,18 +1,15 @@
 ﻿using NLog;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Messaging;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections.Concurrent;
 
 namespace ChuyeEventBus.Host {
     public class MultipleMessageChannel : MessageChannel, IMultipleMessageChannel {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private static readonly ConcurrentQueue<Message> _messageBag = new ConcurrentQueue<Message>();
-        private static Object _sync = new Object();
+        private static readonly Object _sync = new Object();
 
         public Int32 Quantity { get; private set; }
         public event Action<IEnumerable<Message>> MultipleMessageQueueReceived;
@@ -20,7 +17,7 @@ namespace ChuyeEventBus.Host {
         public MultipleMessageChannel(String path, Int32 quantity)
             : base(path) {
             if (quantity < 1 || quantity > 10000) {
-                throw new ArgumentOutOfRangeException("multiple");
+                throw new ArgumentOutOfRangeException("quantity");
             }
             Quantity = quantity;
         }

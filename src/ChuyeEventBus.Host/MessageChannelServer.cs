@@ -5,8 +5,6 @@ using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using System.Messaging;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
     public class MessageChannelServer {

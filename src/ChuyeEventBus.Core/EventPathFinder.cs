@@ -18,6 +18,8 @@ namespace ChuyeEventBus.Core {
             }
             var label = eventType.FullName.ToString().Replace('.', '_').ToLower();
             return String.Format(@".\Private$\{0}", label);
+            //return String.Format(@"FormatName:Direct=TCP:192.168.0.230\private$\{0}", label);
+            //return String.Format(@"FormatName:DIRECT=TCP:192.168.0.230\{0}", label);
         }
     }
 }

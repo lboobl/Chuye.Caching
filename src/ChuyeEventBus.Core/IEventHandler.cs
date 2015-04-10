@@ -7,10 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {   
-
     public interface IEventHandler {
         Type EventType { get; }
         void Handle(IEvent eventEntry);
-        void Handle(IEnumerable<IEvent> events);
+        void Handle(IEnumerable<IEvent> eventEntries);
     }
 }

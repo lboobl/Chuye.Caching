@@ -67,7 +67,7 @@ namespace ChuyeEventBus.Host {
                     _logger.Trace("[{0:D2}] PublishEvent 入队, id {1}",
                         Thread.CurrentThread.ManagedThreadId, id);
                     MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = id });
-                    //Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 3000 + 2000));
+                    Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 2000 + 1000));
                 }
             });
 
@@ -77,7 +77,7 @@ namespace ChuyeEventBus.Host {
                     _logger.Trace("[{0:D2}] UpdateEvent  入队, id {1}",
                         Thread.CurrentThread.ManagedThreadId, id);
                     MessageQueueUtil.Send(new WorkUpdateEvent() { WorkId = id, UpdateType = WorkUpdateType.Access });
-                    //Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 3000 + 2000));
+                    Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 2000 + 1000));
                 }
             });
 
@@ -87,7 +87,7 @@ namespace ChuyeEventBus.Host {
                     _logger.Trace("[{0:D2}] UpdateEvent  入队, id {1}",
                         Thread.CurrentThread.ManagedThreadId, id);
                     MessageQueueUtil.Send(new WorkUpdateEvent() { WorkId = id, UpdateType = WorkUpdateType.Share });
-                    //Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 3000 + 2000));
+                    Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 2000 + 1000));
                 }
             });
         }
