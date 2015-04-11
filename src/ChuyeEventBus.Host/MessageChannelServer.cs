@@ -13,6 +13,7 @@ namespace ChuyeEventBus.Host {
         private IEnumerable<IEventHandler> _handlers;
 #pragma warning disable
         private Boolean _initialized = false;
+        private CancellationStatus _cancellationStatus = CancellationStatus.None;
 
         public IEnumerable<IEventHandler> Handlers {
             get {
@@ -59,17 +60,37 @@ namespace ChuyeEventBus.Host {
             _initialized = true;
         }
 
-        void channel_MessageQueueReceived(Message message) {
+        private void channel_MessageQueueReceived(Object sender, Message message) {
             var eventEntry = message.Body as IEvent;
             if (eventEntry == null) {
                 throw new ArgumentOutOfRangeException(String.Format("Unexpected message type of '{0}'", message.Body.GetType()));
             }
+
             EventBus.Singleton.Publish(eventEntry);
+            if (_cancellationStatus == CancellationStatus.CancelSuspend) {
+                ((IMessageChannel)sender).Stop();
+            }
         }
 
-        void channel_MultipleMessageQueueReceived(IEnumerable<Message> messages) {
-            var eventEntries = messages.Select(m => m.Body as IEvent);
+        private void channel_MultipleMessageQueueReceived(Object sender, IList<Message> messages) {
+            var eventEntries = messages.Select(m => m.Body as IEvent).ToList();
             EventBus.Singleton.Publish(eventEntries);
+            if (_cancellationStatus == CancellationStatus.CancelSuspend) {
+                ((IMessageChannel)sender).Stop();
+            }
+        }
+
+        public void Stop() {
+            if (_cancellationStatus == CancellationStatus.None) {
+                _cancellationStatus = CancellationStatus.CancelSuspend;
+            }
+            else if (_cancellationStatus == CancellationStatus.CancelSuspend) {
+                //EventBus.Singleton.UnsubscribeAll();
+            }
+        }
+
+        internal enum CancellationStatus {
+            None, CancelSuspend, Canceled
         }
     }
 }

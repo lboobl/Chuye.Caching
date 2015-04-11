@@ -7,10 +7,11 @@ using System.Messaging;
 namespace ChuyeEventBus.Host {
     public class MessageChannel : IMessageChannel {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        protected Boolean _cancelSuspend = false;
         protected Func<MessageQueue> _messageQueueFunction;
 
         public const Int32 WaitSpan = 10;
-        public event Action<Message> MessageQueueReceived;
+        public event EventHandler<Message> MessageQueueReceived;
 
         public MessageChannel(Func<MessageQueue> messageQueueFunction) {
             _messageQueueFunction = messageQueueFunction;
@@ -21,6 +22,10 @@ namespace ChuyeEventBus.Host {
             messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan), messageQueue, new AsyncCallback(MessageQueueEndReceive));
         }
 
+        public virtual void Stop() {
+            _cancelSuspend = true;
+        }
+
         protected virtual void MessageQueueEndReceive(IAsyncResult ir) {
             MessageQueue messageQueue = null;
             Message message = null;
@@ -28,7 +33,7 @@ namespace ChuyeEventBus.Host {
                 messageQueue = (MessageQueue)ir.AsyncState;
                 message = messageQueue.EndReceive(ir);
                 if (MessageQueueReceived != null) {
-                    MessageQueueReceived(message);
+                    MessageQueueReceived(this, message);
                 }
 
             }
@@ -42,7 +47,9 @@ namespace ChuyeEventBus.Host {
                     message.Dispose();
                 }
             }
-            ((IMessageChannel)this.Clone()).Startup();
+            if (!_cancelSuspend) {
+                ((IMessageChannel)this.Clone()).Startup();
+            }
         }
 
         public virtual Object Clone() {

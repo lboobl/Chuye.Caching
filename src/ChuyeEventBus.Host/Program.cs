@@ -13,11 +13,23 @@ namespace ChuyeEventBus.Host {
 
         static void Main(string[] args) {
             Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
-            StartServer();
-            //MockClient();
+            _logger.Trace("MessageChannelServer startup, press <ENTER> to cancel");
+            var server = StartServer();
+            MockClient();
             //MockClientAsync();
 
-            _logger.Trace("Press <ENTER> to exit");
+            StopServer(server);
+        }
+
+        private static void StopServer(MessageChannelServer server) {
+            Console.ReadLine();
+            _logger.Trace("MessageChannelServer cancel suspend");
+            server.Stop();
+
+            _logger.Trace("MessageChannelServer wating for stop");
+            Thread.Sleep(10000);
+
+            _logger.Trace("MessageChannelServer stoped, press <ENTER> to exit");
             Console.ReadLine();
         }
 
@@ -27,36 +39,20 @@ namespace ChuyeEventBus.Host {
             _logger.Trace("    -client");
         }
 
-        static void StartServer() {
+        static MessageChannelServer StartServer() {
             EventBus.Singleton.ErrorHandler = _logger.Error;
 
             var server = new MessageChannelServer();
             server.Folder = AppDomain.CurrentDomain.BaseDirectory;
             server.Initialize();
+
+            return server;
         }
 
         static void MockClient() {
             var works = new[] { 67, 75, 92, 99 };
-            var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-            _logger.Trace("[{0:D2}] PublishEvent 入队, id {0}",
-                 Thread.CurrentThread.ManagedThreadId, id); 
-            MessageQueueUtil.Send(new WorkPublishEvent() {
-                WorkId = id
-            });
-            id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-            _logger.Trace("[{0:D2}] UpdateEvent  入队, id {0}",
-                 Thread.CurrentThread.ManagedThreadId, id); 
-            MessageQueueUtil.Send(new WorkUpdateEvent() {
-                WorkId = id,
-                UpdateType = WorkUpdateType.Access
-            });
-            id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-            _logger.Trace("[{0:D2}] UpdateEvent  入队, id {1}",
-                Thread.CurrentThread.ManagedThreadId, id); 
-            MessageQueueUtil.Send(new WorkUpdateEvent() {
-                WorkId = id,
-                UpdateType = WorkUpdateType.Share
-            });
+            MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length] });
+            MessageQueueUtil.Send(new FansFollowEvent() { FromId = 1, ToId = 2 });
         }
 
         static void MockClientAsync() {
@@ -64,30 +60,16 @@ namespace ChuyeEventBus.Host {
             Task.Run(action: () => {
                 while (true) {
                     var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-                    _logger.Trace("[{0:D2}] PublishEvent 入队, id {1}",
-                        Thread.CurrentThread.ManagedThreadId, id);
                     MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = id });
-                    //Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 2000 + 1000));
+                    Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 2000 + 1000));
                 }
             });
 
             Task.Run(action: () => {
                 while (true) {
                     var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-                    _logger.Trace("[{0:D2}] UpdateEvent  入队, id {1}",
-                        Thread.CurrentThread.ManagedThreadId, id);
-                    MessageQueueUtil.Send(new WorkUpdateEvent() { WorkId = id, UpdateType = WorkUpdateType.Access });
-                    //Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 2000 + 1000));
-                }
-            });
-
-            Task.Run(action: () => {
-                while (true) {
-                    var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-                    _logger.Trace("[{0:D2}] UpdateEvent  入队, id {1}",
-                        Thread.CurrentThread.ManagedThreadId, id);
-                    MessageQueueUtil.Send(new WorkUpdateEvent() { WorkId = id, UpdateType = WorkUpdateType.Share });
-                    //Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 2000 + 1000));
+                    MessageQueueUtil.Send(new FansFollowEvent() { FromId = 1, ToId = 2 });
+                    Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 2000 + 1000));
                 }
             });
         }

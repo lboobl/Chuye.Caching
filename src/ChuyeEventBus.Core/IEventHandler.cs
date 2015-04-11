@@ -10,6 +10,6 @@ namespace ChuyeEventBus.Core {
     public interface IEventHandler {
         Type EventType { get; }
         void Handle(IEvent eventEntry);
-        void Handle(IEnumerable<IEvent> eventEntries);
+        void Handle(IList<IEvent> eventEntries);
     }
 }

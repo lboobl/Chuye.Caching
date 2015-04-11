@@ -12,7 +12,7 @@ namespace ChuyeEventBus.Host {
         private static readonly Object _sync = new Object();
 
         public Int32 Quantity { get; private set; }
-        public event Action<IEnumerable<Message>> MultipleMessageQueueReceived;
+        public event EventHandler<IList<Message>> MultipleMessageQueueReceived;
 
         public MultipleMessageChannel(Func<MessageQueue> messageQueueFunction, Int32 quantity)
             : base(messageQueueFunction) {
@@ -25,6 +25,11 @@ namespace ChuyeEventBus.Host {
         public override void Startup() {
             var messageQueue = _messageQueueFunction();
             messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan), messageQueue, new AsyncCallback(MessageQueueEndReceive));
+        }
+
+        public override void Stop() {
+            HandleMultipleMessages();
+            base.Stop();
         }
 
         protected override void MessageQueueEndReceive(IAsyncResult ir) {
@@ -47,8 +52,9 @@ namespace ChuyeEventBus.Host {
                 }
                 HandleMultipleMessages();
             }
-
-            ((IMessageChannel)this.Clone()).Startup();
+            if (!_cancelSuspend) {
+                ((IMessageChannel)this.Clone()).Startup();
+            }
         }
 
         private void HandleMultipleMessages() {
@@ -56,8 +62,8 @@ namespace ChuyeEventBus.Host {
                 if (_messageBag.Count > 0) {
                     lock (_sync) {
                         var messages = _messageBag.ToArray();
-                        MultipleMessageQueueReceived(messages);
                         ClearMessageBag();
+                        MultipleMessageQueueReceived(this, messages);
                     }
                 }
             }

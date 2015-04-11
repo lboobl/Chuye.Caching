@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace ChuyeEventBus.Host {
     public interface IMessageChannel : ICloneable {
         void Startup();
-        event Action<Message> MessageQueueReceived;
+        void Stop();
+        event EventHandler<Message> MessageQueueReceived;
     }
 }

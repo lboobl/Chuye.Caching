@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 namespace ChuyeEventBus.Core {
     public class EventBus {
         private static readonly EventBus _singleton = new EventBus();
-        private Dictionary<Type, List<IEventHandler>> _eventHandlers = new Dictionary<Type, List<IEventHandler>>();
         private static readonly EventHandlerEqualityComparer _comparer = new EventHandlerEqualityComparer();
+        private Dictionary<Type, List<IEventHandler>> _eventHandlers = new Dictionary<Type, List<IEventHandler>>();
         public Action<Exception> ErrorHandler;
 
         public static EventBus Singleton {
@@ -72,7 +72,7 @@ namespace ChuyeEventBus.Core {
             }
         }
 
-        public void Publish(IEnumerable<IEvent> eventEntries) {
+        public void Publish(IList<IEvent> eventEntries) {
             var eventType = eventEntries.First().GetType();
             Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventBus: 发布事件 {1}",
                 DateTime.Now, eventType.Name));
@@ -90,6 +90,16 @@ namespace ChuyeEventBus.Core {
         }
 
         public void UnsubscribeAll() {
+            //foreach (var eventHandlers in _eventHandlers.Values) {
+            //    foreach (var eventHandler in eventHandlers) {
+            //        try {
+            //            //?
+            //        }
+            //        catch (Exception ex) {
+            //            OnErrorOccur(ex);
+            //        }
+            //    }
+            //}
             _eventHandlers.Clear();
         }
 

@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
     public interface IMultipleMessageChannel : IMessageChannel {
-        event Action<IEnumerable<Message>> MultipleMessageQueueReceived;
+        event EventHandler<IList<Message>> MultipleMessageQueueReceived;
     }
 }

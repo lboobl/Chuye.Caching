@@ -49,8 +49,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WorkPublishEventHandler.cs" />
     <Compile Include="WorkPublishEvent.cs" />
-    <Compile Include="WorkUpdateEvent.cs" />
-    <Compile Include="WorkUpdateEventHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ChuyeEventBus.Core\ChuyeEventBus.Core.csproj">
