@@ -54,18 +54,8 @@ namespace Chuye.Caching.Memcached {
             }
 
             //check json type
-            if (cacheEntry is JObject) {
-                entry = ((JObject)cacheEntry).ToObject<T>();
-                return true;
-            }
-            else if (cacheEntry is ValueType) {
-                entry = (T)cacheEntry;
-                return true;
-            }
-            else {
-                entry = JToken.FromObject(cacheEntry).ToObject<T>();
-                return true;
-            }
+            entry = NewtonsoftJsonUtil.EnsureObjectType<T>(cacheEntry);
+            return true;
 
             //if (!(cacheEntry is ExpirationWraper<T>)) {
             //    //类型不为 T 也不为 ExpirationWraper<T>，抛出异常
