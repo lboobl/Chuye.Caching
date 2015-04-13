@@ -13,7 +13,7 @@ namespace ChuyeEventBus.Core {
         private static readonly EventHandlerEqualityComparer _comparer = new EventHandlerEqualityComparer();
         private Dictionary<Type, List<IEventHandler>> _eventHandlers = new Dictionary<Type, List<IEventHandler>>();
         private Dictionary<IEventHandler, Int32> _errors = new Dictionary<IEventHandler, Int32>();
-        public Action<IEventHandler, Exception> ErrorHandler;
+        public Action<IEventHandler, Exception, IList<IEvent>> ErrorHandler;
         public const Int32 ErrorCapacity = 3;
 
         public static EventBus Singleton {
@@ -68,7 +68,7 @@ namespace ChuyeEventBus.Core {
                         eventHandlers[i].Handle(eventEntry);
                     }
                     catch (Exception ex) {
-                        OnErrorOccur(eventHandlers[i], ex);
+                        OnErrorOccur(eventHandlers[i], ex, new[] { eventEntry });
                     }
                 }
             }
@@ -88,7 +88,7 @@ namespace ChuyeEventBus.Core {
                         eventHandlers[i].Handle(eventEntries);
                     }
                     catch (Exception ex) {
-                        OnErrorOccur(eventHandlers[i], ex);
+                        OnErrorOccur(eventHandlers[i], ex, eventEntries.ToArray());
                     }
                 }
             }
@@ -99,9 +99,9 @@ namespace ChuyeEventBus.Core {
             _eventHandlers.Clear();
         }
 
-        public void OnErrorOccur(IEventHandler eventHandler, Exception error) {
+        public void OnErrorOccur(IEventHandler eventHandler, Exception error, params IEvent[] events) {
             if (ErrorHandler != null) {
-                ErrorHandler(eventHandler, error);
+                ErrorHandler(eventHandler, error, events);
             }
 
             Int32 number;
@@ -111,7 +111,7 @@ namespace ChuyeEventBus.Core {
             else {
                 number = 1;
             }
-            _errors[eventHandler] = number++;            
+            _errors[eventHandler] = number++;
             if (number >= ErrorCapacity) {
                 Unsubscribe(eventHandler);
             }

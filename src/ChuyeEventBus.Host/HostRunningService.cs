@@ -10,11 +10,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
-    internal class HostRunningLog {
+    internal class HostRunningService {
         static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly MongoRepositoryContext _context;
 
-        public HostRunningLog() {
+        public HostRunningService() {
             var conStr = ConfigurationManager.ConnectionStrings["Chuye"].ConnectionString;
             var dbName = "ChuyeEventBus";
             _context = new MongoRepositoryContext(conStr, dbName);
@@ -42,7 +42,7 @@ namespace ChuyeEventBus.Host {
             return runningHistoryEntry.Id;
         }
 
-        public void LogHandlerError(IEventHandler handler, Exception error) {
+        public void LogError(IEventHandler handler, Exception error, IList<IEvent> events) {
             var runningHistoryRepo = new MongoRepository<RunningHistory>(_context);
             var runningHistoryEntry = runningHistoryRepo.All
                    .OrderByDescending(r => r.Id)
@@ -73,6 +73,7 @@ namespace ChuyeEventBus.Host {
                     error.Message,
                     error.StackTrace,
                 },
+                Event = events,
                 CreateAt = DateTime.UtcNow,
             };
             errorDetailRepo.Create(errorDetailEntry);
@@ -100,6 +101,7 @@ namespace ChuyeEventBus.Host {
     public class ErrorDetail : IAggregate {
         public Int32 Id { get; set; }
         public String Source { get; set; }
+        public IList<IEvent> Event { get; set; }
         public Object Error { get; set; }
         public DateTime CreateAt { get; set; }
     }

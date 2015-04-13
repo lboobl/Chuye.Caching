@@ -58,7 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandParser.cs" />
-    <Compile Include="HostRunningLog.cs" />
+    <Compile Include="HostRunningService.cs" />
     <Compile Include="IMessageChannel.cs" />
     <Compile Include="IMultipleMessageChannel.cs" />
     <Compile Include="MessageChannel.cs" />

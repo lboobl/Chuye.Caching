@@ -10,14 +10,14 @@ using System.Linq;
 namespace ChuyeEventBus.Host {
     class Program {
         static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        static HostRunningLog _runningLog;
+        static HostRunningService _runningLog;
         static Boolean _logToMongo = false;
 
         static void Main(string[] args) {
             var form = new CommandParser().ParseAsForm(args);
-            _logToMongo = form.AllKeys.Contains("logToMongo", StringComparer.OrdinalIgnoreCase);
+            _logToMongo = form.AllKeys.Contains("log", StringComparer.OrdinalIgnoreCase);
             if (_logToMongo) {
-                _runningLog = new HostRunningLog();
+                _runningLog = new HostRunningService();
             }
             if (form.AllKeys.Contains("debug", StringComparer.OrdinalIgnoreCase)) {
                 Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
@@ -55,13 +55,12 @@ namespace ChuyeEventBus.Host {
         }
 
         static MessageChannelServer StartServer() {
-            if (_logToMongo) {
-                EventBus.Singleton.ErrorHandler = _runningLog.LogHandlerError;
-                _runningLog.LogServerStatus(ServerStatus.Start);
-            }
-            else {
-                EventBus.Singleton.ErrorHandler = (h, err) => _logger.Error(err);
-            }
+            EventBus.Singleton.ErrorHandler = (h, err, events) => {
+                _runningLog.LogError(h, err, events);
+                if (_logToMongo) {
+                    _logger.Error(err);
+                }
+            };
 
             var server = new MessageChannelServer();
             server.Folder = AppDomain.CurrentDomain.BaseDirectory;
