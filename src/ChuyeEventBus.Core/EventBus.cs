@@ -12,7 +12,9 @@ namespace ChuyeEventBus.Core {
         private static readonly EventBus _singleton = new EventBus();
         private static readonly EventHandlerEqualityComparer _comparer = new EventHandlerEqualityComparer();
         private Dictionary<Type, List<IEventHandler>> _eventHandlers = new Dictionary<Type, List<IEventHandler>>();
+        private Dictionary<IEventHandler, Int32> _errors = new Dictionary<IEventHandler, Int32>();
         public Action<IEventHandler, Exception> ErrorHandler;
+        public const Int32 ErrorCapacity = 3;
 
         public static EventBus Singleton {
             get { return _singleton; }
@@ -59,14 +61,14 @@ namespace ChuyeEventBus.Core {
             var eventType = eventEntry.GetType();
             Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventBus: 发布事件 {1}",
                 DateTime.Now, eventType.Name));
-            List<IEventHandler> eventhandlers;
-            if (_eventHandlers.TryGetValue(eventType, out eventhandlers)) {
-                foreach (var eventHandler in eventhandlers) {
+            List<IEventHandler> eventHandlers;
+            if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {
+                for (int i = 0; i < eventHandlers.Count; i++) {
                     try {
-                        eventHandler.Handle(eventEntry);
+                        eventHandlers[i].Handle(eventEntry);
                     }
                     catch (Exception ex) {
-                        OnErrorOccur(eventHandler, ex);
+                        OnErrorOccur(eventHandlers[i], ex);
                     }
                 }
             }
@@ -79,38 +81,41 @@ namespace ChuyeEventBus.Core {
             var eventType = eventEntries.First().GetType();
             Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventBus: 发布事件 {1}",
                 DateTime.Now, eventType.Name));
-            List<IEventHandler> eventhandlers;
-            if (_eventHandlers.TryGetValue(eventType, out eventhandlers)) {
-                foreach (var eventHandler in eventhandlers) {
+            List<IEventHandler> eventHandlers;
+            if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {
+                for (int i = 0; i < eventHandlers.Count; i++) {
                     try {
-                        eventHandler.Handle(eventEntries);
+                        eventHandlers[i].Handle(eventEntries);
                     }
                     catch (Exception ex) {
-                        OnErrorOccur(eventHandler, ex);
+                        OnErrorOccur(eventHandlers[i], ex);
                     }
                 }
             }
         }
 
         public void UnsubscribeAll() {
-            //foreach (var eventHandlers in _eventHandlers.Values) {
-            //    foreach (var eventHandler in eventHandlers) {
-            //        try {
-            //            //?
-            //        }
-            //        catch (Exception ex) {
-            //            OnErrorOccur(ex);
-            //        }
-            //    }
-            //}
+            Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventBus: 取消全部订阅", DateTime.Now));
             _eventHandlers.Clear();
         }
 
         public void OnErrorOccur(IEventHandler eventHandler, Exception error) {
-            Debug.WriteLine(error.ToString());
             if (ErrorHandler != null) {
                 ErrorHandler(eventHandler, error);
             }
+
+            Int32 number;
+            if (_errors.TryGetValue(eventHandler, out number)) {
+                number += 1;
+            }
+            else {
+                number = 1;
+            }
+            _errors[eventHandler] = number++;            
+            if (number >= ErrorCapacity) {
+                Unsubscribe(eventHandler);
+            }
+
         }
 
         internal class EventHandlerEqualityComparer : IEqualityComparer<IEventHandler> {
