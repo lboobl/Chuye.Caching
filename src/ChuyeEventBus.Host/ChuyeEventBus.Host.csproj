@@ -32,6 +32,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Chuye.Persistent">
+      <HintPath>..\..\release\Chuye.Persistent.dll</HintPath>
+    </Reference>
+    <Reference Include="Chuye.Persistent.Mongo">
+      <HintPath>..\..\release\Chuye.Persistent.Mongo.dll</HintPath>
+    </Reference>
     <Reference Include="MySql.Data">
       <HintPath>..\packages\MySql.Data.6.9.6\lib\net45\MySql.Data.dll</HintPath>
     </Reference>
@@ -51,6 +57,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandParser.cs" />
+    <Compile Include="HostRunningLog.cs" />
     <Compile Include="IMessageChannel.cs" />
     <Compile Include="IMultipleMessageChannel.cs" />
     <Compile Include="MessageChannel.cs" />

@@ -23,7 +23,7 @@ namespace ChuyeEventBus.Demo {
         }
 
         public void Handle(FansFollowEvent eventEntry) {
-            _logger.Trace("FansFollowEventHandler: 用户 {0} Follow 用户 {1}",
+            _logger.Trace("FansFollowEventHandler:  用户 {0} Follow 用户 {1}",
                 eventEntry.FromId, eventEntry.ToId);
         }
         public void Handle(IEvent eventEntry) {

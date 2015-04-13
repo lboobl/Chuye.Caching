@@ -3,15 +3,23 @@ using ChuyeEventBus.Demo;
 using NLog;
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace ChuyeEventBus.Host {
     class Program {
         static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        static HostRunningLog _runningLog;
+        static Boolean _logToMongo = false;
 
         static void Main(string[] args) {
+            var form = new CommandParser().ParseAsForm(args);
+            _logToMongo = form.AllKeys.Contains("logToMongo", StringComparer.OrdinalIgnoreCase);
+            if (_logToMongo) {
+                _runningLog = new HostRunningLog();
+            }
+
             Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
             _logger.Trace("MessageChannelServer startup, press <ENTER> to cancel");
             var server = StartServer();
@@ -24,11 +32,16 @@ namespace ChuyeEventBus.Host {
         private static void StopServer(MessageChannelServer server) {
             Console.ReadLine();
             _logger.Trace("MessageChannelServer cancel suspend");
+            if (_logToMongo) {
+                _runningLog.LogServerStatus(ServerStatus.Suspend);
+            }
             server.Stop();
 
             _logger.Trace("MessageChannelServer wating for stop");
             Thread.Sleep(10000);
-
+            if (_logToMongo) {
+                _runningLog.LogServerStatus(ServerStatus.Stop);
+            }
             _logger.Trace("MessageChannelServer stoped, press <ENTER> to exit");
             Console.ReadLine();
         }
@@ -40,12 +53,17 @@ namespace ChuyeEventBus.Host {
         }
 
         static MessageChannelServer StartServer() {
-            EventBus.Singleton.ErrorHandler = _logger.Error;
+            if (_logToMongo) {
+                EventBus.Singleton.ErrorHandler = _runningLog.LogHandlerError;
+                _runningLog.LogServerStatus(ServerStatus.Start);
+            }
+            else {
+                EventBus.Singleton.ErrorHandler = (h, err) => _logger.Error(err);
+            }
 
             var server = new MessageChannelServer();
             server.Folder = AppDomain.CurrentDomain.BaseDirectory;
             server.Initialize();
-
             return server;
         }
 

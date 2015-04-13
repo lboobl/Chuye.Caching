@@ -90,7 +90,9 @@ namespace ChuyeEventBus.Core {
                 Type msgType = _knownTypes.GetOrAdd(msgTypeName, key => {
                     var assemblies = AppDomain.CurrentDomain.GetAssemblies();
                     var eventType = typeof(IEvent);
-                    msgType = assemblies.SelectMany(t => t.ExportedTypes)
+                    msgType = assemblies
+                        .Where(t => !t.IsDynamic)
+                        .SelectMany(t => t.ExportedTypes)
                         .Where(r => eventType.IsAssignableFrom(r))
                         .First(r => r.FullName == key);
                     if (msgType == null) {

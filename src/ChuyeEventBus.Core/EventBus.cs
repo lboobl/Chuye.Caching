@@ -12,7 +12,7 @@ namespace ChuyeEventBus.Core {
         private static readonly EventBus _singleton = new EventBus();
         private static readonly EventHandlerEqualityComparer _comparer = new EventHandlerEqualityComparer();
         private Dictionary<Type, List<IEventHandler>> _eventHandlers = new Dictionary<Type, List<IEventHandler>>();
-        public Action<Exception> ErrorHandler;
+        public Action<IEventHandler, Exception> ErrorHandler;
 
         public static EventBus Singleton {
             get { return _singleton; }
@@ -66,13 +66,16 @@ namespace ChuyeEventBus.Core {
                         eventHandler.Handle(eventEntry);
                     }
                     catch (Exception ex) {
-                        OnErrorOccur(ex);
+                        OnErrorOccur(eventHandler, ex);
                     }
                 }
             }
         }
 
         public void Publish(IList<IEvent> eventEntries) {
+            if (eventEntries == null || eventEntries.Count == 0) {
+                return;
+            }
             var eventType = eventEntries.First().GetType();
             Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventBus: 发布事件 {1}",
                 DateTime.Now, eventType.Name));
@@ -83,7 +86,7 @@ namespace ChuyeEventBus.Core {
                         eventHandler.Handle(eventEntries);
                     }
                     catch (Exception ex) {
-                        OnErrorOccur(ex);
+                        OnErrorOccur(eventHandler, ex);
                     }
                 }
             }
@@ -103,10 +106,10 @@ namespace ChuyeEventBus.Core {
             _eventHandlers.Clear();
         }
 
-        public void OnErrorOccur(Exception error) {
+        public void OnErrorOccur(IEventHandler eventHandler, Exception error) {
             Debug.WriteLine(error.ToString());
             if (ErrorHandler != null) {
-                ErrorHandler(error);
+                ErrorHandler(eventHandler, error);
             }
         }
 

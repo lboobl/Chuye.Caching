@@ -22,7 +22,7 @@ namespace ChuyeEventBus.Demo {
         }
 
         public void Handle(WorkPublishEvent eventEntry) {
-            _logger.Trace("WorkPublishEventHandler 作品 [{0}] 发布", eventEntry.WorkId);
+            _logger.Trace("WorkPublishEventHandler: 作品 [{0}] 发布", eventEntry.WorkId);
         }
 
         public void Handle(IEvent eventEntry) {
