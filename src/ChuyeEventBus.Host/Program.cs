@@ -23,8 +23,9 @@ namespace ChuyeEventBus.Host {
             Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
             _logger.Trace("MessageChannelServer startup, press <ENTER> to cancel");
             var server = StartServer();
-            MockClient();
-            //MockClientAsync();
+            
+            //MockClient();
+            MockClientAsync();
 
             StopServer(server);
         }

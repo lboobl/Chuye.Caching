@@ -22,6 +22,9 @@ namespace ChuyeEventBus.Demo {
         }
 
         public void Handle(WorkPublishEvent eventEntry) {
+            if ((Guid.NewGuid().GetHashCode() % 3) == 1) {
+                throw new Exception("Mock error in WorkPublishEventHandler");
+            }
             _logger.Trace("WorkPublishEventHandler: 作品 [{0}] 发布", eventEntry.WorkId);
         }
 

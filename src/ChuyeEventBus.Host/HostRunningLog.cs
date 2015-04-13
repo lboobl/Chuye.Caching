@@ -47,7 +47,7 @@ namespace ChuyeEventBus.Host {
             var runningHistoryEntry = runningHistoryRepo.All
                    .OrderByDescending(r => r.Id)
                    .FirstOrDefault();
-            
+
             var lastRunningHistoryId = runningHistoryEntry != null ? runningHistoryEntry.ParentId : 0;
             var errorSummaryRepo = new MongoRepository<ErrorSummary>(_context);
             var handlerType = handler.GetType().FullName;
@@ -69,7 +69,10 @@ namespace ChuyeEventBus.Host {
             var errorDetailRepo = new MongoRepository<ErrorDetail>(_context);
             var errorDetailEntry = new ErrorDetail {
                 Source = handlerType,
-                Error = error,
+                Error = new {
+                    error.Message,
+                    error.StackTrace,
+                },
                 CreateAt = DateTime.UtcNow,
             };
             errorDetailRepo.Create(errorDetailEntry);
@@ -97,7 +100,7 @@ namespace ChuyeEventBus.Host {
     public class ErrorDetail : IAggregate {
         public Int32 Id { get; set; }
         public String Source { get; set; }
-        public Exception Error { get; set; }
+        public Object Error { get; set; }
         public DateTime CreateAt { get; set; }
     }
 }
