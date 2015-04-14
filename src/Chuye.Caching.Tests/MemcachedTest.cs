@@ -26,7 +26,7 @@ namespace Chuye.Caching.Tests {
         }
 
         [TestMethod]
-        public void NullEntry() {
+        public void NullCache() {
             using (MemcachedClient client = new MemcachedClient("enyim.com/memcached")) {
                 String key = Guid.NewGuid().ToString("n");
                 Object value = null;

@@ -1,6 +1,6 @@
 @setlocal 
 @set local=%~dp0
-@pushd "C:\Windows\Microsoft.NET\Framework\v4.0.30319"
+@pushd %WINDIR%\Microsoft.NET\Framework\v4.0.30319\
 @goto build
 
 
