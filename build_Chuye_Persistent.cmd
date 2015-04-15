@@ -5,13 +5,13 @@
 
 
 :build
-msbuild "%local%"src\Chuye.Persistent.sln /t:Rebuild /P:Configuration=Release
+msbuild "%local%src\Chuye.Persistent.sln" /t:Rebuild /P:Configuration=Release
 @goto copy
 
 :copy
-robocopy "%local%"src\Chuye.Persistent\bin\Release %local%release /e
-robocopy "%local%"src\Chuye.Persistent.NH\bin\Release %local%release /e
-robocopy "%local%"src\Chuye.Persistent.Mongo\bin\Release %local%release /e
+robocopy "%local%src\Chuye.Persistent\bin\Release" %local%release /e
+robocopy "%local%src\Chuye.Persistent.NH\bin\Release" %local%release /e
+robocopy "%local%src\Chuye.Persistent.Mongo\bin\Release" %local%release /e
 
 
 :end
