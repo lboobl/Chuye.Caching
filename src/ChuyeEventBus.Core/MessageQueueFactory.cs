@@ -1,13 +1,13 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Messaging;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
-using System.Collections.Concurrent;
 
 namespace ChuyeEventBus.Core {
     public class MessageQueueFactory : IDisposable {
@@ -30,7 +30,7 @@ namespace ChuyeEventBus.Core {
                 return messageQueue;
             }
             else {
-                if (!MessageQueue.Exists(path)) {
+                if (!path.StartsWith("FormatName:") && !MessageQueue.Exists(path)) {
                     MessageQueue.Create(path);
                 }
                 messageQueue = new MessageQueue(path);
@@ -47,6 +47,12 @@ namespace ChuyeEventBus.Core {
             }
             else {
                 label = eventType.FullName.ToString().Replace('.', '_').ToLower();
+            }
+            if (ConfigurationManager.ConnectionStrings["MsmqHost"] != null) {
+                var hostAddress = ConfigurationManager.ConnectionStrings["MsmqHost"].ConnectionString;
+                if (!String.IsNullOrWhiteSpace(hostAddress)) {
+                    return String.Format(@"FormatName:DIRECT=TCP:{0}\Private$\{1}", hostAddress, label);
+                }
             }
             return String.Format(@".\Private$\{0}", label);
             //return String.Format(@"FormatName:Direct=TCP:192.168.0.230\private$\{0}", label);

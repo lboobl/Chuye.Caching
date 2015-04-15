@@ -1,5 +1,4 @@
 ﻿using ChuyeEventBus.Core;
-using ChuyeEventBus.Demo;
 using NLog;
 using System;
 using System.Diagnostics;
@@ -26,8 +25,7 @@ namespace ChuyeEventBus.Host {
             var server = StartServer();
 
             //MockClient();
-            MockClientAsync();
-
+            //MockClientAsync();
             StopServer(server);
         }
 
@@ -68,33 +66,33 @@ namespace ChuyeEventBus.Host {
             return server;
         }
 
-        static void MockClient() {
-            var works = new[] { 67, 75, 92, 99 };
-            _logger.Trace("MessageQueueUtil: Send WorkPublishEvent");
-            MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length] });
-            _logger.Trace("MessageQueueUtil: Send FansFollowEvent");
-            MessageQueueUtil.Send(new FansFollowEvent() { FromId = 1, ToId = 2 });
-        }
+        //static void MockClient() {
+        //    var works = new[] { 67, 75, 92, 99 };
+        //    _logger.Trace("MessageQueueUtil: Send WorkPublishEvent");
+        //    MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length] });
+        //    _logger.Trace("MessageQueueUtil: Send FansFollowEvent");
+        //    MessageQueueUtil.Send(new FansFollowEvent() { FromId = 1, ToId = 2 });
+        //}
 
-        static void MockClientAsync() {
-            var works = new[] { 67, 75, 92, 99 };
-            Task.Run(action: () => {
-                while (true) {
-                    var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-                    _logger.Trace("MessageQueueUtil: Send WorkPublishEvent");
-                    MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = id });
-                    Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 2000 + 1000));
-                }
-            });
+        //static void MockClientAsync() {
+        //    var works = new[] { 67, 75, 92, 99 };
+        //    Task.Run(action: () => {
+        //        while (true) {
+        //            var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
+        //            _logger.Trace("MessageQueueUtil: Send WorkPublishEvent");
+        //            MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = id });
+        //            Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 2000 + 1000));
+        //        }
+        //    });
 
-            Task.Run(action: () => {
-                while (true) {
-                    var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-                    _logger.Trace("MessageQueueUtil: Send FansFollowEvent");
-                    MessageQueueUtil.Send(new FansFollowEvent() { FromId = 1, ToId = 2 });
-                    Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 2000 + 1000));
-                }
-            });
-        }
+        //    Task.Run(action: () => {
+        //        while (true) {
+        //            var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
+        //            _logger.Trace("MessageQueueUtil: Send FansFollowEvent");
+        //            MessageQueueUtil.Send(new FansFollowEvent() { FromId = 1, ToId = 2 });
+        //            Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 2000 + 1000));
+        //        }
+        //    });
+        //}
     }
 }
