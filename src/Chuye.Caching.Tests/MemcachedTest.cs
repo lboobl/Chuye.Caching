@@ -2,6 +2,10 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Enyim.Caching;
 using Enyim.Caching.Memcached;
+using System.Reflection;
+using Chuye.Caching.Memcached;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Chuye.Caching.Tests {
     [TestClass]
@@ -10,18 +14,6 @@ namespace Chuye.Caching.Tests {
         public void Online() {
             using (MemcachedClient client = new MemcachedClient("enyim.com/memcached")) {
                 String key = Guid.NewGuid().ToString("n");
-                //key = "7864189e85c4478b9b8946db8b26c922";
-                //var r = client.Get(key);
-                //client.Store(StoreMode.Set, key, new Person {
-                //    Id = 2,
-                //    Name = "Rattz",
-                //    Address = new Address {
-                //        Line1 = "Haidin Shuzhoujie",
-                //        Line2 = "Beijing China"
-                //    }
-                //}); 
-                //return;
-
                 Object value = client.Get(key);
                 Assert.IsNull(value);
 
@@ -53,6 +45,51 @@ namespace Chuye.Caching.Tests {
                 var exist = client.TryGet(key, out value);
                 Assert.IsTrue(exist);
                 Assert.IsNull(value);
+            }
+        }
+
+        [TestMethod]
+        public void Compatibility() {
+            using (MemcachedClient client = new MemcachedClient("enyim.com/memcached")) {
+                var array = new List<Object>();
+                array.Add(new Object());
+                array.Add(Guid.NewGuid().GetHashCode());
+                array.Add(1.1m);
+                array.Add(Guid.NewGuid());
+                array.Add(Guid.NewGuid().GetHashCode().ToString());
+                array.Add(new[] { 1, 2 });
+                array.Add(new[] { Guid.NewGuid().ToString() });
+                array.Add(new Person {
+                    Id = 2,
+                    Name = "Rattz",
+                    Address = new Address {
+                        Line1 = "Haidin Shuzhoujie",
+                        Line2 = "Beijing China"
+                    }
+                });
+
+                var transcoderProp = typeof(MemcachedClient).GetField("transcoder", BindingFlags.Instance | BindingFlags.NonPublic);
+                var region = Guid.NewGuid().ToString("n");
+                region = "Compatibility";
+                for (var i = 0; i < array.Count; i++) {
+                    if ((Guid.NewGuid().GetHashCode() % 2) == 1) {
+                        transcoderProp.SetValue(client, new NewtonsoftJsonTranscoder());
+                    }
+                    else {
+                        transcoderProp.SetValue(client, new DefaultTranscoder());
+                    }
+
+                    var key = region + "_" + i;
+                    client.Store(StoreMode.Set, key, array[i]);
+
+                    transcoderProp.SetValue(client, new NewtonsoftJsonTranscoder());
+                    Object cache;
+                    Assert.IsTrue(client.TryGet(key, out cache));
+                    //Assert.AreEqual(array[i].GetType(), cache.GetType());
+
+                    Assert.AreEqual(JsonConvert.SerializeObject(array[i]),
+                        JsonConvert.SerializeObject(cache));
+                }
             }
         }
     }

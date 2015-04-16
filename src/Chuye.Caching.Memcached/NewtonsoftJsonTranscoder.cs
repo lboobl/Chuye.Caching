@@ -9,8 +9,20 @@ using System.Threading.Tasks;
 
 namespace Chuye.Caching.Memcached {
     public class NewtonsoftJsonTranscoder : DefaultTranscoder {
+        private static readonly Byte[] _donetBytes;
+
+        static NewtonsoftJsonTranscoder() {
+            _donetBytes = new[] { 0, 1, 0, 0, 0, 255, 255, 255, 255 }
+                .Select(x => Convert.ToByte(x)).ToArray();
+        }
+
         protected override object DeserializeObject(ArraySegment<byte> value) {
-            //return base.DeserializeObject(value);
+            if (value.Array.Length >= _donetBytes.Length) {
+                var equal = _donetBytes.Select((b, i) => value.Array[i] == b).Any(x => !x);
+                if (!equal) {
+                    return base.DeserializeObject(value);
+                }
+            }
 
             JsonSerializer serializer = new JsonSerializer();
             serializer.NullValueHandling = NullValueHandling.Ignore;

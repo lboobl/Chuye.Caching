@@ -99,6 +99,7 @@ namespace Chuye.Caching.Tests {
         [TestMethod]
         public void OverwriteWithslidingExpirationTest() {
             var key = Guid.NewGuid().ToString("n");
+            key = "ecc6cf4d923f48b3a98f11b9641549fd";
             var val = Guid.NewGuid();
 
             IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider();
