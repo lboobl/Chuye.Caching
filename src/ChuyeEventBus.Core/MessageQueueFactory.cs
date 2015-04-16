@@ -51,7 +51,9 @@ namespace ChuyeEventBus.Core {
             if (ConfigurationManager.ConnectionStrings["MsmqHost"] != null) {
                 var hostAddress = ConfigurationManager.ConnectionStrings["MsmqHost"].ConnectionString;
                 if (!String.IsNullOrWhiteSpace(hostAddress)) {
+                    //todo: 使用格式写入配置文件
                     return String.Format(@"FormatName:DIRECT=TCP:{0}\Private$\{1}", hostAddress, label);
+                    //return String.Format(@"FormatName:Direct=http://{0}/msmq/private$/{1}", hostAddress, label);
                 }
             }
             return String.Format(@".\Private$\{0}", label);
