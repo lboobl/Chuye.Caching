@@ -8,17 +8,17 @@ namespace ChuyeEventBus.Host {
     public class MessageChannel : IMessageChannel {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         protected Boolean _cancelSuspend = false;
-        protected Func<MessageQueue> _messageQueueFunction;
+        protected readonly EventBehaviourAttribute _eventBehaviour;
 
         public const Int32 WaitSpan = 10;
         public event EventHandler<Message> MessageQueueReceived;
 
-        public MessageChannel(Func<MessageQueue> messageQueueFunction) {
-            _messageQueueFunction = messageQueueFunction;
+        public MessageChannel(EventBehaviourAttribute eventBehaviour) {
+            _eventBehaviour = eventBehaviour;
         }
 
         public virtual void Startup() {
-            var messageQueue = _messageQueueFunction();
+            var messageQueue = MessageQueueUtil.ApplyQueue(_eventBehaviour);
             messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan), messageQueue, new AsyncCallback(MessageQueueEndReceive));
         }
 
@@ -53,7 +53,7 @@ namespace ChuyeEventBus.Host {
         }
 
         public virtual Object Clone() {
-            var channel = new MessageChannel(_messageQueueFunction);
+            var channel = new MessageChannel(_eventBehaviour);
             channel.MessageQueueReceived = this.MessageQueueReceived;
             return channel;
         }

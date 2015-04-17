@@ -1,4 +1,5 @@
-﻿using NLog;
+﻿using ChuyeEventBus.Core;
+using NLog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,16 +15,12 @@ namespace ChuyeEventBus.Host {
         public Int32 Quantity { get; private set; }
         public event EventHandler<IList<Message>> MultipleMessageQueueReceived;
 
-        public MultipleMessageChannel(Func<MessageQueue> messageQueueFunction, Int32 quantity)
-            : base(messageQueueFunction) {
-            if (quantity < 1 || quantity > 10000) {
-                throw new ArgumentOutOfRangeException("quantity");
-            }
-            Quantity = quantity;
+        public MultipleMessageChannel(EventBehaviourAttribute eventBehaviour)
+            : base(eventBehaviour) {
         }
 
         public override void Startup() {
-            var messageQueue = _messageQueueFunction();
+            var messageQueue = MessageQueueUtil.ApplyQueue(_eventBehaviour);
             messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan), messageQueue, new AsyncCallback(MessageQueueEndReceive));
         }
 
@@ -70,7 +67,7 @@ namespace ChuyeEventBus.Host {
         }
 
         public override object Clone() {
-            var channel = new MultipleMessageChannel(_messageQueueFunction, Quantity);
+            var channel = new MultipleMessageChannel(_eventBehaviour);
             channel.MultipleMessageQueueReceived = this.MultipleMessageQueueReceived;
             return channel;
         }

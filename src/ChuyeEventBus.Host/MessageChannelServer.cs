@@ -35,7 +35,6 @@ namespace ChuyeEventBus.Host {
                 var container = new CompositionContainer(catalog);
                 container.ComposeParts(this);
 
-                var factory = new MessageQueueFactory();
                 EventBus.Singleton.UnsubscribeAll();
                 foreach (var handler in Handlers) {
                     EventBus.Singleton.Subscribe(handler);
@@ -47,15 +46,14 @@ namespace ChuyeEventBus.Host {
                     var eventBehaviour = EventExtension.BuildEventBehaviour(eventType);
                     if (eventBehaviour.DequeueQuantity == 1) {
                         foreach (var handler in handlerGroups) {
-                            IMessageChannel channel = new MessageChannel(() => factory.ApplyQueue(eventType));
+                            IMessageChannel channel = new MessageChannel(eventBehaviour);
                             channel.MessageQueueReceived += channel_MessageQueueReceived;
                             channel.Startup();
                         }
                     }
                     else {
                         foreach (var handler in handlerGroups) {
-                            IMultipleMessageChannel channel = new MultipleMessageChannel(()
-                                => factory.ApplyQueue(eventType), eventBehaviour.DequeueQuantity);
+                            IMultipleMessageChannel channel = new MultipleMessageChannel(eventBehaviour);
                             channel.MessageQueueReceived += channel_MessageQueueReceived;
                             channel.MultipleMessageQueueReceived += channel_MultipleMessageQueueReceived;
                             channel.Startup();
