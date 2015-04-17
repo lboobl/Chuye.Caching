@@ -77,7 +77,7 @@ namespace Chuye.Persistent.Demo {
                     Title = "C#", Salary = 4
                 }
             };
-            repository.Create(Aimee);
+            repository.Save(Aimee);
             var Becky = new Employee {
                 Name = "Becky", Address = "Bejing", Birth = DateTime.Now,
                 Job = new Job {

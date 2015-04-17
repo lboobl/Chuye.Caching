@@ -57,13 +57,20 @@ namespace Chuye.Persistent.Mongo {
             var docs = _context.DatabaseFactory().GetCollection<TEntry>();
             docs.Update(Query<TEntry>.EQ(r => r.Id, entry.Id),
                 Update<TEntry>.Replace(entry),
-                UpdateFlags.Upsert);
+                UpdateFlags.None);
         }
 
         public override void Update(IEnumerable<TEntry> entries) {
             foreach (var entry in entries) {
                 Update(entry);
             }
+        }
+
+        public override void Save(TEntry entry) {
+            var docs = _context.DatabaseFactory().GetCollection<TEntry>();
+            docs.Update(Query<TEntry>.EQ(r => r.Id, entry.Id),
+                Update<TEntry>.Replace(entry),
+                UpdateFlags.Upsert);
         }
 
         public override void Delete(TEntry entry) {
@@ -86,7 +93,7 @@ namespace Chuye.Persistent.Mongo {
         }
     }
 
-    public static class MongoDatabaseExtension {        
+    public static class MongoDatabaseExtension {
 
         public static MongoCollection<TEntry> GetCollection<TEntry>(this MongoDatabase mongoDatabase) {
             return mongoDatabase.GetCollection<TEntry>(MongoEntryMapperFactory.Mapger.Map<TEntry>());

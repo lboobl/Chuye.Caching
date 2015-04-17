@@ -59,6 +59,10 @@ namespace Chuye.Persistent.NH {
             session.Flush();
         }
 
+        public override void Save(TEntry entry) {
+            _context.EnsureSession().SaveOrUpdate(entry);
+        }
+
         public override void Delete(TEntry entry) {
             var session = _context.EnsureSession();
             session.Delete(entry);

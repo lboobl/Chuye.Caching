@@ -10,6 +10,7 @@ namespace Chuye.Persistent {
         void Create(TEntry entry);
         void Update(TEntry entry);
         void Update(IEnumerable<TEntry> entries);
+        void Save(TEntry entry);
         void Delete(TEntry entry);
         void Delete(IEnumerable<TEntry> entries);
 

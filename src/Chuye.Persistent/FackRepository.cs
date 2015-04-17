@@ -43,6 +43,12 @@ namespace Chuye.Persistent {
         public override void Update(IEnumerable<TEntry> entries) {
         }
 
+        public override void Save(TEntry entry) {
+            if (entry.Id == 0) {
+                Create(entry);
+            }
+        }
+
         public override TEntry Retrive(int key) {
             return _all.FirstOrDefault(r => r.Id == key);
         }

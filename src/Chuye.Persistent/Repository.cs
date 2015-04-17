@@ -24,6 +24,7 @@ namespace Chuye.Persistent {
         public abstract void Create(TEntry entry);
         public abstract void Update(TEntry entry);
         public abstract void Update(IEnumerable<TEntry> entries);
+        public abstract void Save(TEntry entry);
         public abstract void Delete(TEntry entry);
         public abstract void Delete(IEnumerable<TEntry> entries);
     }
