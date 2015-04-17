@@ -44,10 +44,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EventAttribute.cs" />
+    <Compile Include="EventBehaviourAttribute.cs" />
     <Compile Include="EventBus.cs" />
-    <Compile Include="EventHandlerAttribute.cs" />
-    <Compile Include="EventHandlerExtension.cs" />
+    <Compile Include="EventExtension.cs" />
     <Compile Include="IEvent.cs" />
     <Compile Include="IEventHandler.cs" />
     <Compile Include="IEventHandler`.cs" />

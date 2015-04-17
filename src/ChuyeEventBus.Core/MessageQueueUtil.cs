@@ -6,7 +6,7 @@ namespace ChuyeEventBus.Core {
     public static class MessageQueueUtil {
         public static void Send(IEvent eventEntry) {
             var factory = new MessageQueueFactory();
-            var queue = factory.ApplyQueue(eventEntry);
+            var queue = factory.ApplyQueue(eventEntry.GetType());
             //Debug.WriteLine(String.Format("Sending {0} from {1}", eventEntry.GetType().FullName, queue.Path));
             queue.Send(eventEntry);
         }

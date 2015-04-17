@@ -18,56 +18,22 @@ namespace ChuyeEventBus.Core {
             Dispose();
         }
 
-        public MessageQueue ApplyQueue(IEvent eventEntry) {
-            var eventType = eventEntry.GetType();
-            return ApplyQueue(eventType);
-        }
-
         public MessageQueue ApplyQueue(Type eventType) {
-            var path = FindMessagePath(eventType);
+            var behaviour = EventExtension.BuildEventBehaviour(eventType);
             MessageQueue messageQueue;
-            if (_queues.TryGetValue(path, out messageQueue)) {
+            if (_queues.TryGetValue(behaviour.Label, out messageQueue)) {
                 return messageQueue;
             }
             else {
-                if (!path.StartsWith("FormatName:") && !MessageQueue.Exists(path)) {
-                    MessageQueue.Create(path);
+                if (!behaviour.Label.StartsWith("FormatName:") && !MessageQueue.Exists(behaviour.Label)) {
+                    MessageQueue.Create(behaviour.Label);
                 }
-                messageQueue = new MessageQueue(path);
-                messageQueue.Formatter = FindMessageFormatter(eventType);
+                messageQueue = new MessageQueue(behaviour.Label);
+                messageQueue.Formatter = (IMessageFormatter)Activator.CreateInstance(behaviour.Formatter);
                 return messageQueue;
             }
         }
 
-        public String FindMessagePath(Type eventType) {
-            var eventAttr = eventType.GetCustomAttribute<EventAttribute>();
-            String label;
-            if (eventAttr != null && !String.IsNullOrWhiteSpace(eventAttr.Label)) {
-                label = eventAttr.Label;
-            }
-            else {
-                label = eventType.FullName.ToString().Replace('.', '_').ToLower();
-            }
-            if (ConfigurationManager.ConnectionStrings["MsmqHost"] != null) {
-                var hostAddress = ConfigurationManager.ConnectionStrings["MsmqHost"].ConnectionString;
-                if (!String.IsNullOrWhiteSpace(hostAddress)) {
-                    //todo: 使用格式写入配置文件
-                    return String.Format(@"FormatName:DIRECT=TCP:{0}\Private$\{1}", hostAddress, label);
-                    //return String.Format(@"FormatName:Direct=http://{0}/msmq/private$/{1}", hostAddress, label);
-                }
-            }
-            return String.Format(@".\Private$\{0}", label);
-            //return String.Format(@"FormatName:Direct=TCP:192.168.0.230\private$\{0}", label);
-            //return String.Format(@"FormatName:DIRECT=TCP:192.168.0.230\{0}", label);
-        }
-
-        private IMessageFormatter FindMessageFormatter(Type eventType) {
-            var eventAttr = eventType.GetCustomAttribute<EventAttribute>();
-            if (eventAttr == null || eventAttr.Formatter == null) {
-                return new BinaryMessageFormatter();
-            }
-            return (IMessageFormatter)Activator.CreateInstance(eventAttr.Formatter);
-        }
 
         public void Dispose() {
             foreach (var queue in _queues) {

@@ -6,10 +6,9 @@ using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChuyeEventBus.Core {   
+namespace ChuyeEventBus.Core {
     public interface IEventHandler {
-        Type EventType { get; }
         void Handle(IEvent eventEntry);
-        void Handle(IList<IEvent> eventEntries);
+        void Handle(IEnumerable<IEvent> eventEntries);
     }
 }

@@ -13,15 +13,7 @@ namespace ChuyeEventBus.Demo {
     [Export(typeof(IEventHandler))]
     public class FansFollowEventHandler : IEventHandler<FansFollowEvent> {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-
-        public bool SupportMultiple {
-            get { return false; }
-        }
-
-        public Type EventType {
-            get { return typeof(FansFollowEvent); }
-        }
-
+        
         public void Handle(FansFollowEvent eventEntry) {
             _logger.Trace("FansFollowEventHandler : 用户 {0} Follow 用户 {1}",
                 eventEntry.FromId, eventEntry.ToId);
@@ -30,7 +22,7 @@ namespace ChuyeEventBus.Demo {
             Handle((FansFollowEvent)eventEntry);
         }
 
-        public void Handle(IList<IEvent> events) {
+        public void Handle(IEnumerable<IEvent> events) {
             throw new NotImplementedException();
         }
     }

@@ -41,23 +41,31 @@ namespace ChuyeEventBus.Host {
                     EventBus.Singleton.Subscribe(handler);
                 }
 
-                foreach (var handler in Handlers) {
-                    var path = factory.FindMessagePath(handler.EventType);
-                    var quantity = 1;
-                    if (handler.SupportMultiple(out quantity)) {
-                        IMultipleMessageChannel channel = new MultipleMessageChannel(() => factory.ApplyQueue(handler.EventType), quantity);
-                        channel.MessageQueueReceived += channel_MessageQueueReceived;
-                        channel.MultipleMessageQueueReceived += channel_MultipleMessageQueueReceived;
-                        channel.Startup();
+                var handlerGroups = Handlers.GroupBy(r => r.GetEventType());
+                foreach (var handlerGroup in handlerGroups) {
+                    var eventType = handlerGroup.Key;
+                    var eventBehaviour = EventExtension.BuildEventBehaviour(eventType);
+                    if (eventBehaviour.DequeueQuantity == 1) {
+                        foreach (var handler in handlerGroups) {
+                            IMessageChannel channel = new MessageChannel(() => factory.ApplyQueue(eventType));
+                            channel.MessageQueueReceived += channel_MessageQueueReceived;
+                            channel.Startup();
+                        }
                     }
                     else {
-                        IMessageChannel channel = new MessageChannel(() => factory.ApplyQueue(handler.EventType));
-                        channel.MessageQueueReceived += channel_MessageQueueReceived;
-                        channel.Startup();
+                        foreach (var handler in handlerGroups) {
+                            IMultipleMessageChannel channel = new MultipleMessageChannel(()
+                                => factory.ApplyQueue(eventType), eventBehaviour.DequeueQuantity);
+                            channel.MessageQueueReceived += channel_MessageQueueReceived;
+                            channel.MultipleMessageQueueReceived += channel_MultipleMessageQueueReceived;
+                            channel.Startup();
+                        }
                     }
+
+
                 }
+                _initialized = true;
             }
-            _initialized = true;
         }
 
         private void channel_MessageQueueReceived(Object sender, Message message) {
