@@ -31,7 +31,6 @@ namespace ChuyeEventBus.Host {
             if (!_initialized || rescan) {
                 var catalog = new AggregateCatalog();
                 catalog.Catalogs.Add(new DirectoryCatalog(Folder));
-                //catalog.Catalogs.Add(new AssemblyCatalog(typeof(FirstPageWorks.ServiceLocator).Assembly));
                 var container = new CompositionContainer(catalog);
                 container.ComposeParts(this);
 

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
     internal class HostRunningService {
-        static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly MongoRepositoryContext _context;
 
         public HostRunningService() {

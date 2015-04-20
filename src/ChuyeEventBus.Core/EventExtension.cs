@@ -23,7 +23,7 @@ namespace ChuyeEventBus.Core {
 
         public static EventBehaviourAttribute BuildEventBehaviour(Type eventType) {
             var eventBehaviour = eventType.GetCustomAttribute<EventBehaviourAttribute>();
-            if (eventBehaviour == null || eventBehaviour.Formatter == null) {
+            if (eventBehaviour == null) {
                 eventBehaviour = new EventBehaviourAttribute {
                     ConcurrentQuantity = 1,
                     DequeueQuantity = 1,
