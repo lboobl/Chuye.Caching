@@ -19,6 +19,10 @@ namespace ChuyeEventBus.Host {
             if (_logToMongo) {
                 _runningLog = new HostRunningService();
             }
+
+            LogUtil.Trace = _logger.Trace;
+            LogUtil.Debug = _logger.Debug;
+            LogUtil.Warn = _logger.Warn;
             _logger.Info("MessageChannelServer startup, press <ENTER> to cancel");
             var server = StartServer();
 
