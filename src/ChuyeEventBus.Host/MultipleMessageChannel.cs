@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Messaging;
+using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
     public class MultipleMessageChannel : MessageChannel, IMultipleMessageChannel {
@@ -12,16 +13,40 @@ namespace ChuyeEventBus.Host {
         private static readonly ConcurrentQueue<Message> _messageBag = new ConcurrentQueue<Message>();
         private static readonly Object _sync = new Object();
 
-        public Int32 Quantity { get; private set; }
         public event EventHandler<IList<Message>> MultipleMessageQueueReceived;
 
         public MultipleMessageChannel(EventBehaviourAttribute eventBehaviour)
             : base(eventBehaviour) {
         }
 
-        public override void Startup() {
-            var messageQueue = MessageQueueUtil.ApplyQueue(_eventBehaviour);
-            messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan), messageQueue, new AsyncCallback(MessageQueueEndReceive));
+        public override async Task StartupAsync() {
+            var messageQueue = MessageQueueUtil.ApplyQueue(EventBehaviour);
+            //messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan), messageQueue, new AsyncCallback(MessageQueueEndReceive));
+
+            Boolean errorOccured = false;
+            Message message = null;
+            try {
+                message = await Task.Factory.FromAsync<Message>(
+                   asyncResult: messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan)),
+                   endMethod: ir => messageQueue.EndReceive(ir));
+                _messageBag.Enqueue(message);
+            }
+            catch (MessageQueueException ex) {
+                errorOccured = true;
+                if (ex.MessageQueueErrorCode != MessageQueueErrorCode.IOTimeout) {
+                    throw;
+                }
+            }
+
+            //如果出列异常(包含超时)且已经存在临时消息, 则处理掉
+            //如果临时消息已塞满,则处理掉
+            if (errorOccured || _messageBag.Count >= EventBehaviour.DequeueQuantity) {
+                HandleMultipleMessages();
+            }
+
+            if (!_cancelSuspend) {
+                await ((IMessageChannel)this.Clone()).StartupAsync();
+            }
         }
 
         public override void Stop() {
@@ -29,35 +54,10 @@ namespace ChuyeEventBus.Host {
             base.Stop();
         }
 
-        protected override void MessageQueueEndReceive(IAsyncResult ir) {
-            try {
-                var messageQueue = (MessageQueue)ir.AsyncState;
-                var message = messageQueue.EndReceive(ir);
-
-                if (MultipleMessageQueueReceived != null) {
-                    if (_messageBag.Count < Quantity) {
-                        _messageBag.Enqueue(message);
-                    }
-                    else {
-                        HandleMultipleMessages();
-                    }
-                }
-            }
-            catch (MessageQueueException ex) {
-                if (ex.MessageQueueErrorCode != MessageQueueErrorCode.IOTimeout) {
-                    _logger.Error(ex);
-                }
-                HandleMultipleMessages();
-            }
-            if (!_cancelSuspend) {
-                ((IMessageChannel)this.Clone()).Startup();
-            }
-        }
-
         private void HandleMultipleMessages() {
-            if (MultipleMessageQueueReceived != null) {
-                if (_messageBag.Count > 0) {
-                    lock (_sync) {
+            if (_messageBag.Count > 0) {
+                lock (_sync) {
+                    if (MultipleMessageQueueReceived != null) {
                         var messages = _messageBag.ToArray();
                         ClearMessageBag();
                         MultipleMessageQueueReceived(this, messages);
@@ -67,7 +67,7 @@ namespace ChuyeEventBus.Host {
         }
 
         public override object Clone() {
-            var channel = new MultipleMessageChannel(_eventBehaviour);
+            var channel = new MultipleMessageChannel(EventBehaviour);
             channel.MultipleMessageQueueReceived = this.MultipleMessageQueueReceived;
             return channel;
         }

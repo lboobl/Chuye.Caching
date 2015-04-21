@@ -13,7 +13,7 @@ namespace ChuyeEventBus.Demo {
     [Export(typeof(IEventHandler))]
     public class FansFollowEventHandler : IEventHandler<FansFollowEvent> {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        
+
         public void Handle(FansFollowEvent eventEntry) {
             _logger.Trace("FansFollowEventHandler : 用户 {0} Follow 用户 {1}",
                 eventEntry.FromId, eventEntry.ToId);

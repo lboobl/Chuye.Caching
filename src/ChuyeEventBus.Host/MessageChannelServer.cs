@@ -47,7 +47,7 @@ namespace ChuyeEventBus.Host {
                         foreach (var handler in handlerGroups) {
                             IMessageChannel channel = new MessageChannel(eventBehaviour);
                             channel.MessageQueueReceived += channel_MessageQueueReceived;
-                            channel.Startup();
+                            channel.StartupAsync();
                         }
                     }
                     else {
@@ -55,11 +55,9 @@ namespace ChuyeEventBus.Host {
                             IMultipleMessageChannel channel = new MultipleMessageChannel(eventBehaviour);
                             channel.MessageQueueReceived += channel_MessageQueueReceived;
                             channel.MultipleMessageQueueReceived += channel_MultipleMessageQueueReceived;
-                            channel.Startup();
+                            channel.StartupAsync();
                         }
                     }
-
-
                 }
                 _initialized = true;
             }

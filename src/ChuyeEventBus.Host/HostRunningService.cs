@@ -15,7 +15,7 @@ namespace ChuyeEventBus.Host {
         private readonly MongoRepositoryContext _context;
 
         public HostRunningService() {
-            var conStr = ConfigurationManager.ConnectionStrings["Chuye"].ConnectionString;
+            var conStr = ConfigurationManager.ConnectionStrings["ChuyeEventBus"].ConnectionString;
             _context = new MongoRepositoryContext(conStr, "ChuyeEventBus");
         }
 

@@ -15,8 +15,6 @@ namespace ChuyeEventBus.Core {
         private Dictionary<Type, List<IEventHandler>> _eventHandlers = new Dictionary<Type, List<IEventHandler>>();
         private Dictionary<IEventHandler, Int32> _errors = new Dictionary<IEventHandler, Int32>();
 
-
-
         public Action<IEventHandler, Exception, IList<IEvent>> ErrorHandler;
         public const Int32 ErrorCapacity = 3;
 
@@ -51,14 +49,17 @@ namespace ChuyeEventBus.Core {
             if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {
                 LogUtil.Debug("EventBus: 取消订阅 {0} for {1}", eventHandler.GetType().Name, eventType.Name);
                 eventHandlers.RemoveAll(r => _comparer.Equals(r, eventHandler));
+                if (eventHandlers.Count == 0) {
+                    _eventHandlers.Remove(eventType);
+                }
             }
         }
 
         public void Publish(IEvent eventEntry) {
             var eventType = eventEntry.GetType();
-            LogUtil.Debug("EventBus: 发布事件 {0}", eventType.Name);
             List<IEventHandler> eventHandlers;
             if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {
+                LogUtil.Debug("EventBus: 发布事件 {0}", eventType.Name);
                 for (int i = 0; i < eventHandlers.Count; i++) {
                     try {
                         eventHandlers[i].Handle(eventEntry);
@@ -75,9 +76,9 @@ namespace ChuyeEventBus.Core {
                 return;
             }
             var eventType = eventEntries.First().GetType();
-            LogUtil.Debug("EventBus: 发布事件 {0}", eventType.Name);
             List<IEventHandler> eventHandlers;
             if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {
+                LogUtil.Debug("EventBus: 发布事件 {0}", eventType.Name);
                 for (int i = 0; i < eventHandlers.Count; i++) {
                     try {
                         eventHandlers[i].Handle(eventEntries);
@@ -103,11 +104,10 @@ namespace ChuyeEventBus.Core {
             if (!_errors.TryGetValue(eventHandler, out number)) {
                 number = 0;
             }
-            _errors[eventHandler] = number++;
+            _errors[eventHandler] = ++number;
             if (number >= ErrorCapacity) {
                 Unsubscribe(eventHandler);
             }
-
         }
 
         internal class EventHandlerEqualityComparer : IEqualityComparer<IEventHandler> {

@@ -3,43 +3,40 @@ using NLog;
 using System;
 using System.Diagnostics;
 using System.Messaging;
+using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
     public class MessageChannel : IMessageChannel {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly EventBehaviourAttribute _eventBehaviour;
         protected Boolean _cancelSuspend = false;
-        protected readonly EventBehaviourAttribute _eventBehaviour;
 
         public const Int32 WaitSpan = 10;
         public event EventHandler<Message> MessageQueueReceived;
+
+        public EventBehaviourAttribute EventBehaviour {
+            get { return _eventBehaviour; }
+        }
 
         public MessageChannel(EventBehaviourAttribute eventBehaviour) {
             _eventBehaviour = eventBehaviour;
         }
 
-        public virtual void Startup() {
+        public async virtual Task StartupAsync() {
             var messageQueue = MessageQueueUtil.ApplyQueue(_eventBehaviour);
-            messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan), messageQueue, new AsyncCallback(MessageQueueEndReceive));
-        }
-
-        public virtual void Stop() {
-            _cancelSuspend = true;
-        }
-
-        protected virtual void MessageQueueEndReceive(IAsyncResult ir) {
-            MessageQueue messageQueue = null;
             Message message = null;
             try {
-                messageQueue = (MessageQueue)ir.AsyncState;
-                message = messageQueue.EndReceive(ir);
+                message = await Task.Factory.FromAsync<Message>(
+                   asyncResult: messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan)),
+                   endMethod: ir => messageQueue.EndReceive(ir));
+
                 if (MessageQueueReceived != null) {
                     MessageQueueReceived(this, message);
                 }
-
             }
             catch (MessageQueueException ex) {
                 if (ex.MessageQueueErrorCode != MessageQueueErrorCode.IOTimeout) {
-                    _logger.Error(ex);
+                    throw;
                 }
             }
             finally {
@@ -47,9 +44,14 @@ namespace ChuyeEventBus.Host {
                     message.Dispose();
                 }
             }
+
             if (!_cancelSuspend) {
-                ((IMessageChannel)this.Clone()).Startup();
+                await ((IMessageChannel)this.Clone()).StartupAsync();
             }
+        }
+
+        public virtual void Stop() {
+            _cancelSuspend = true;
         }
 
         public virtual Object Clone() {
