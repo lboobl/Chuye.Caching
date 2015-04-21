@@ -22,7 +22,7 @@ namespace Chuye.Persistent.Mongo {
         }
 
         public Int32 GetNewId(String entryName) {
-            var collection = _context.DatabaseFactory().GetCollection<NewId>("_NewId");
+            var collection = _context.Database.GetCollection<NewId>("_NewId");
             var famArgs = new FindAndModifyArgs {
                 Query = Query<NewId>.EQ(r => r.Entry, entryName),
                 SortBy = SortBy<NewId>.Descending(r => r.Id),

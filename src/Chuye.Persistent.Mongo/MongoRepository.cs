@@ -31,30 +31,30 @@ namespace Chuye.Persistent.Mongo {
 
         public override IQueryable<TEntry> All {
             get {
-                var docs = _context.DatabaseFactory().GetCollection<TEntry>();
+                var docs = _context.Database.GetCollection<TEntry>();
                 return docs.AsQueryable();
             }
         }
 
         public override TEntry Retrive(int id) {
-            var docs = _context.DatabaseFactory().GetCollection<TEntry>();
+            var docs = _context.Database.GetCollection<TEntry>();
             return docs.FindOneById(id);
         }
 
         public override IEnumerable<TEntry> Retrive<TKey>(String field, IList<TKey> keys) {
-            var docs = _context.DatabaseFactory().GetCollection<TEntry>();
+            var docs = _context.Database.GetCollection<TEntry>();
             //return docs.Find(Query<TEntry>.In(r => r.Id, keys));
             return docs.Find(Query.In(field, keys.Select(k => BsonValue.Create(k)))).AsEnumerable();
         }
 
         public override void Create(TEntry entry) {
-            var docs = _context.DatabaseFactory().GetCollection<TEntry>();
+            var docs = _context.Database.GetCollection<TEntry>();
             entry.Id = _autoincrementGenerator.GetNewId(docs.Name);
             docs.Insert(entry);
         }
 
         public override void Update(TEntry entry) {
-            var docs = _context.DatabaseFactory().GetCollection<TEntry>();
+            var docs = _context.Database.GetCollection<TEntry>();
             docs.Update(Query<TEntry>.EQ(r => r.Id, entry.Id),
                 Update<TEntry>.Replace(entry),
                 UpdateFlags.None);
@@ -67,14 +67,21 @@ namespace Chuye.Persistent.Mongo {
         }
 
         public override void Save(TEntry entry) {
-            var docs = _context.DatabaseFactory().GetCollection<TEntry>();
+            var docs = _context.Database.GetCollection<TEntry>();
             docs.Update(Query<TEntry>.EQ(r => r.Id, entry.Id),
                 Update<TEntry>.Replace(entry),
                 UpdateFlags.Upsert);
         }
 
+        public void Save<TMember>(Int32 id, Expression<Func<TEntry, TMember>> memberExpression, TMember value) {
+            var docs = _context.Database.GetCollection<TEntry>();
+            docs.Update(Query<TEntry>.EQ(r => r.Id, id),
+                Update<TEntry>.Set(memberExpression, value),
+                UpdateFlags.Upsert);
+        }
+
         public override void Delete(TEntry entry) {
-            var docs = _context.DatabaseFactory().GetCollection<TEntry>();
+            var docs = _context.Database.GetCollection<TEntry>();
             docs.Remove(Query<TEntry>.EQ(r => r.Id, entry.Id), RemoveFlags.Single);
         }
 

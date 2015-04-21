@@ -11,12 +11,12 @@ namespace ChuyeEventBus.Host {
     class Program {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private static HostRunningService _runningLog;
-        private static Boolean _logToMongo = false;
+        private static Boolean _useMongo = false;
 
         static void Main(string[] args) {
             var form = new CommandParser().ParseAsForm(args);
-            _logToMongo = form.AllKeys.Contains("log", StringComparer.OrdinalIgnoreCase);
-            if (_logToMongo) {
+            _useMongo = form.AllKeys.Contains("log", StringComparer.OrdinalIgnoreCase);
+            if (_useMongo) {
                 _runningLog = new HostRunningService();
             }
 
@@ -34,14 +34,14 @@ namespace ChuyeEventBus.Host {
         static void StopServer(MessageChannelServer server) {
             Console.ReadLine();
             _logger.Info("MessageChannelServer cancel suspend");
-            if (_logToMongo) {
+            if (_useMongo) {
                 _runningLog.LogServerStatus(ServerStatus.Suspend);
             }
             server.Stop();
 
             _logger.Info("MessageChannelServer wating for stop");
             Thread.Sleep(10000);
-            if (_logToMongo) {
+            if (_useMongo) {
                 _runningLog.LogServerStatus(ServerStatus.Stop);
             }
             _logger.Info("MessageChannelServer stoped, press <ENTER> to exit");
@@ -49,7 +49,7 @@ namespace ChuyeEventBus.Host {
         }
 
         static MessageChannelServer StartServer() {
-            if (_logToMongo) {
+            if (_useMongo) {
                 EventBus.Singleton.ErrorHandler = (h, err, events) => _runningLog.LogError(h, err, events);
             }
             else {

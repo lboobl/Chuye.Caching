@@ -9,7 +9,7 @@ namespace Chuye.Persistent.Mongo {
     public class MongoRepositoryContext : DisposableObject, IRepositoryContext {
         private readonly Guid _id = Guid.NewGuid();
         private readonly MongoClient _client;
-        private String _databaseName;
+        public MongoDatabase Database { get; private set; }
 
         public Guid ID {
             get { return _id; }
@@ -33,16 +33,12 @@ namespace Chuye.Persistent.Mongo {
 
         public MongoRepositoryContext(String connectionString, String databaseName) {
             _client = new MongoClient(connectionString);
-            _databaseName = databaseName;
             var server = _client.GetServer();
             if (!server.DatabaseExists(databaseName)) {
                 throw new Exception(String.Format("Database \"{0}\" not exists", databaseName));
-            }            
-        }
+            }
 
-        public MongoDatabase DatabaseFactory() {
-            var server = _client.GetServer();
-            return server.GetDatabase(_databaseName);
+            Database = server.GetDatabase(databaseName);
         }
     }
 }

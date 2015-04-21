@@ -32,7 +32,7 @@ namespace Chuye.Persistent.Demo {
             var context = new MongoRepositoryContext(conStr, "Pubs");
             var repository = new MongoRepository<Employee>(context);
 
-            var docs = context.DatabaseFactory().GetCollection<Employee>();
+            var docs = context.Database.GetCollection<Employee>();
             Console.WriteLine("Remove all employee");
             docs.RemoveAll();
             Console.WriteLine();
