@@ -23,10 +23,13 @@ namespace ChuyeEventBus.Demo {
         }
 
         public void Handle(IEnumerable<IEvent> events) {
-            //if ((Guid.NewGuid().GetHashCode() & 1) == 1) {
-                throw new Exception("Random error");
-            //}
+            //throw new Exception("Random error");
+
             foreach (WorkPublishEvent eventEntry in events) {
+                //if ((Guid.NewGuid().GetHashCode() & 1) == 1) {
+                //    throw new Exception("Random error");
+                //}
+
                 _logger.Trace("WorkPublishEventHandler: 作品 [{0}] 发布", eventEntry.WorkId);
             }
         }

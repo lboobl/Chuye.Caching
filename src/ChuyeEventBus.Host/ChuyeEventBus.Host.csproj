@@ -61,8 +61,10 @@
     <Compile Include="HostRunningService.cs" />
     <Compile Include="IMessageChannel.cs" />
     <Compile Include="IMultipleMessageChannel.cs" />
+    <Compile Include="ISingleMessageChannel.cs" />
     <Compile Include="MessageChannel.cs" />
     <Compile Include="MessageChannelServer.cs" />
+    <Compile Include="MessageQueueReceiver.cs" />
     <Compile Include="MultipleMessageChannel.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

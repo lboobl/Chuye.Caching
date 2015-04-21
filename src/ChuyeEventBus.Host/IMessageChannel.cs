@@ -6,9 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
-    public interface IMessageChannel : ICloneable {
-        event EventHandler<Message> MessageQueueReceived;
-        Task StartupAsync();
+    public interface IMessageChannel {
+        Task ListenAsync();
         void Stop();
     }
+
+    
+
+    
 }

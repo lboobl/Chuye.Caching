@@ -13,13 +13,7 @@ namespace ChuyeEventBus.Host {
         private IEnumerable<IEventHandler> _handlers;
 #pragma warning disable
         private Boolean _initialized = false;
-        private CancellationStatus _cancellationStatus = CancellationStatus.None;
-
-        public IEnumerable<IEventHandler> Handlers {
-            get {
-                return _handlers;
-            }
-        }
+        private readonly List<IMessageChannel> _channels = new List<IMessageChannel>();
 
         public String Folder { get; set; }
 
@@ -35,30 +29,30 @@ namespace ChuyeEventBus.Host {
                 container.ComposeParts(this);
 
                 EventBus.Singleton.UnsubscribeAll();
-                foreach (var handler in Handlers) {
+                foreach (var handler in _handlers) {
                     EventBus.Singleton.Subscribe(handler);
                 }
 
-                var handlerGroups = Handlers.GroupBy(r => r.GetEventType());
-                foreach (var handlerGroup in handlerGroups) {
-                    var eventType = handlerGroup.Key;
+                var hgs = _handlers.GroupBy(r => r.GetEventType());
+                foreach (var hg in hgs) {
+                    var eventType = hg.Key;
                     var eventBehaviour = EventExtension.BuildEventBehaviour(eventType);
                     if (eventBehaviour.DequeueQuantity == 1) {
-                        foreach (var handler in handlerGroups) {
-                            IMessageChannel channel = new MessageChannel(eventBehaviour);
+                        foreach (var handler in hg) {
+                            ISingleMessageChannel channel = new MessageChannel(eventBehaviour);
                             channel.MessageQueueReceived += channel_MessageQueueReceived;
-                            channel.StartupAsync();
+                            _channels.Add(channel);
                         }
                     }
                     else {
-                        foreach (var handler in handlerGroups) {
+                        foreach (var handler in hg) {
                             IMultipleMessageChannel channel = new MultipleMessageChannel(eventBehaviour);
-                            channel.MessageQueueReceived += channel_MessageQueueReceived;
                             channel.MultipleMessageQueueReceived += channel_MultipleMessageQueueReceived;
-                            channel.StartupAsync();
+                            _channels.Add(channel);
                         }
                     }
                 }
+                _channels.ForEach(c => c.ListenAsync());
                 _initialized = true;
             }
         }
@@ -68,32 +62,16 @@ namespace ChuyeEventBus.Host {
             if (eventEntry == null) {
                 throw new ArgumentOutOfRangeException(String.Format("Unexpected message type of '{0}'", message.Body.GetType()));
             }
-
             EventBus.Singleton.Publish(eventEntry);
-            if (_cancellationStatus == CancellationStatus.CancelSuspend) {
-                ((IMessageChannel)sender).Stop();
-            }
         }
 
         private void channel_MultipleMessageQueueReceived(Object sender, IList<Message> messages) {
             var eventEntries = messages.Select(m => m.Body as IEvent).ToList();
             EventBus.Singleton.Publish(eventEntries);
-            if (_cancellationStatus == CancellationStatus.CancelSuspend) {
-                ((IMessageChannel)sender).Stop();
-            }
         }
 
         public void Stop() {
-            if (_cancellationStatus == CancellationStatus.None) {
-                _cancellationStatus = CancellationStatus.CancelSuspend;
-            }
-            else if (_cancellationStatus == CancellationStatus.CancelSuspend) {
-                //EventBus.Singleton.UnsubscribeAll();
-            }
-        }
-
-        internal enum CancellationStatus {
-            None, CancelSuspend, Canceled
+            _channels.ForEach(c => c.Stop());
         }
     }
 }

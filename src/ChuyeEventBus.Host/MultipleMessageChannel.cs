@@ -1,82 +1,62 @@
 ﻿using ChuyeEventBus.Core;
 using NLog;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using System.Messaging;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
-    public class MultipleMessageChannel : MessageChannel, IMultipleMessageChannel {
+    public class MultipleMessageChannel : IMultipleMessageChannel {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private static readonly ConcurrentQueue<Message> _messageBag = new ConcurrentQueue<Message>();
-        private static readonly Object _sync = new Object();
+        private readonly CancellationTokenSource _ctx;
+        private readonly EventBehaviourAttribute _eventBehaviour;
+        private readonly MessageQueueReceiver _messageReceiver;
+        private readonly List<Message> _localMessages = new List<Message>();
 
         public event EventHandler<IList<Message>> MultipleMessageQueueReceived;
 
-        public MultipleMessageChannel(EventBehaviourAttribute eventBehaviour)
-            : base(eventBehaviour) {
+        public MultipleMessageChannel(EventBehaviourAttribute eventBehaviour) {
+            _eventBehaviour = eventBehaviour;
+            _ctx = new CancellationTokenSource();
+            _messageReceiver = new MessageQueueReceiver(MessageQueueUtil.ApplyQueue(eventBehaviour));
         }
 
-        public override async Task StartupAsync() {
-            var messageQueue = MessageQueueUtil.ApplyQueue(EventBehaviour);
-            //messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan), messageQueue, new AsyncCallback(MessageQueueEndReceive));
-
-            Boolean errorOccured = false;
-            Message message = null;
-            try {
-                message = await Task.Factory.FromAsync<Message>(
-                   asyncResult: messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan)),
-                   endMethod: ir => messageQueue.EndReceive(ir));
-                _messageBag.Enqueue(message);
-            }
-            catch (MessageQueueException ex) {
-                errorOccured = true;
-                if (ex.MessageQueueErrorCode != MessageQueueErrorCode.IOTimeout) {
-                    throw;
+        public async Task ListenAsync() {
+            while (!_ctx.IsCancellationRequested) {
+                Message message = await _messageReceiver.ReceiveAsync();
+                if (message != null) {
+                    _localMessages.Add(message);
+                }
+                if ((message == null && _localMessages.Count > 0) || _localMessages.Count >= _eventBehaviour.DequeueQuantity) {
+                    OnMultipleMessageQueueReceived();
                 }
             }
-
-            //如果出列异常(包含超时)且已经存在临时消息, 则处理掉
-            //如果临时消息已塞满,则处理掉
-            if (errorOccured || _messageBag.Count >= EventBehaviour.DequeueQuantity) {
-                HandleMultipleMessages();
-            }
-
-            if (!_cancelSuspend) {
-                await ((IMessageChannel)this.Clone()).StartupAsync();
-            }
+            _logger.Debug("MessageChannel {0} stoped", _eventBehaviour.Label);
         }
 
-        public override void Stop() {
-            HandleMultipleMessages();
-            base.Stop();
-        }
-
-        private void HandleMultipleMessages() {
-            if (_messageBag.Count > 0) {
-                lock (_sync) {
-                    if (MultipleMessageQueueReceived != null) {
-                        var messages = _messageBag.ToArray();
-                        ClearMessageBag();
-                        MultipleMessageQueueReceived(this, messages);
-                    }
-                }
+        public void Stop() {
+            if (!_ctx.IsCancellationRequested) {
+                _logger.Debug("MessageChannel {0} pending stop", _eventBehaviour.Label);
+                _ctx.Cancel();
+                OnMultipleMessageQueueReceived();
             }
         }
 
-        public override object Clone() {
-            var channel = new MultipleMessageChannel(EventBehaviour);
-            channel.MultipleMessageQueueReceived = this.MultipleMessageQueueReceived;
-            return channel;
+        private void OnMultipleMessageQueueReceived() {
+            if (MultipleMessageQueueReceived != null) {
+                MultipleMessageQueueReceived(this, _localMessages);
+                ClearLocalMessage();
+            }
         }
 
-        private void ClearMessageBag() {
-            Message message;
-            while (_messageBag.TryDequeue(out message)) {
-                message.Dispose();
+        private void ClearLocalMessage() {
+            foreach (var msg in _localMessages) {
+                msg.Dispose();
             }
+            _localMessages.Clear();
         }
     }
 }
