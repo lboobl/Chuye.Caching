@@ -34,7 +34,7 @@ namespace ChuyeEventBus.Core {
 
         public static void Send(IEvent eventEntry) {
             var queue = ApplyQueue(eventEntry.GetType());
-            LogUtil.Trace("Sending {0} via {1}", eventEntry.GetType().Name, queue.Path);
+            Debug.WriteLine(String.Format("Sending {0} via {1}", eventEntry.GetType().Name, queue.Path));
             queue.Send(eventEntry);
         }
     }

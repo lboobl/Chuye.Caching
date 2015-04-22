@@ -9,22 +9,20 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
-    public class MultipleMessageChannel : IMultipleMessageChannel {
+    public class MultipleMessageChannel : MessageChannel, IMultipleMessageChannel {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly CancellationTokenSource _ctx;
         private readonly EventBehaviourAttribute _eventBehaviour;
         private readonly MessageQueueReceiver _messageReceiver;
         private readonly List<Message> _localMessages = new List<Message>();
 
         public event EventHandler<IList<Message>> MultipleMessageQueueReceived;
 
-        public MultipleMessageChannel(EventBehaviourAttribute eventBehaviour) {
-            _eventBehaviour = eventBehaviour;
-            _ctx = new CancellationTokenSource();
+        public MultipleMessageChannel(EventBehaviourAttribute eventBehaviour)
+            : base(eventBehaviour) {
             _messageReceiver = new MessageQueueReceiver(MessageQueueUtil.ApplyQueue(eventBehaviour));
         }
 
-        public async Task ListenAsync() {
+        public async override Task ListenAsync() {
             while (!_ctx.IsCancellationRequested) {
                 Message message = await _messageReceiver.ReceiveAsync();
                 if (message != null) {
@@ -34,15 +32,12 @@ namespace ChuyeEventBus.Host {
                     OnMultipleMessageQueueReceived();
                 }
             }
-            _logger.Debug("MessageChannel {0} stoped", _eventBehaviour.Label);
+            _logger.Debug("MessageChannel: {0,-50}  stoped", FriendlyName);
         }
 
-        public void Stop() {
-            if (!_ctx.IsCancellationRequested) {
-                _logger.Debug("MessageChannel {0} pending stop", _eventBehaviour.Label);
-                _ctx.Cancel();
-                OnMultipleMessageQueueReceived();
-            }
+        public override void Stop() {
+            base.Stop();
+            OnMultipleMessageQueueReceived();
         }
 
         private void OnMultipleMessageQueueReceived() {

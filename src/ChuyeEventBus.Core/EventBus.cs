@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {
-
     public class EventBus {
         private static readonly EventBus _singleton = new EventBus();
         private readonly EventHandlerEqualityComparer _comparer = new EventHandlerEqualityComparer();
@@ -30,15 +29,15 @@ namespace ChuyeEventBus.Core {
             List<IEventHandler> eventHandlers;
             if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {
                 if (!eventHandlers.Contains(eventHandler, _comparer)) {
-                    LogUtil.Debug("EventBus: 添加订阅 {0} for {1}", eventHandler.GetType().Name, eventType.Name);
+                    Debug.WriteLine(String.Format("EventBus: 添加订阅 {0,25} {1,30}", eventType.Name, eventHandler.GetType().Name));
                     eventHandlers.Add(eventHandler);
                 }
             }
             else {
                 eventHandlers = new List<IEventHandler>();
                 eventHandlers.Add(eventHandler);
-                LogUtil.Debug("EventBus: 注册事件 {0}", eventType.Name);
-                LogUtil.Debug("EventBus: 添加订阅 {0} for {1}", eventHandler.GetType().Name, eventType.Name);
+                Debug.WriteLine(String.Format("EventBus: 注册事件 {0,25}", eventType.Name));
+                Debug.WriteLine(String.Format("EventBus: 添加订阅 {0,25} {1,30}", eventType.Name, eventHandler.GetType().Name));
                 _eventHandlers.Add(eventType, eventHandlers);
             }
         }
@@ -47,7 +46,7 @@ namespace ChuyeEventBus.Core {
             var eventType = eventHandler.GetEventType();
             List<IEventHandler> eventHandlers;
             if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {
-                LogUtil.Debug("EventBus: 取消订阅 {0} for {1}", eventHandler.GetType().Name, eventType.Name);
+                Debug.WriteLine(String.Format("EventBus: 取消订阅 {0,25} {1,30}", eventType.Name, eventHandler.GetType().Name));
                 eventHandlers.RemoveAll(r => _comparer.Equals(r, eventHandler));
                 if (eventHandlers.Count == 0) {
                     _eventHandlers.Remove(eventType);
@@ -59,7 +58,7 @@ namespace ChuyeEventBus.Core {
             var eventType = eventEntry.GetType();
             List<IEventHandler> eventHandlers;
             if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {
-                LogUtil.Debug("EventBus: 发布事件 {0}", eventType.Name);
+                Debug.WriteLine(String.Format("EventBus: 发布事件 {0,25}", eventType.Name));
                 for (int i = 0; i < eventHandlers.Count; i++) {
                     try {
                         eventHandlers[i].Handle(eventEntry);
@@ -78,7 +77,7 @@ namespace ChuyeEventBus.Core {
             var eventType = eventEntries.First().GetType();
             List<IEventHandler> eventHandlers;
             if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {
-                LogUtil.Debug("EventBus: 发布事件 {0}", eventType.Name);
+                Debug.WriteLine(String.Format("EventBus: 发布事件 {0,25}", eventType.Name));
                 for (int i = 0; i < eventHandlers.Count; i++) {
                     try {
                         eventHandlers[i].Handle(eventEntries);
@@ -91,7 +90,7 @@ namespace ChuyeEventBus.Core {
         }
 
         public void UnsubscribeAll() {
-            LogUtil.Debug("EventBus: 取消全部订阅");
+            Debug.WriteLine(String.Format("EventBus: 取消全部订阅"));
             _eventHandlers.Clear();
         }
 

@@ -1,6 +1,7 @@
 ﻿using ChuyeEventBus.Core;
 using NLog;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Messaging;
@@ -10,14 +11,15 @@ using System.Threading.Tasks;
 namespace ChuyeEventBus.Host {
     public class MessageChannel : ISingleMessageChannel {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly CancellationTokenSource _ctx;
-        private readonly String _label;
         private readonly MessageQueueReceiver _messageReceiver;
+        protected readonly CancellationTokenSource _ctx;
 
         public event EventHandler<Message> MessageQueueReceived;
 
+        public String FriendlyName { get; private set; }
+
         public MessageChannel(EventBehaviourAttribute eventBehaviour) {
-            _label = eventBehaviour.Label;
+            FriendlyName = eventBehaviour.Label.Split('\\').Last();
             _ctx = new CancellationTokenSource();
             _messageReceiver = new MessageQueueReceiver(MessageQueueUtil.ApplyQueue(eventBehaviour));
         }
@@ -30,12 +32,12 @@ namespace ChuyeEventBus.Host {
                     }
                 }
             }
-            _logger.Debug("MessageChannel {0} stoped", _label);
+            _logger.Debug("MessageChannel: {0,-50}  stoped", FriendlyName);
         }
 
         public virtual void Stop() {
             if (!_ctx.IsCancellationRequested) {
-                _logger.Debug("MessageChannel {0} pending stop", _label);
+                _logger.Debug("MessageChannel: {0,-50} suspend", FriendlyName);
                 _ctx.Cancel();
             }
         }

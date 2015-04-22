@@ -10,26 +10,19 @@ using ChuyeEventBus.Demo;
 namespace ChuyeEventBus.Host {
     class Program {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private static HostRunningService _runningLog;
-        private static Boolean _useMongo = false;
 
         static void Main(string[] args) {
             var form = new CommandParser().ParseAsForm(args);
-            LogUtil.Trace = _logger.Trace;
-            LogUtil.Debug = _logger.Debug;
-            LogUtil.Warn = _logger.Warn;
-
-            _useMongo = form.AllKeys.Contains("log", StringComparer.OrdinalIgnoreCase);
-            if (_useMongo) {
-                _runningLog = new HostRunningService();
+            if (form.AllKeys.Contains("debug", StringComparer.OrdinalIgnoreCase)) {
+                Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
             }
-            
+
             var server = StartServer();
             _logger.Trace("Press <ctrl + c> to abort, <Enter> to stop");
 
             //MockClient();
             //MockClientAsync();
-            
+
 
             Console.ReadLine();
             server.Stop();
@@ -38,12 +31,7 @@ namespace ChuyeEventBus.Host {
         }
 
         static MessageChannelServer StartServer() {
-            if (_useMongo) {
-                EventBus.Singleton.ErrorHandler = (h, err, events) => _runningLog.LogError(h, err, events);
-            }
-            else {
-                EventBus.Singleton.ErrorHandler = (h, err, events) => _logger.Error(err);
-            };
+            EventBus.Singleton.ErrorHandler = (h, err, events) => _logger.Error(err);
 
             var server = new MessageChannelServer();
             server.Folder = AppDomain.CurrentDomain.BaseDirectory;

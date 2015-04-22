@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace ChuyeEventBus.Host {
     public class MessageQueueReceiver {
         private readonly MessageQueue _messageQueue;
-        public const Int32 WaitSpan = 10;
+        private const Int32 WaitSpan = 10;
 
         public MessageQueueReceiver(MessageQueue messageQueue) {
             _messageQueue = messageQueue;

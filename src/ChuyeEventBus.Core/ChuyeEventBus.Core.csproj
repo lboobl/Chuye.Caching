@@ -50,7 +50,6 @@
     <Compile Include="IEvent.cs" />
     <Compile Include="IEventHandler.cs" />
     <Compile Include="IEventHandler`.cs" />
-    <Compile Include="LogUtil.cs" />
     <Compile Include="MessageQueueUtil.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
