@@ -6,11 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
-    public class MessageQueueReceiver {
+    public class MessageReceiver {
         private readonly MessageQueue _messageQueue;
         private const Int32 WaitSpan = 10;
 
-        public MessageQueueReceiver(MessageQueue messageQueue) {
+        public MessageReceiver(MessageQueue messageQueue) {
             _messageQueue = messageQueue;
         }
 

@@ -11,16 +11,16 @@ using System.Threading.Tasks;
 namespace ChuyeEventBus.Host {
     public class MessageChannel : ISingleMessageChannel {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly MessageQueueReceiver _messageReceiver;
+        private readonly MessageReceiver _messageReceiver;
         protected readonly CancellationTokenSource _ctx;
 
-        public event Action<Message> MessageQueueReceived;
+        public event Action<Message> MessageReceived;
         public String FriendlyName { get; private set; }
 
         public MessageChannel(EventBehaviourAttribute eventBehaviour) {
             FriendlyName = eventBehaviour.Label.Split('\\').Last();
             _ctx = new CancellationTokenSource();
-            _messageReceiver = new MessageQueueReceiver(MessageQueueUtil.ApplyQueue(eventBehaviour));
+            _messageReceiver = new MessageReceiver(MessageQueueUtil.ApplyQueue(eventBehaviour));
         }
 
         public async virtual Task ListenAsync() {
@@ -35,8 +35,8 @@ namespace ChuyeEventBus.Host {
         }
 
         private void OnMessageQueueReceived(Message message) {
-            if (MessageQueueReceived != null) {
-                MessageQueueReceived(message);
+            if (MessageReceived != null) {
+                MessageReceived(message);
             }
         }
 

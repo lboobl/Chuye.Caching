@@ -19,7 +19,8 @@ namespace ChuyeEventBus.Host {
         private IEnumerable<IEventHandler> _handlers;
 #pragma warning disable
         private Boolean _initialized = false;
-        private readonly Dictionary<IEventHandler, IMessageChannel> _channels = new Dictionary<IEventHandler, IMessageChannel>();
+        private readonly List<IMessageChannel> _channels = new List<IMessageChannel>();
+        private readonly Dictionary<Type, IMessageChannel> _maps = new Dictionary<Type, IMessageChannel>();
 
         public String Folder { get; set; }
 
@@ -46,23 +47,19 @@ namespace ChuyeEventBus.Host {
                     var eventType = hg.Key;
                     var eventBehaviour = EventExtension.BuildEventBehaviour(eventType);
                     if (eventBehaviour.DequeueQuantity == 1) {
-                        foreach (var handler in hg) {
-                            ISingleMessageChannel channel = new MessageChannel(eventBehaviour);
-                            channel.MessageQueueReceived += channel_MessageQueueReceived;
-                            _channels.Add(handler, channel);
-                        }
+                        ISingleMessageChannel channel = new MessageChannel(eventBehaviour);
+                        channel.MessageReceived += Channel_MessageReceived;
+                        _channels.Add(channel);
+                        _maps.Add(eventType, channel);
                     }
                     else {
-                        foreach (var handler in hg) {
-                            IMultipleMessageChannel channel = new MultipleMessageChannel(eventBehaviour);
-                            channel.MultipleMessageQueueReceived += channel_MultipleMessageQueueReceived;
-                            _channels.Add(handler, channel);
-                        }
+                        IMultipleMessageChannel channel = new MultipleMessageChannel(eventBehaviour);
+                        channel.MultipleMessageReceived += Channel_MultipleMessageReceived;
+                        _channels.Add(channel);
+                        _maps.Add(eventType, channel);
                     }
                 }
-                foreach (var pair in _channels) {
-                    pair.Value.ListenAsync();
-                }
+                _channels.ForEach(c => c.ListenAsync());
                 _initialized = true;
             }
         }
@@ -77,24 +74,24 @@ namespace ChuyeEventBus.Host {
             _logger.Error(errorDetailBuilder);
             if (e.TotoalErrors >= ERROR_CAPACITY) {
                 EventBus.Singleton.Unsubscribe(e.EventHandler);
-                _channels[e.EventHandler].Stop();
+                var eventType = e.EventHandler.GetEventType();
+                _channels.Remove(_maps[eventType]);
+                _maps.Remove(eventType);
             }
         }
 
-        private void channel_MessageQueueReceived(Message message) {
+        private void Channel_MessageReceived(Message message) {
             var eventEntry = (IEvent)message.Body;
             EventBus.Singleton.Publish(eventEntry);
         }
 
-        private void channel_MultipleMessageQueueReceived(IList<Message> messages) {
+        private void Channel_MultipleMessageReceived(IList<Message> messages) {
             var eventEntries = messages.Select(m => m.Body).Cast<IEvent>().ToList();
             EventBus.Singleton.Publish(eventEntries);
         }
 
         public void Stop() {
-            foreach (var pair in _channels) {
-                pair.Value.Stop();
-            }
+            _channels.ForEach(c => c.Stop());
         }
     }
 }

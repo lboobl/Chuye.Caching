@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {
     public class EventBus {
@@ -61,16 +62,37 @@ namespace ChuyeEventBus.Core {
             if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {
                 Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventBus: 发布事件 {1}",
                     DateTime.Now, eventType.FullName));
-                for (int i = 0; i < eventHandlers.Count; i++) {
-                    try {
-                        eventHandlers[i].Handle(eventEntry);
-                    }
-                    catch (Exception ex) {
-                        OnErrorOccur(eventHandlers[i], new[] { eventEntry }, ex);
-                    }
-                }
+
+                //Task.Factory.StartNew(() => {
+                //    foreach (var eh in eventHandlers) {
+                //        new Task(() => SafelyHandle(eh, eventEntry), TaskCreationOptions.AttachedToParent).Start();
+                //    }
+                //}).Wait();
+
+                var tasks = eventHandlers.Select(async eh => await Task.Run(() => SafelyHandle(eh, eventEntry)));
+                Task.WaitAll(tasks.ToArray());
+
             }
         }
+
+        private void SafelyHandle(IEventHandler eventHandler, IEvent eventEntry) {
+            try {
+                eventHandler.Handle(eventEntry);
+            }
+            catch (Exception ex) {
+                OnErrorOccur(eventHandler, new[] { eventEntry }, ex);
+            }
+        }
+
+        private void SafelyHandle(IEventHandler eventHandler, IList<IEvent> eventEntries) {
+            try {
+                eventHandler.Handle(eventEntries);
+            }
+            catch (Exception ex) {
+                OnErrorOccur(eventHandler, eventEntries, ex);
+            }
+        }
+
 
         public void Publish(IList<IEvent> eventEntries) {
             if (eventEntries == null || eventEntries.Count == 0) {
@@ -81,14 +103,9 @@ namespace ChuyeEventBus.Core {
             if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {
                 Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventBus: 发布事件 {1}",
                     DateTime.Now, eventType.FullName));
-                for (int i = 0; i < eventHandlers.Count; i++) {
-                    try {
-                        eventHandlers[i].Handle(eventEntries);
-                    }
-                    catch (Exception ex) {
-                        OnErrorOccur(eventHandlers[i], eventEntries, ex);
-                    }
-                }
+
+                var tasks = eventHandlers.Select(async eh => await Task.Run(() => SafelyHandle(eh, eventEntries)));
+                Task.WaitAll(tasks.ToArray());
             }
         }
 

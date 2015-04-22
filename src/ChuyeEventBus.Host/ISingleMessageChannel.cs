@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
     public interface ISingleMessageChannel : IMessageChannel {
-        event Action<Message> MessageQueueReceived;
+        event Action<Message> MessageReceived;
     }
 }
