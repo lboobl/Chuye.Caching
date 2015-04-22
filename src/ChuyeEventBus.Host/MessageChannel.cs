@@ -14,8 +14,7 @@ namespace ChuyeEventBus.Host {
         private readonly MessageQueueReceiver _messageReceiver;
         protected readonly CancellationTokenSource _ctx;
 
-        public event EventHandler<Message> MessageQueueReceived;
-
+        public event Action<Message> MessageQueueReceived;
         public String FriendlyName { get; private set; }
 
         public MessageChannel(EventBehaviourAttribute eventBehaviour) {
@@ -28,16 +27,16 @@ namespace ChuyeEventBus.Host {
             while (!_ctx.IsCancellationRequested) {
                 using (Message message = await _messageReceiver.ReceiveAsync()) {
                     if (message != null && MessageQueueReceived != null) {
-                        MessageQueueReceived(this, message);
+                        MessageQueueReceived(message);
                     }
                 }
             }
-            _logger.Debug("MessageChannel: {0,-50}  stoped", FriendlyName);
+            _logger.Debug("MessageChannel: {0} stoped", FriendlyName);
         }
 
         public virtual void Stop() {
             if (!_ctx.IsCancellationRequested) {
-                _logger.Debug("MessageChannel: {0,-50} suspend", FriendlyName);
+                _logger.Debug("MessageChannel: {0} suspend", FriendlyName);
                 _ctx.Cancel();
             }
         }

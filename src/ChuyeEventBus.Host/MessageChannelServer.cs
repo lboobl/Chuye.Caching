@@ -57,16 +57,13 @@ namespace ChuyeEventBus.Host {
             }
         }
 
-        private void channel_MessageQueueReceived(Object sender, Message message) {
-            var eventEntry = message.Body as IEvent;
-            if (eventEntry == null) {
-                throw new ArgumentOutOfRangeException(String.Format("Unexpected message type of '{0}'", message.Body.GetType()));
-            }
+        private void channel_MessageQueueReceived(Message message) {
+            var eventEntry = (IEvent)message.Body;
             EventBus.Singleton.Publish(eventEntry);
         }
 
-        private void channel_MultipleMessageQueueReceived(Object sender, IList<Message> messages) {
-            var eventEntries = messages.Select(m => m.Body as IEvent).ToList();
+        private void channel_MultipleMessageQueueReceived(IList<Message> messages) {
+            var eventEntries = messages.Select(m => m.Body).Cast<IEvent>().ToList();
             EventBus.Singleton.Publish(eventEntries);
         }
 

@@ -10,8 +10,4 @@ namespace ChuyeEventBus.Host {
         Task ListenAsync();
         void Stop();
     }
-
-    
-
-    
 }

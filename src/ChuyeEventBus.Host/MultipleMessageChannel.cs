@@ -14,11 +14,13 @@ namespace ChuyeEventBus.Host {
         private readonly EventBehaviourAttribute _eventBehaviour;
         private readonly MessageQueueReceiver _messageReceiver;
         private readonly List<Message> _localMessages = new List<Message>();
+        private readonly Object _sync = new Object();
 
-        public event EventHandler<IList<Message>> MultipleMessageQueueReceived;
+        public event Action<IList<Message>> MultipleMessageQueueReceived;
 
         public MultipleMessageChannel(EventBehaviourAttribute eventBehaviour)
             : base(eventBehaviour) {
+            _eventBehaviour = eventBehaviour;
             _messageReceiver = new MessageQueueReceiver(MessageQueueUtil.ApplyQueue(eventBehaviour));
         }
 
@@ -32,18 +34,20 @@ namespace ChuyeEventBus.Host {
                     OnMultipleMessageQueueReceived();
                 }
             }
-            _logger.Debug("MessageChannel: {0,-50}  stoped", FriendlyName);
+            _logger.Debug("MessageChannel: {0} stoped", FriendlyName);
         }
 
         public override void Stop() {
+            _ctx.Token.Register(OnMultipleMessageQueueReceived);
             base.Stop();
-            OnMultipleMessageQueueReceived();
         }
 
         private void OnMultipleMessageQueueReceived() {
             if (MultipleMessageQueueReceived != null) {
-                MultipleMessageQueueReceived(this, _localMessages);
+                //lock (_sync) {
+                MultipleMessageQueueReceived(_localMessages);
                 ClearLocalMessage();
+                //}
             }
         }
 
