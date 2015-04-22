@@ -37,7 +37,7 @@ namespace ChuyeEventBus.Host {
         }
 
         static void MockClient() {
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 6; i++) {
                 MessageQueueUtil.Send(new FansFollowEvent() { FromId = 1, ToId = i + 1 });
             }
             for (int i = 0; i < 10; i++) {

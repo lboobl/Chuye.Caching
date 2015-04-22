@@ -71,13 +71,8 @@ namespace ChuyeEventBus.Host {
             var errorDetailBuilder = new StringBuilder();
             errorDetailBuilder.AppendFormat("Error occured in {0}\r\n", e.EventHandler.GetType().FullName);
             errorDetailBuilder.AppendFormat("Event: {0}\r\n", JsonConvert.SerializeObject(e.Events));
-            if (e.Errors.Count == 1) {
-                errorDetailBuilder.AppendFormat("Error: {0}\r\n", e.Errors[0]);
-            }
-            else {
-                foreach (var ex in e.Errors) {
-                    errorDetailBuilder.AppendLine(ex.ToString());
-                }
+            foreach (var ex in e.Errors) {
+                errorDetailBuilder.AppendLine(ex.ToString());
             }
             _logger.Error(errorDetailBuilder);
             if (e.TotoalErrors >= ERROR_CAPACITY) {

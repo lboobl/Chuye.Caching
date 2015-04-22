@@ -26,12 +26,18 @@ namespace ChuyeEventBus.Host {
         public async virtual Task ListenAsync() {
             while (!_ctx.IsCancellationRequested) {
                 using (Message message = await _messageReceiver.ReceiveAsync()) {
-                    if (message != null && MessageQueueReceived != null) {
-                        MessageQueueReceived(message);
+                    if (message != null) {
+                        OnMessageQueueReceived(message);
                     }
                 }
             }
             _logger.Debug("MessageChannel: {0} stoped", FriendlyName);
+        }
+
+        private void OnMessageQueueReceived(Message message) {
+            if (MessageQueueReceived != null) {
+                MessageQueueReceived(message);
+            }
         }
 
         public virtual void Stop() {
