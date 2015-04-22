@@ -25,7 +25,7 @@ namespace ChuyeEventBus.Host {
 
             Console.ReadLine();
             server.Stop();
-            _logger.Trace("Press <Ctrl + c> to abort or waiting for task finish");
+            _logger.Trace("Press <Ctrl + c> to abort, or waiting for task finish");
             Console.ReadLine();
         }
 

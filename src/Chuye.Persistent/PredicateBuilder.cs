@@ -63,7 +63,6 @@ namespace Chuye.Persistent {
             }
         }
 
-        //按属性唯一性过滤
         public static IEnumerable<T> Distinct<T, TKey>(this IEnumerable<T> source, Func<T, TKey> selector) {
             var dict = new ConcurrentDictionary<TKey, Object>();
             return source.Where(item => dict.TryAdd(selector(item), null));
@@ -77,6 +76,7 @@ namespace Chuye.Persistent {
         public static IQueryable<T> OrderBy<T>(this IQueryable<T> queryable, String propertyName) {
             return QueryableHelper<T>.OrderBy(queryable, propertyName, false);
         }
+
         public static IQueryable<T> OrderBy<T>(this IQueryable<T> queryable, String propertyName, Boolean desc) {
             return QueryableHelper<T>.OrderBy(queryable, propertyName, desc);
         }

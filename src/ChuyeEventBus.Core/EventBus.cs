@@ -15,7 +15,7 @@ namespace ChuyeEventBus.Core {
         private Dictionary<IEventHandler, Int32> _errors = new Dictionary<IEventHandler, Int32>();
 
         public Action<IEventHandler, Exception, IList<IEvent>> ErrorHandler;
-        public const Int32 ErrorCapacity = 3;
+        public const Int32 ERROR_CAPACITY = 3;
 
         public static EventBus Singleton {
             get { return _singleton; }
@@ -110,7 +110,7 @@ namespace ChuyeEventBus.Core {
                 number = 0;
             }
             _errors[eventHandler] = ++number;
-            if (number >= ErrorCapacity) {
+            if (number >= ERROR_CAPACITY) {
                 Unsubscribe(eventHandler);
             }
         }
