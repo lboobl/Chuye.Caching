@@ -2,10 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {
     public class EventBus {
@@ -14,14 +10,15 @@ namespace ChuyeEventBus.Core {
         private Dictionary<Type, List<IEventHandler>> _eventHandlers = new Dictionary<Type, List<IEventHandler>>();
         private Dictionary<IEventHandler, Int32> _errors = new Dictionary<IEventHandler, Int32>();
 
-        public Action<IEventHandler, Exception, IList<IEvent>> ErrorHandler;
-        public const Int32 ERROR_CAPACITY = 3;
+        public event EventHandler<ErrorOccuredEventArgs> ErrorOccured;
+
 
         public static EventBus Singleton {
             get { return _singleton; }
         }
 
         private EventBus() {
+            ErrorOccured += (x, y) => { };
         }
 
         public void Subscribe(IEventHandler eventHandler) {
@@ -29,7 +26,7 @@ namespace ChuyeEventBus.Core {
             List<IEventHandler> eventHandlers;
             if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {
                 if (!eventHandlers.Contains(eventHandler, _comparer)) {
-                    Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventBus: 添加订阅 {1} <- {2}", 
+                    Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventBus: 添加订阅 {1} <- {2}",
                         DateTime.Now, eventType.FullName, eventHandler.GetType().FullName));
                     eventHandlers.Add(eventHandler);
                 }
@@ -69,7 +66,7 @@ namespace ChuyeEventBus.Core {
                         eventHandlers[i].Handle(eventEntry);
                     }
                     catch (Exception ex) {
-                        OnErrorOccur(eventHandlers[i], ex, new[] { eventEntry });
+                        OnErrorOccur(eventHandlers[i], new[] { eventEntry }, ex);
                     }
                 }
             }
@@ -89,7 +86,7 @@ namespace ChuyeEventBus.Core {
                         eventHandlers[i].Handle(eventEntries);
                     }
                     catch (Exception ex) {
-                        OnErrorOccur(eventHandlers[i], ex, eventEntries.ToArray());
+                        OnErrorOccur(eventHandlers[i], eventEntries, ex);
                     }
                 }
             }
@@ -100,19 +97,16 @@ namespace ChuyeEventBus.Core {
             _eventHandlers.Clear();
         }
 
-        public void OnErrorOccur(IEventHandler eventHandler, Exception error, params IEvent[] events) {
-            if (ErrorHandler != null) {
-                ErrorHandler(eventHandler, error, events);
-            }
-
+        private void OnErrorOccur(IEventHandler eventHandler, IList<IEvent> events, params Exception[] errors) {
             Int32 number;
             if (!_errors.TryGetValue(eventHandler, out number)) {
-                number = 0;
+                number = 1;
+                _errors.Add(eventHandler, 1);
             }
-            _errors[eventHandler] = ++number;
-            if (number >= ERROR_CAPACITY) {
-                Unsubscribe(eventHandler);
+            else {
+                number = ++_errors[eventHandler];
             }
+            ErrorOccured(this, new ErrorOccuredEventArgs(eventHandler, events, number, errors));
         }
 
         internal class EventHandlerEqualityComparer : IEqualityComparer<IEventHandler> {
@@ -125,6 +119,20 @@ namespace ChuyeEventBus.Core {
             public int GetHashCode(IEventHandler obj) {
                 return obj.GetHashCode();
             }
+        }
+    }
+
+    public class ErrorOccuredEventArgs : EventArgs {
+        public IEventHandler EventHandler { get; private set; }
+        public IList<IEvent> Events { get; private set; }
+        public Int32 TotoalErrors { get; private set; }
+        public IList<Exception> Errors { get; private set; }
+
+        public ErrorOccuredEventArgs(IEventHandler eventHandler, IList<IEvent> events, Int32 errorNumber, params Exception[] errors) {
+            EventHandler = eventHandler;
+            Events = events;
+            TotoalErrors = errorNumber;
+            Errors = errors;
         }
     }
 }

@@ -1,11 +1,11 @@
 ﻿using ChuyeEventBus.Core;
+using ChuyeEventBus.Demo;
 using NLog;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
-using ChuyeEventBus.Demo;
 
 namespace ChuyeEventBus.Host {
     class Program {
@@ -20,7 +20,7 @@ namespace ChuyeEventBus.Host {
             var server = StartServer();
             _logger.Trace("Press <ctrl + c> to abort, <Enter> to stop");
 
-            //MockClient();
+            MockClient();
             //MockClientAsync();
 
             Console.ReadLine();
@@ -30,8 +30,6 @@ namespace ChuyeEventBus.Host {
         }
 
         static MessageChannelServer StartServer() {
-            EventBus.Singleton.ErrorHandler = (h, err, events) => _logger.Error(err);
-
             var server = new MessageChannelServer();
             server.Folder = AppDomain.CurrentDomain.BaseDirectory;
             server.Initialize();
@@ -39,10 +37,12 @@ namespace ChuyeEventBus.Host {
         }
 
         static void MockClient() {
-            MessageQueueUtil.Send(new FansFollowEvent() { FromId = 1, ToId = 2 });
-            var works = new[] { 67, 75, 92, 99 };
-            MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length] });
-            MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length] });
+            for (int i = 0; i < 4; i++) {
+                MessageQueueUtil.Send(new FansFollowEvent() { FromId = 1, ToId = i + 1 });
+            }
+            for (int i = 0; i < 10; i++) {
+                MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = 60 + i });
+            }
         }
 
         static void MockClientAsync() {

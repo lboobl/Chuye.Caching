@@ -2,9 +2,7 @@
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Messaging;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,7 +12,7 @@ namespace ChuyeEventBus.Host {
         private readonly EventBehaviourAttribute _eventBehaviour;
         private readonly MessageQueueReceiver _messageReceiver;
         private readonly List<Message> _localMessages = new List<Message>();
-        private readonly Object _sync = new Object();
+        private readonly ReaderWriterLock _sync = new ReaderWriterLock();
 
         public event Action<IList<Message>> MultipleMessageQueueReceived;
 
@@ -22,6 +20,8 @@ namespace ChuyeEventBus.Host {
             : base(eventBehaviour) {
             _eventBehaviour = eventBehaviour;
             _messageReceiver = new MessageQueueReceiver(MessageQueueUtil.ApplyQueue(eventBehaviour));
+            //确保 Stop() 方法调用时，本地暂存的 _localMessages 得到处理
+            _ctx.Token.Register(OnMultipleMessageQueueReceived);
         }
 
         public async override Task ListenAsync() {
@@ -30,31 +30,23 @@ namespace ChuyeEventBus.Host {
                 if (message != null) {
                     _localMessages.Add(message);
                 }
-                if ((message == null && _localMessages.Count > 0) || _localMessages.Count >= _eventBehaviour.DequeueQuantity) {
+                if (message == null || _localMessages.Count >= _eventBehaviour.DequeueQuantity) {
                     OnMultipleMessageQueueReceived();
                 }
             }
             _logger.Debug("MessageChannel: {0} stoped", FriendlyName);
         }
 
-        public override void Stop() {
-            _ctx.Token.Register(OnMultipleMessageQueueReceived);
-            base.Stop();
-        }
-
         private void OnMultipleMessageQueueReceived() {
-            if (MultipleMessageQueueReceived != null) {
-                //lock (_sync) {
-                MultipleMessageQueueReceived(_localMessages);
+            if (MultipleMessageQueueReceived != null && _localMessages.Count > 0) {
+                var array = _localMessages.ToArray();
                 ClearLocalMessage();
-                //}
+                MultipleMessageQueueReceived(array);
             }
         }
 
         private void ClearLocalMessage() {
-            foreach (var msg in _localMessages) {
-                msg.Dispose();
-            }
+            _localMessages.ForEach(m => m.Dispose());
             _localMessages.Clear();
         }
     }

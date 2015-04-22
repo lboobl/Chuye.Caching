@@ -3,10 +3,6 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Demo {
 
@@ -29,7 +25,6 @@ namespace ChuyeEventBus.Demo {
                 //if ((Guid.NewGuid().GetHashCode() & 1) == 1) {
                 //    throw new Exception("Random error");
                 //}
-
                 _logger.Trace("WorkPublishEventHandler: 作品 [{0}] 发布", eventEntry.WorkId);
             }
         }

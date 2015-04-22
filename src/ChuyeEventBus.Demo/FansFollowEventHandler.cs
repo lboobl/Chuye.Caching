@@ -3,10 +3,6 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Demo {
 
@@ -15,6 +11,7 @@ namespace ChuyeEventBus.Demo {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         public void Handle(FansFollowEvent eventEntry) {
+            //throw new Exception("Random error");
             _logger.Trace("FansFollowEventHandler : 用户 {0} Follow 用户 {1}",
                 eventEntry.FromId, eventEntry.ToId);
         }
