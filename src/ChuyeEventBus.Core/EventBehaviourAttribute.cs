@@ -38,7 +38,7 @@ namespace ChuyeEventBus.Core {
                 return _dequeueQuantity;
             }
             set {
-                if (value <= 0 || value >= 200) {
+                if (value <= 0 || value > 512) {
                     throw new ArgumentOutOfRangeException("DequeueQuantity");
                 }
                 _dequeueQuantity = value;
@@ -50,7 +50,7 @@ namespace ChuyeEventBus.Core {
                 return _concurrentQuantity;
             }
             set {
-                if (value <= 0 || value >= 200) {
+                if (value <= 0 || value > 10) {
                     throw new ArgumentOutOfRangeException("DequeueQuantity");
                 }
                 _concurrentQuantity = value;

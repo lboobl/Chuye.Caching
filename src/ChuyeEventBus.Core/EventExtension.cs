@@ -9,11 +9,11 @@ using System.Messaging;
 
 namespace ChuyeEventBus.Core {
     public static class EventExtension {
-        private static readonly Type _basEventHandlerType = typeof(IEventHandler);
+        private static readonly Type _baseEventHandlerType = typeof(IEventHandler);
         
         public static Type GetEventType(this IEventHandler eventHandler) {
             var genericEventHandlerType = eventHandler.GetType().GetInterfaces()
-                .FirstOrDefault(t => _basEventHandlerType.IsAssignableFrom(t));
+                .FirstOrDefault(t => _baseEventHandlerType.IsAssignableFrom(t));
             if (genericEventHandlerType == null) {
                 throw new ArgumentOutOfRangeException("eventHandler",
                     "eventHandler must instance of IEventHandler<T>");
