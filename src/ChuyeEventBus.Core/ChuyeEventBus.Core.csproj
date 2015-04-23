@@ -51,6 +51,7 @@
     <Compile Include="IEventHandler.cs" />
     <Compile Include="IEventHandler`.cs" />
     <Compile Include="MessageQueueUtil.cs" />
+    <Compile Include="MessageReceiver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

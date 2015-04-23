@@ -68,7 +68,6 @@
     <Compile Include="ISingleMessageChannel.cs" />
     <Compile Include="MessageChannel.cs" />
     <Compile Include="MessageChannelServer.cs" />
-    <Compile Include="MessageReceiver.cs" />
     <Compile Include="MultipleMessageChannel.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

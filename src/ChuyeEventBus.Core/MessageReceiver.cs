@@ -5,7 +5,7 @@ using System.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChuyeEventBus.Host {
+namespace ChuyeEventBus.Core {
     public class MessageReceiver {
         private readonly MessageQueue _messageQueue;
         private const Int32 WaitSpan = 10;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Messaging;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {
     public static class MessageQueueUtil {
@@ -36,6 +37,12 @@ namespace ChuyeEventBus.Core {
             var queue = ApplyQueue(eventEntry.GetType());
             //Debug.WriteLine(String.Format("Sending {0} via {1}", eventEntry.GetType().Name, queue.Path));
             queue.Send(eventEntry);
+        }
+
+        public static async Task<IEvent> ReceiveAsync(Type eventType) {
+            var queue = ApplyQueue(eventType);
+            var msg = await new MessageReceiver(queue).ReceiveAsync();
+            return (IEvent)msg.Body;
         }
     }
 }
