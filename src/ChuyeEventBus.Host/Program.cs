@@ -44,7 +44,7 @@ namespace ChuyeEventBus.Host {
             //}
             Task.Run(action: () => {
                 for (int i = 0; i < 4; i++) {
-                    MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = 60 + i });
+                    MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = 60 + i * 10 });
                     Thread.Sleep(1000);
                 }
             });
