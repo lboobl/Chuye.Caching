@@ -12,11 +12,11 @@ namespace ChuyeEventBus.Demo {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         public void Handle(WorkPublishEvent eventEntry) {
-            throw new NotImplementedException();
+            _logger.Trace("WorkPublishEventHandler: 作品 [{0:d2}]", eventEntry.WorkId);
         }
 
         public void Handle(IEvent eventEntry) {
-            throw new NotImplementedException();
+            Handle((WorkPublishEvent)eventEntry);
         }
 
         public void Handle(IEnumerable<IEvent> eventEntries) {

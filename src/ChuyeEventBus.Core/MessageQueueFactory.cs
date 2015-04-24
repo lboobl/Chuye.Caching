@@ -6,11 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {
-    public class MessageQueueFactory {
+    public static class MessageQueueFactory {
         private static readonly Dictionary<IEventBehaviour, MessageQueue> _msgQueues
             = new Dictionary<IEventBehaviour, MessageQueue>();
 
-        public MessageQueue Build(IEventBehaviour eventBehaviour) {
+        public static MessageQueue Build(IEventBehaviour eventBehaviour) {
             MessageQueue msgQueue;
             if (!_msgQueues.TryGetValue(eventBehaviour, out msgQueue)) {
                 var msgPath = eventBehaviour.GetMessagePath();

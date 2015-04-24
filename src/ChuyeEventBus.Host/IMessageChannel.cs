@@ -6,8 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
-    public interface IMessageChannel {
+    internal interface IMessageChannel {
         event Action<Message> MessageReceived;
+        event Action<IList<Message>> MultipleMessageReceived;
+
         Task ListenAsync();
         void Stop();
     }

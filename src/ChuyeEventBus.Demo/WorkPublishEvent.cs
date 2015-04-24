@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Demo {
     [Serializable]
-    //[EventBehaviour(DequeueQuantity = 4)]
-    [CustomEventBehaviour(typeof(CustomWorkPublishEventBehaviour))]
+    [EventBehaviour(DequeueQuantity = 2)]
+    //[CustomEventBehaviour(typeof(CustomWorkPublishEventBehaviour))]
     public class WorkPublishEvent : IEvent {
         public Int32 WorkId { get; set; }
         public Object WorkDto { get; set; }
@@ -16,7 +16,7 @@ namespace ChuyeEventBus.Demo {
 
     public class CustomWorkPublishEventBehaviour : DefaultEventBehaviour {
         public override int GetDequeueQuantity() {
-            return 2;
+            return Math.Abs(Guid.NewGuid().GetHashCode()) % 4 + 6; //4-10
         }
 
         public CustomWorkPublishEventBehaviour() {

@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
-    public class EventHandlerFinder {
+    internal class EventHandlerFinder {
         private Boolean _initialized;
 #pragma warning disable
         [ImportMany]

@@ -10,7 +10,7 @@ using System.Messaging;
 using System.Text;
 
 namespace ChuyeEventBus.Host {
-    public class MessageChannelServer {
+    internal class MessageChannelServer {
         private const Int32 ERROR_CAPACITY = 3;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -27,15 +27,13 @@ namespace ChuyeEventBus.Host {
                 EventBus.Singleton.Subscribe(handler);
             }
 
-            var msgChnanelFactory = new MessageChannelFactory();
             var hgs = eventHandlers.GroupBy(r => r.GetEventType());
             foreach (var hg in hgs) {
                 var eventBehaviour = EventExtension.GetEventBehaviour(hg.Key);
-                var msgChannel = msgChnanelFactory.Build(eventBehaviour);
-                msgChannel.MessageReceived += Channel_MessageReceived;             
-                if (msgChannel is IMultipleMessageChannel) {
-                    ((IMultipleMessageChannel)msgChannel).MultipleMessageReceived += Channel_MultipleMessageReceived;
-                }
+                var msgChannel = new MessageChannel(eventBehaviour);
+                msgChannel.MessageReceived += Channel_MessageReceived;
+                msgChannel.MultipleMessageReceived += Channel_MultipleMessageReceived;
+
                 _channels.Add(msgChannel);
                 _channelMaps.Add(hg.Key, msgChannel);
             }

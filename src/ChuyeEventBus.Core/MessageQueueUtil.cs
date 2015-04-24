@@ -9,13 +9,13 @@ namespace ChuyeEventBus.Core {
     public static class MessageQueueUtil {
         public static void Send(IEvent eventEntry) {
             var eventBehaviour = EventExtension.GetEventBehaviour(eventEntry.GetType());
-            var msgQueue = new MessageQueueFactory().Build(eventBehaviour);
+            var msgQueue = MessageQueueFactory.Build(eventBehaviour);
             msgQueue.Send(eventEntry);
         }
 
         public static async Task<IEvent> ReceiveAsync(Type eventType) {
             var eventBehaviour = EventExtension.GetEventBehaviour(eventType);
-            var msgQueue = new MessageQueueFactory().Build(eventBehaviour);
+            var msgQueue = MessageQueueFactory.Build(eventBehaviour);
             var msg = await new MessageReceiver(msgQueue).ReceiveAsync();
             return (IEvent)msg.Body;
         }

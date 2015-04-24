@@ -30,9 +30,9 @@ namespace ChuyeEventBus.Core {
             return await Task.FromResult(msg);
         }
 
-        public async Task<List<Message>> ReceiveAsync(Int32 dequeueQuantity, CancellationTokenSource ctx) {
+        public async Task<List<Message>> ReceiveAsync(Int32 dequeueQuantity, CancellationToken token) {
             var localMessages = new List<Message>(dequeueQuantity);
-            while (!ctx.IsCancellationRequested && localMessages.Count < dequeueQuantity) {
+            while (!token.IsCancellationRequested && localMessages.Count < dequeueQuantity) {
                 Message message = await ReceiveAsync();
                 if (message != null) {
                     localMessages.Add(message);
