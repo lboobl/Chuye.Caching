@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Messaging;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {
     public class MessageReceiver {
-        private readonly MessageQueue _messageQueue;
-        private const Int32 WaitSpan = 10;
+        protected readonly MessageQueue _messageQueue;
+        protected const Int32 WaitSpan = 5;
 
         public MessageReceiver(MessageQueue messageQueue) {
             _messageQueue = messageQueue;
@@ -27,6 +28,20 @@ namespace ChuyeEventBus.Core {
                 }
             }
             return await Task.FromResult(msg);
+        }
+
+        public async Task<List<Message>> ReceiveAsync(Int32 dequeueQuantity, CancellationTokenSource ctx) {
+            var localMessages = new List<Message>(dequeueQuantity);
+            while (!ctx.IsCancellationRequested && localMessages.Count < dequeueQuantity) {
+                Message message = await ReceiveAsync();
+                if (message != null) {
+                    localMessages.Add(message);
+                }
+                else {
+                    break;
+                }
+            }
+            return await Task.FromResult(localMessages);
         }
     }
 }

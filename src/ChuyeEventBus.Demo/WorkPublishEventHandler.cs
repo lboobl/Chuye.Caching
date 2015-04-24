@@ -1,6 +1,7 @@
 ﻿using ChuyeEventBus.Core;
 using NLog;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 
@@ -18,14 +19,12 @@ namespace ChuyeEventBus.Demo {
             throw new NotImplementedException();
         }
 
-        public void Handle(IEnumerable<IEvent> events) {
+        public void Handle(IEnumerable<IEvent> eventEntries) {
             //throw new Exception("Random error");
-
-            foreach (WorkPublishEvent eventEntry in events) {
-                //if ((Guid.NewGuid().GetHashCode() & 1) == 1) {
-                //    throw new Exception("Random error");
-                //}
-                _logger.Trace("WorkPublishEventHandler: 作品 [{0}] 发布", eventEntry.WorkId);
+            var eventGroups = eventEntries.Cast<WorkPublishEvent>().GroupBy(e => e.WorkId);
+            foreach (var eventGroup in eventGroups) {
+                _logger.Trace("WorkPublishEventHandler: 作品 [{0:d2}] 发布 {1,3}",
+                    eventGroup.Key, eventGroup.Count());
             }
         }
     }

@@ -9,23 +9,24 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
-    public class MessageChannel : ISingleMessageChannel {
+    public class MessageChannel : IMessageChannel {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly MessageReceiver _messageReceiver;
+        protected readonly MessageReceiver _msgReceiver;
         protected readonly CancellationTokenSource _ctx;
 
         public event Action<Message> MessageReceived;
         public String FriendlyName { get; private set; }
 
-        public MessageChannel(EventBehaviourAttribute eventBehaviour) {
-            FriendlyName = eventBehaviour.Label.Split('\\').Last();
+        public MessageChannel(String friendlyName, MessageReceiver messageReceiver) {
+            FriendlyName = friendlyName;
+            _msgReceiver = messageReceiver;
             _ctx = new CancellationTokenSource();
-            _messageReceiver = new MessageReceiver(MessageQueueUtil.ApplyQueue(eventBehaviour));
+            MessageReceived += x => { };
         }
 
         public async virtual Task ListenAsync() {
             while (!_ctx.IsCancellationRequested) {
-                using (Message message = await _messageReceiver.ReceiveAsync()) {
+                using (Message message = await _msgReceiver.ReceiveAsync()) {
                     if (message != null) {
                         OnMessageQueueReceived(message);
                     }
@@ -35,9 +36,7 @@ namespace ChuyeEventBus.Host {
         }
 
         private void OnMessageQueueReceived(Message message) {
-            if (MessageReceived != null) {
-                MessageReceived(message);
-            }
+            MessageReceived(message);
         }
 
         public virtual void Stop() {

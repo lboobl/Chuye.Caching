@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
     public interface IMessageChannel {
+        event Action<Message> MessageReceived;
         Task ListenAsync();
         void Stop();
     }

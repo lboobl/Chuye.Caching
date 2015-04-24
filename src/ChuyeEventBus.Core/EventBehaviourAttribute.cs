@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Messaging;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {
     public class EventBehaviourAttribute : Attribute {
         private Int32 _dequeueQuantity = 1;
         private Int32 _concurrentQuantity = 1;
-        private Type _formatter = null;
+        private Type _formatterType = null;
         private String _label;
+
+        public const Int32 MAX_DEQUEUE_QUANTITY = 1024;
+        public const Int32 MAX_CONCURRENT_QUANTITY = 10;
 
         public String Label {
             get { return _label; }
@@ -23,13 +21,13 @@ namespace ChuyeEventBus.Core {
             }
         }
 
-        public Type Formatter {
-            get { return _formatter; }
+        public Type FormatterType {
+            get { return _formatterType; }
             set {
                 if (value == null || !typeof(IMessageFormatter).IsAssignableFrom(value)) {
                     throw new ArgumentOutOfRangeException("Formatter");
                 }
-                _formatter = value;
+                _formatterType = value;
             }
         }
 
@@ -38,7 +36,7 @@ namespace ChuyeEventBus.Core {
                 return _dequeueQuantity;
             }
             set {
-                if (value <= 0 || value > 512) {
+                if (value <= 0 || value > MAX_DEQUEUE_QUANTITY) {
                     throw new ArgumentOutOfRangeException("DequeueQuantity");
                 }
                 _dequeueQuantity = value;
@@ -50,8 +48,8 @@ namespace ChuyeEventBus.Core {
                 return _concurrentQuantity;
             }
             set {
-                if (value <= 0 || value > 10) {
-                    throw new ArgumentOutOfRangeException("DequeueQuantity");
+                if (value <= 0 || value > MAX_CONCURRENT_QUANTITY) {
+                    throw new ArgumentOutOfRangeException("ConcurrentQuantity");
                 }
                 _concurrentQuantity = value;
             }

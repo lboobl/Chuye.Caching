@@ -44,12 +44,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomEventBehaviourAttribute.cs" />
     <Compile Include="EventBehaviourAttribute.cs" />
     <Compile Include="EventBus.cs" />
     <Compile Include="EventExtension.cs" />
     <Compile Include="IEvent.cs" />
+    <Compile Include="DefaultEventBehaviour.cs" />
+    <Compile Include="IEventBehaviour.cs" />
     <Compile Include="IEventHandler.cs" />
     <Compile Include="IEventHandler`.cs" />
+    <Compile Include="MessageQueueFactory.cs" />
     <Compile Include="MessageQueueUtil.cs" />
     <Compile Include="MessageReceiver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

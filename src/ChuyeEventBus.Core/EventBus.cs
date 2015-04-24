@@ -13,7 +13,6 @@ namespace ChuyeEventBus.Core {
 
         public event EventHandler<ErrorOccuredEventArgs> ErrorOccured;
 
-
         public static EventBus Singleton {
             get { return _singleton; }
         }
@@ -95,9 +94,6 @@ namespace ChuyeEventBus.Core {
 
 
         public void Publish(IList<IEvent> eventEntries) {
-            if (eventEntries == null || eventEntries.Count == 0) {
-                return;
-            }
             var eventType = eventEntries.First().GetType();
             List<IEventHandler> eventHandlers;
             if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {

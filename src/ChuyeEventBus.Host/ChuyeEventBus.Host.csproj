@@ -62,11 +62,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandParser.cs" />
+    <Compile Include="EventHandlerFinder.cs" />
     <Compile Include="HostRunningService.cs" />
     <Compile Include="IMessageChannel.cs" />
     <Compile Include="IMultipleMessageChannel.cs" />
-    <Compile Include="ISingleMessageChannel.cs" />
     <Compile Include="MessageChannel.cs" />
+    <Compile Include="MessageChannelFactory.cs" />
     <Compile Include="MessageChannelServer.cs" />
     <Compile Include="MultipleMessageChannel.cs" />
     <Compile Include="Program.cs" />
