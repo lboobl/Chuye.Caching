@@ -3,8 +3,6 @@ using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using System.Messaging;
 using System.Text;
@@ -48,6 +46,7 @@ namespace ChuyeEventBus.Host {
                 errorDetailBuilder.AppendLine(ex.ToString());
             }
             _logger.Error(errorDetailBuilder);
+
             if (e.TotoalErrors >= ERROR_CAPACITY) {
                 EventBus.Singleton.Unsubscribe(e.EventHandler);
                 var eventType = e.EventHandler.GetEventType();

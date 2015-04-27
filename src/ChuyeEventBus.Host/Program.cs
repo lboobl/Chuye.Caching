@@ -20,8 +20,8 @@ namespace ChuyeEventBus.Host {
             var server = StartServer();
             _logger.Trace("Press <ctrl + c> to abort, <Enter> to stop");
 
-            MockClient();
-            //MockClientAsync();
+            //MockClient();
+            MockClientAsync();
 
             Console.ReadLine();
             server.Stop();
@@ -42,12 +42,9 @@ namespace ChuyeEventBus.Host {
             //for (int i = 0; i < 6; i++) {
             //    MessageQueueUtil.Send(new FansFollowEvent() { FromId = 1, ToId = i + 1 });
             //}
-            Task.Run(action: () => {
-                for (int i = 0; i < 4; i++) {
-                    MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = 60 + i * 10 });
-                    Thread.Sleep(1000);
-                }
-            });
+            //for (int i = 0; i < 4; i++) {
+            //    MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = 60 + i * 10 });
+            //}
         }
 
         static void MockClientAsync() {

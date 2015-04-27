@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {
     public class MessageReceiver {
-        protected readonly MessageQueue _messageQueue;
-        protected const Int32 WaitSpan = 5;
+        private readonly MessageQueue _messageQueue;
+        private Int32 MIN_WAIT = 1;
+        private Int32 MAX_WAIT = 10;
+        private Int32 _currentWait = 2;
 
         public MessageReceiver(MessageQueue messageQueue) {
             _messageQueue = messageQueue;
@@ -19,7 +21,7 @@ namespace ChuyeEventBus.Core {
             Message msg = null;
             try {
                 msg = await Task.Factory.FromAsync<Message>(
-                  asyncResult: _messageQueue.BeginReceive(TimeSpan.FromSeconds(WaitSpan)),
+                  asyncResult: _messageQueue.BeginReceive(TimeSpan.FromSeconds(_currentWait)),
                   endMethod: ir => _messageQueue.EndReceive(ir));
             }
             catch (MessageQueueException ex) {
@@ -27,21 +29,31 @@ namespace ChuyeEventBus.Core {
                     throw;
                 }
             }
+            if (msg != null) {
+                if (_currentWait > MIN_WAIT) {
+                    _currentWait -= 1;
+                }
+            }
+            else {
+                if (_currentWait < MAX_WAIT) {
+                    _currentWait += 1;
+                }
+            }
             return await Task.FromResult(msg);
         }
 
         public async Task<List<Message>> ReceiveAsync(Int32 dequeueQuantity, CancellationToken token) {
-            var localMessages = new List<Message>(dequeueQuantity);
-            while (!token.IsCancellationRequested && localMessages.Count < dequeueQuantity) {
+            var msgs = new List<Message>(dequeueQuantity);
+            while (!token.IsCancellationRequested && msgs.Count < dequeueQuantity) {
                 Message message = await ReceiveAsync();
                 if (message != null) {
-                    localMessages.Add(message);
+                    msgs.Add(message);
                 }
                 else {
                     break;
                 }
             }
-            return await Task.FromResult(localMessages);
+            return await Task.FromResult(msgs);
         }
     }
 }

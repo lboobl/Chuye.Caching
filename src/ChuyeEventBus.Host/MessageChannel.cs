@@ -14,7 +14,6 @@ namespace ChuyeEventBus.Host {
         private readonly MessageReceiver _msgReceiver;
         private readonly CancellationTokenSource _ctx;
         private readonly IEventBehaviour _eventBehaviour;
-        private readonly List<Message> _localMsgs = new List<Message>();
 
         public event Action<Message> MessageReceived;
         public event Action<IList<Message>> MultipleMessageReceived;
@@ -27,7 +26,10 @@ namespace ChuyeEventBus.Host {
             _msgReceiver = new MessageReceiver(msgQueue);
             _eventBehaviour = eventBehaviour;
             _ctx = new CancellationTokenSource();
-            _ctx.Token.Register(OnMultipleMessageQueueReceived); 
+
+            //不可以想办法在取消时立即处理临时存储的消息,
+            //因为可能某个消息正在出列
+            //_ctx.Token.Register(OnMultipleMessageQueueReceived); 
 
             MessageReceived += x => { };
             MultipleMessageReceived += x => { };
@@ -52,25 +54,10 @@ namespace ChuyeEventBus.Host {
             }
         }
 
-        //private async Task ListenMutipleAsync(Int32 dequeueQuantity) {
-        //    //为了达到 Stop()方法调用时能立即处理局部 Message 列表的能力,
-        //    //放弃了 MessageReceiver.ReceiveAsync() 获取集合的使用
-        //    var msgs = await _msgReceiver.ReceiveAsync(dequeueQuantity, _ctx.Token);
-        //    OnMultipleMessageQueueReceived(msgs);
-        //}
-
-        public async Task ListenMutipleAsync(Int32 dequeueQuantity) {
-            while (!_ctx.IsCancellationRequested) {
-                var msg = await _msgReceiver.ReceiveAsync();
-                if (msg != null) {
-                    _localMsgs.Add(msg);
-                }
-                if (msg == null || _localMsgs.Count >= dequeueQuantity) {
-                    OnMultipleMessageQueueReceived();
-                }
-            }
-            OnMultipleMessageQueueReceived(); //保证取消后，处理已经出列的数据
-            _logger.Debug("MessageChannel: {0} stoped", FriendlyName);
+        private async Task ListenMutipleAsync(Int32 dequeueQuantity) {
+            // MessageReceiver 的出队时间动态修改, 故可以使用 ReceiveAsync() 获取集合
+            var msgs = await _msgReceiver.ReceiveAsync(dequeueQuantity, _ctx.Token);
+            OnMultipleMessageQueueReceived(msgs);
         }
 
         private void OnMessageQueueReceived(Message msg) {
@@ -79,16 +66,15 @@ namespace ChuyeEventBus.Host {
             }
         }
 
-        private void OnMultipleMessageQueueReceived() {
-            if (_localMsgs.Count > 0) {
-                MultipleMessageReceived(_localMsgs);
-                ReleaseMessages();
+        private void OnMultipleMessageQueueReceived(List<Message> msgs) {
+            if (msgs != null && msgs.Count > 0) {
+                MultipleMessageReceived(msgs);
+                ReleaseMessages(msgs);
             }
         }
 
-        private void ReleaseMessages() {
-            _localMsgs.ForEach(m => m.Dispose());
-            _localMsgs.Clear();
+        private void ReleaseMessages(List<Message> msgs) {
+            msgs.ForEach(m => m.Dispose());
         }
 
         public virtual void Stop() {
