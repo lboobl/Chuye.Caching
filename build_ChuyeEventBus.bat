@@ -8,8 +8,8 @@ msbuild "%local%src\ChuyeEventBus.sln" /t:Rebuild /P:Configuration=Release
 @goto copy
 
 :copy
-robocopy "%local%src\ChuyeEventBus.Core\bin\Release" "%local%release" /e
-robocopy "%local%src\ChuyeEventBus.Host\bin\Release" "%local%release" /e
+robocopy "%local%src\ChuyeEventBus.Core\bin\Release" "%local%release\ChuyeEventBus" /e
+robocopy "%local%src\ChuyeEventBus.Host\bin\Release" "%local%release\ChuyeEventBus" /e
 @goto end
 
 :end

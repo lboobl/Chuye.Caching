@@ -8,8 +8,8 @@ msbuild "%local%src\Chuye.Caching.sln" /t:Rebuild /P:Configuration=Release
 @goto copy
 
 :copy
-robocopy "%local%src\Chuye.Caching\bin\Release" "%local%release" /e
-robocopy "%local%src\Chuye.Caching.Memcached\bin\Release" "%local%release" /e
+robocopy "%local%src\Chuye.Caching\bin\Release" "%local%release\Chuye.Caching" /e
+robocopy "%local%src\Chuye.Caching.Memcached\bin\Release" "%local%release\Chuye.Caching" /e
 @goto end
 
 :end
