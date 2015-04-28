@@ -16,7 +16,7 @@ namespace ChuyeEventBus.Demo {
 
     public class CustomWorkPublishEventBehaviour : DefaultEventBehaviour {
         public override int GetDequeueQuantity() {
-            return Math.Abs(Guid.NewGuid().GetHashCode()) % 4 + 6; //4-10
+            return Math.Abs(Guid.NewGuid().GetHashCode()) % 3 + 3; //3~6
         }
 
         public CustomWorkPublishEventBehaviour() {

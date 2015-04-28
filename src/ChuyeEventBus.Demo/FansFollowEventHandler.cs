@@ -12,8 +12,6 @@ namespace ChuyeEventBus.Demo {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         public void Handle(FansFollowEvent eventEntry) {
-            //throw new Exception("Random error");
-            //Thread.Sleep(1000);
             _logger.Trace("FansFollowEventHandler1 : 用户 {0} Follow 用户 {1}",
                 eventEntry.FromId, eventEntry.ToId);
         }
@@ -31,8 +29,6 @@ namespace ChuyeEventBus.Demo {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         public void Handle(FansFollowEvent eventEntry) {
-            //throw new Exception("Random error");
-            //Thread.Sleep(1000);
             _logger.Trace("FansFollowEventHandler2 : 用户 {0} Follow 用户 {1}",
                 eventEntry.FromId, eventEntry.ToId);
         }
