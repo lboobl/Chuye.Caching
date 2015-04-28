@@ -27,15 +27,12 @@ namespace ChuyeEventBus.Host {
             _eventBehaviour = eventBehaviour;
             _ctx = new CancellationTokenSource();
 
-            //不可以想办法在取消时立即处理临时存储的消息,
-            //因为可能某个消息正在出列
-            //_ctx.Token.Register(OnMultipleMessageQueueReceived); 
-
             MessageReceived += x => { };
             MultipleMessageReceived += x => { };
         }
 
         public async virtual Task ListenAsync() {
+            _logger.Debug("MessageChannel: {0} ListenAsync", FriendlyName);
             while (!_ctx.IsCancellationRequested) {
                 var dequeueQuantity = _eventBehaviour.GetDequeueQuantity();
                 if (dequeueQuantity == 1) {
@@ -56,8 +53,16 @@ namespace ChuyeEventBus.Host {
 
         private async Task ListenMutipleAsync(Int32 dequeueQuantity) {
             // MessageReceiver 的出队时间动态修改, 故可以使用 ReceiveAsync() 获取集合
-            var msgs = await _msgReceiver.ReceiveAsync(dequeueQuantity, _ctx.Token);
-            OnMultipleMessageQueueReceived(msgs);
+            List<Message> msgs = null;
+            try {
+                msgs = await _msgReceiver.ReceiveAsync(dequeueQuantity, _ctx.Token);
+                OnMultipleMessageQueueReceived(msgs);
+            }
+            finally {
+                if (msgs != null && msgs.Count > 0) {
+                    msgs.ForEach(m => m.Dispose());
+                }
+            }
         }
 
         private void OnMessageQueueReceived(Message msg) {
@@ -69,12 +74,7 @@ namespace ChuyeEventBus.Host {
         private void OnMultipleMessageQueueReceived(List<Message> msgs) {
             if (msgs != null && msgs.Count > 0) {
                 MultipleMessageReceived(msgs);
-                ReleaseMessages(msgs);
             }
-        }
-
-        private void ReleaseMessages(List<Message> msgs) {
-            msgs.ForEach(m => m.Dispose());
         }
 
         public virtual void Stop() {
