@@ -23,13 +23,13 @@ namespace Chuye.Persistent.Demo {
         static void Main(string[] args) {
             Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
-            PrepareData();
+            //PrepareData();
             BasicCrud();
         }
 
         private static void PrepareData() {
             var conStr = ConfigurationManager.ConnectionStrings["PubsMongo"].ConnectionString;
-            var context = new MongoRepositoryContext(conStr, "Pubs");
+            var context = new MongoRepositoryContext(conStr);
             var repository = new MongoRepository<Employee>(context);
 
             var docs = context.Database.GetCollection<Employee>();
@@ -61,7 +61,7 @@ namespace Chuye.Persistent.Demo {
 
         private static void BasicCrud() {
             var conStr = ConfigurationManager.ConnectionStrings["PubsMongo"].ConnectionString;
-            var context = new MongoRepositoryContext(conStr, "Pubs");
+            var context = new MongoRepositoryContext(conStr);
             var repository = new MongoRepository<Employee>(context);
 
             Console.WriteLine("Remove all employee");
