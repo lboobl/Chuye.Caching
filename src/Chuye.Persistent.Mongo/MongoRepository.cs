@@ -107,7 +107,7 @@ namespace Chuye.Persistent.Mongo {
             return mongoDatabase.GetCollection<TEntry>();
         }
 
-        public static void Drop<TEntry>(this MongoDatabase mongoDatabase) {
+        public static void DropCollection<TEntry>(this MongoDatabase mongoDatabase) {
             var docs = MongoEntryMapperFactory.Mapper.Map<TEntry>();
             mongoDatabase.DropCollection(docs);
         }
