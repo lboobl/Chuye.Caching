@@ -47,7 +47,7 @@ namespace ChuyeEventBus.Host {
             }
             _logger.Error(errorDetailBuilder);
 
-            if (e.TotoalErrors >= ERROR_CAPACITY) {
+            if (e.TotalErrors >= ERROR_CAPACITY) {
                 EventBus.Singleton.Unsubscribe(e.EventHandler);
                 var eventType = e.EventHandler.GetEventType();
                 _channels.Remove(_channelMaps[eventType]);

@@ -61,13 +61,6 @@ namespace ChuyeEventBus.Core {
             if (_eventHandlers.TryGetValue(eventType, out eventHandlers)) {
                 Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} EventBus: 发布事件 {1}",
                     DateTime.Now, eventType.FullName));
-
-                //Task.Factory.StartNew(() => {
-                //    foreach (var eh in eventHandlers) {
-                //        new Task(() => SafelyHandle(eh, eventEntry), TaskCreationOptions.AttachedToParent).Start();
-                //    }
-                //}).Wait();
-
                 var tasks = eventHandlers.Select(async eh => await Task.Run(() => SafelyHandle(eh, eventEntry)));
                 Task.WaitAll(tasks.ToArray());
 
@@ -138,13 +131,13 @@ namespace ChuyeEventBus.Core {
     public class ErrorOccuredEventArgs : EventArgs {
         public IEventHandler EventHandler { get; private set; }
         public IList<IEvent> Events { get; private set; }
-        public Int32 TotoalErrors { get; private set; }
+        public Int32 TotalErrors { get; private set; }
         public IList<Exception> Errors { get; private set; }
 
         public ErrorOccuredEventArgs(IEventHandler eventHandler, IList<IEvent> events, Int32 errorNumber, params Exception[] errors) {
             EventHandler = eventHandler;
             Events = events;
-            TotoalErrors = errorNumber;
+            TotalErrors = errorNumber;
             Errors = errors;
         }
     }
