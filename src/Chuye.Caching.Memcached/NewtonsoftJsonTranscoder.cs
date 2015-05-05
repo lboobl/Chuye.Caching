@@ -20,7 +20,7 @@ namespace Chuye.Caching.Memcached {
 
         protected override object DeserializeObject(ArraySegment<byte> value) {
             if (value.Array.Length >= _donetBytes.Length) {
-                var isOrignalObjectByte = value.Array.Take(10).Distinct().Any(b => _donetBytes.Contains(b));
+                var isOrignalObjectByte = value.Array.Take(10).Distinct().All(b => _donetBytes.Contains(b));
                 if (isOrignalObjectByte) {
                     return base.DeserializeObject(value);
                 }
