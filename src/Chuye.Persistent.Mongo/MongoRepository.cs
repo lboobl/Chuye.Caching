@@ -1,12 +1,10 @@
+using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.Driver.Builders;
+using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MongoDB.Bson;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
-using MongoDB.Driver.Builders;
 using System.Linq.Expressions;
 
 namespace Chuye.Persistent.Mongo {
@@ -97,19 +95,6 @@ namespace Chuye.Persistent.Mongo {
                 query = query.Where(predicate);
             }
             return query.Select(r => r.Id).Any();
-        }
-    }
-
-    public static class MongoDatabaseExtension {
-
-        public static MongoCollection<TEntry> GetCollection<TEntry>(this MongoDatabase mongoDatabase) {
-            var docs = MongoEntryMapperFactory.Mapper.Map<TEntry>();
-            return mongoDatabase.GetCollection<TEntry>();
-        }
-
-        public static void DropCollection<TEntry>(this MongoDatabase mongoDatabase) {
-            var docs = MongoEntryMapperFactory.Mapper.Map<TEntry>();
-            mongoDatabase.DropCollection(docs);
         }
     }
 }

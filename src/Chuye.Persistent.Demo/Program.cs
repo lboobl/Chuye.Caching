@@ -1,22 +1,8 @@
-using FluentNHibernate.Cfg;
-using FluentNHibernate.Cfg.Db;
-using Chuye.Persistent;
 using Chuye.Persistent.Mongo;
-using Chuye.Persistent.NH;
-using NHibernate;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using MongoDB.Bson;
-using MongoDB.Driver.Builders;
-using MongoDB.Driver.Linq;
-using FluentNHibernate.Mapping;
 
 namespace Chuye.Persistent.Demo {
     class Program {
@@ -78,6 +64,9 @@ namespace Chuye.Persistent.Demo {
                 }
             };
             repository.Save(Aimee);
+
+            repository.Retrive(Aimee.Id);
+
             var Becky = new Employee {
                 Name = "Becky", Address = "Bejing", Birth = DateTime.Now,
                 Job = new Job {
