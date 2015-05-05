@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EventMocker.cs" />
     <Compile Include="FansFollowEvent.cs" />
     <Compile Include="FansFollowEventHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
