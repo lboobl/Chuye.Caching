@@ -12,6 +12,11 @@ namespace ChuyeEventBus.Host {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         static void Main(string[] args) {
+            if (!ProcessSingleton.CreateMutex()) {
+                Console.WriteLine("Process is already running, exit");
+                return;
+            }
+
             var form = new CommandParser().ParseAsForm(args);
             if (form.AllKeys.Contains("debug", StringComparer.OrdinalIgnoreCase)) {
                 Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
@@ -27,6 +32,8 @@ namespace ChuyeEventBus.Host {
             server.Stop();
             _logger.Trace("Press <Ctrl + c> to abort, or waiting for task finish");
             Console.ReadLine();
+
+            ProcessSingleton.ReleaseMutex();
         }
 
         static MessageChannelServer StartServer() {

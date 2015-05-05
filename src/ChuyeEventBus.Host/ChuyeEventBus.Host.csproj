@@ -57,6 +57,7 @@
     <Compile Include="IMessageChannel.cs" />
     <Compile Include="MessageChannel.cs" />
     <Compile Include="MessageChannelServer.cs" />
+    <Compile Include="ProcessSingleton.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
