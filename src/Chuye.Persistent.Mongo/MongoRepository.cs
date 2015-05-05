@@ -103,7 +103,13 @@ namespace Chuye.Persistent.Mongo {
     public static class MongoDatabaseExtension {
 
         public static MongoCollection<TEntry> GetCollection<TEntry>(this MongoDatabase mongoDatabase) {
-            return mongoDatabase.GetCollection<TEntry>(MongoEntryMapperFactory.Mapger.Map<TEntry>());
+            var docs = MongoEntryMapperFactory.Mapper.Map<TEntry>();
+            return mongoDatabase.GetCollection<TEntry>();
+        }
+
+        public static void Drop<TEntry>(this MongoDatabase mongoDatabase) {
+            var docs = MongoEntryMapperFactory.Mapper.Map<TEntry>();
+            mongoDatabase.DropCollection(docs);
         }
     }
 }
