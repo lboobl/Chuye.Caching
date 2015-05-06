@@ -37,7 +37,7 @@ namespace ChuyeEventBus.Host {
             }
             catch (ReflectionTypeLoadException ex) {
                 foreach (var ex2 in ex.LoaderExceptions) {
-                    Console.WriteLine(ex2);
+                    _logger.Error(ex2);
                 }
                 throw;
             }

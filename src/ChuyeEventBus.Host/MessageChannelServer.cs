@@ -14,13 +14,11 @@ namespace ChuyeEventBus.Host {
 
         private readonly List<IMessageChannel> _channels = new List<IMessageChannel>();
         private readonly Dictionary<Type, IMessageChannel> _channelMaps = new Dictionary<Type, IMessageChannel>();
-        public EventHandlerFinder EventHandlerFinder { get; set; }
 
-        public void StartAsync() {
+        public void StartAsync(IEnumerable<IEventHandler> eventHandlers) {
             EventBus.Singleton.UnsubscribeAll();
             EventBus.Singleton.ErrorOccured += Singleton_ErrorOccured;
 
-            var eventHandlers = EventHandlerFinder.GetEventHandlers();
             foreach (var handler in eventHandlers) {
                 EventBus.Singleton.Subscribe(handler);
             }

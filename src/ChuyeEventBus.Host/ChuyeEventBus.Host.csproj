@@ -32,6 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -54,6 +55,7 @@
   <ItemGroup>
     <Compile Include="CommandParser.cs" />
     <Compile Include="EventHandlerFinder.cs" />
+    <Compile Include="FolderTracker.cs" />
     <Compile Include="IMessageChannel.cs" />
     <Compile Include="MessageChannel.cs" />
     <Compile Include="MessageChannelServer.cs" />
