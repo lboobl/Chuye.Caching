@@ -6,16 +6,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Messaging;
 using System.Text;
+using System.Threading;
 
 namespace ChuyeEventBus.Host {
-    internal class MessageChannelServer {
+    internal class MessageChannelServer : MarshalByRefObject {
         private const Int32 ERROR_CAPACITY = 3;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly IEventHandlerResolver _eventHandlerResolver = new EventHandlerResolver();
 
         private readonly List<IMessageChannel> _channels = new List<IMessageChannel>();
         private readonly Dictionary<Type, IMessageChannel> _channelMaps = new Dictionary<Type, IMessageChannel>();
 
-        public void StartAsync(IEnumerable<IEventHandler> eventHandlers) {
+        public void StartAsync(String folder) {
+            var eventHandlers = _eventHandlerResolver.FindAll(folder);
+
             EventBus.Singleton.UnsubscribeAll();
             EventBus.Singleton.ErrorOccured += Singleton_ErrorOccured;
 
@@ -65,6 +69,11 @@ namespace ChuyeEventBus.Host {
 
         public void Stop() {
             _channels.ForEach(c => c.Stop());
+            var allStoped = _channels.All(c => c.GetStatus() == MessageChannelStatus.Stoped);
+            while (!allStoped) {
+                Thread.Sleep(1000);
+                allStoped = _channels.All(c => c.GetStatus() == MessageChannelStatus.Stoped);
+            }
         }
     }
 }

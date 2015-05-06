@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 namespace ChuyeEventBus.Host {
     class Program {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private static String pluginFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
-        private static String tempFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
-        private static MessageChannelServer _server = new MessageChannelServer();
+        private static String _pluginFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
+        private static String _tempFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
+        private static MessageChannelServer _messageChannelServer;
 
         static void Main(string[] args) {
             if (!ProcessSingleton.CreateMutex()) {
@@ -26,51 +26,39 @@ namespace ChuyeEventBus.Host {
                 Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
             }
 
-            StartServer();
-            _logger.Trace("Press <ctrl + c> to abort, <Enter> to stop");
+            BuildServerAndStartAsync();
 
-            //ChuyeEventBus.Demo.EventMocker.MockClient();
-            //ChuyeEventBus.Demo.EventMocker.MockClientAsync();
-
-            Console.ReadLine();
-            _server.Stop();
-            _logger.Trace("Press <Ctrl + c> to abort, or waiting for task finish");
-            Console.ReadLine();
-
-            ProcessSingleton.ReleaseMutex();
-        }
-
-        static void StartServer() {
-            var folderTracker = new FolderTracker(pluginFolder, "*.dll");
+            var folderTracker = new FolderTracker(_pluginFolder, "*.dll");
             folderTracker.FolderChanged += folderTracker_FolderChanged;
             folderTracker.WatchAsync();
 
-            var eventHandlers = BuildEventHandlers();
-            _server.StartAsync(eventHandlers);
-        }
+            Console.WriteLine("Press <Enter> to exit");
+            Console.ReadLine();
 
-        private static IEnumerable<IEventHandler> BuildEventHandlers() {
-            var tempFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
-            //Microsoft.VisualBasic.FileIO.FileSystem.CopyDirectory(folder1, folder2);
-            var startInfo = new ProcessStartInfo("ROBOCOPY", String.Format("\"{0}\" \"{1}\" /mir", pluginFolder, tempFolder));
+            _logger.Trace("Press <Ctrl + c> to abort, or waiting for task finish");
+            _messageChannelServer.Stop();
+
+            ProcessSingleton.ReleaseMutex();
+        }
+        static void BuildServerAndStartAsync() {
+            if (!Directory.Exists(_pluginFolder)) {
+                throw new Exception("Create your plugin folder and get dll copied");
+            }
+            var startInfo = new ProcessStartInfo("ROBOCOPY",
+                String.Format("\"{0}\" \"{1}\" /mir /NFL /NDL /NJS", _pluginFolder, _tempFolder));
             startInfo.CreateNoWindow = false;
             startInfo.RedirectStandardOutput = false;
             startInfo.UseShellExecute = false;
             Process.Start(startInfo).WaitForExit();
 
-            var finder = new EventHandlerFinder();
-            finder.Folder = tempFolder;
-            var eventHandlers = finder.GetEventHandlers();
-            return eventHandlers;
+            _messageChannelServer = (MessageChannelServer)PluginProxy.Singleton.Build(typeof(MessageChannelServer));
+            _messageChannelServer.StartAsync(_tempFolder);
         }
 
-
         static void folderTracker_FolderChanged() {
-            _server.Stop();
-
-            _server = new MessageChannelServer();
-            var eventHandlers = BuildEventHandlers();
-            _server.StartAsync(eventHandlers);
+            _messageChannelServer.Stop();
+            PluginProxy.Singleton.ReleaseHost();
+            BuildServerAndStartAsync();
         }
     }
 }

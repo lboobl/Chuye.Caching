@@ -14,6 +14,7 @@ namespace ChuyeEventBus.Host {
         private readonly MessageReceiver _msgReceiver;
         private readonly CancellationTokenSource _ctx;
         private readonly IEventBehaviour _eventBehaviour;
+        private MessageChannelStatus _status;
 
         public event Action<Message> MessageReceived;
         public event Action<IList<Message>> MultipleMessageReceived;
@@ -33,6 +34,8 @@ namespace ChuyeEventBus.Host {
 
         public async virtual Task ListenAsync() {
             _logger.Debug("MessageChannel: {0} ListenAsync", FriendlyName);
+            _status = MessageChannelStatus.Runing;
+
             while (!_ctx.IsCancellationRequested) {
                 var dequeueQuantity = _eventBehaviour.GetDequeueQuantity();
                 if (dequeueQuantity == 1) {
@@ -41,6 +44,9 @@ namespace ChuyeEventBus.Host {
                 else {
                     await ListenMutipleAsync(dequeueQuantity);
                 }
+            }
+            if (_status == MessageChannelStatus.Suspended) {
+                _status = MessageChannelStatus.Stoped;
             }
             _logger.Debug("MessageChannel: {0} stoped", FriendlyName);
         }
@@ -79,9 +85,14 @@ namespace ChuyeEventBus.Host {
 
         public virtual void Stop() {
             if (!_ctx.IsCancellationRequested) {
+                _status = MessageChannelStatus.Suspended;
                 _logger.Debug("MessageChannel: {0} suspend", FriendlyName);
                 _ctx.Cancel();
             }
+        }
+
+        public MessageChannelStatus GetStatus() {
+            return _status;
         }
     }
 }

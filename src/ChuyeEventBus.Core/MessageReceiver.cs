@@ -10,7 +10,7 @@ namespace ChuyeEventBus.Core {
     public class MessageReceiver {
         private readonly MessageQueue _messageQueue;
         private Int32 MIN_WAIT = 1;
-        private Int32 MAX_WAIT = 10;
+        private Int32 MAX_WAIT = 8;
         private Int32 _currentWait = 2;
 
         public MessageReceiver(MessageQueue messageQueue) {

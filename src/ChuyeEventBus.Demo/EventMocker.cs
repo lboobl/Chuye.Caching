@@ -20,18 +20,22 @@ namespace ChuyeEventBus.Demo {
         public static void MockClientAsync() {
             var random = new Random();
             var works = Enumerable.Range(0, 100).Select(r => random.Next(1, 100)).ToArray();
+            
             Task.Run(action: () => {
-                for (int i = 0; i < 100; i++) {
-                    MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = i });
-                    Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode()) % 200 + 300);
+                while (true) {
+                    Console.WriteLine("Send FansFollowEvent");
+                    var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
+                    MessageQueueUtil.Send(new FansFollowEvent() { FromId = 1, ToId = 2 });
+                    Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 1000 + 1000));
                 }
             });
 
             Task.Run(action: () => {
+                var index = 0;
                 while (true) {
-                    var id = works[Math.Abs(Guid.NewGuid().GetHashCode()) % works.Length];
-                    MessageQueueUtil.Send(new FansFollowEvent() { FromId = 1, ToId = 2 });
-                    Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode() % 1000 + 1000));
+                    Console.WriteLine("Send WorkPublishEvent");
+                    MessageQueueUtil.Send(new WorkPublishEvent() { WorkId = ++index });
+                    Thread.Sleep(Math.Abs(Guid.NewGuid().GetHashCode()) % 200 + 300);
                 }
             });
         }

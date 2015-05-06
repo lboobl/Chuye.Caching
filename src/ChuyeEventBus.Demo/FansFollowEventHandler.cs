@@ -1,5 +1,4 @@
 ﻿using ChuyeEventBus.Core;
-using NLog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -9,10 +8,9 @@ namespace ChuyeEventBus.Demo {
 
     [Export(typeof(IEventHandler))]
     public class FansFollowEventHandler1 : IEventHandler<FansFollowEvent> {
-        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-
         public void Handle(FansFollowEvent eventEntry) {
-            _logger.Trace("FansFollowEventHandler1 : 用户 {0} Follow 用户 {1}",
+            Thread.Sleep(5000);
+            Console.WriteLine("FansFollowEventHandler1 : 用户 {0} Follow 用户 {1}",
                 eventEntry.FromId, eventEntry.ToId);
         }
         public void Handle(IEvent eventEntry) {
@@ -26,10 +24,9 @@ namespace ChuyeEventBus.Demo {
 
     [Export(typeof(IEventHandler))]
     public class FansFollowEventHandler2 : IEventHandler<FansFollowEvent> {
-        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-
         public void Handle(FansFollowEvent eventEntry) {
-            _logger.Trace("FansFollowEventHandler2 : 用户 {0} Follow 用户 {1}",
+            Thread.Sleep(5000);
+            Console.WriteLine("FansFollowEventHandler2 : 用户 {0} Follow 用户 {1}",
                 eventEntry.FromId, eventEntry.ToId);
         }
         public void Handle(IEvent eventEntry) {

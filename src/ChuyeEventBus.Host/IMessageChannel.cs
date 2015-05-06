@@ -12,5 +12,6 @@ namespace ChuyeEventBus.Host {
 
         Task ListenAsync();
         void Stop();
+        MessageChannelStatus GetStatus();
     }
 }
