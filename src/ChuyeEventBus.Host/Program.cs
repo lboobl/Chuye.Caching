@@ -13,7 +13,7 @@ namespace ChuyeEventBus.Host {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private static String _pluginFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
         private static String _tempFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
-        private static MessageChannelServer _messageChannelServer;
+        private static MessageChannelServerHost _pluginHost;
 
         static void Main(string[] args) {
             if (!ProcessSingleton.CreateMutex()) {
@@ -36,14 +36,16 @@ namespace ChuyeEventBus.Host {
             Console.ReadLine();
 
             _logger.Trace("Press <Ctrl + c> to abort, or waiting for task finish");
-            _messageChannelServer.Stop();
+            _pluginHost.Stop();
 
             ProcessSingleton.ReleaseMutex();
         }
+
         static void BuildServerAndStartAsync() {
             if (!Directory.Exists(_pluginFolder)) {
                 throw new Exception("Create your plugin folder and get dll copied");
             }
+            //todo: 对根级别dll与plugin级别dll进行差集复制
             var startInfo = new ProcessStartInfo("ROBOCOPY",
                 String.Format("\"{0}\" \"{1}\" /mir /NFL /NDL /NJS", _pluginFolder, _tempFolder));
             startInfo.CreateNoWindow = false;
@@ -51,13 +53,12 @@ namespace ChuyeEventBus.Host {
             startInfo.UseShellExecute = false;
             Process.Start(startInfo).WaitForExit();
 
-            _messageChannelServer = (MessageChannelServer)PluginProxy.Singleton.Build(typeof(MessageChannelServer));
-            _messageChannelServer.StartAsync(_tempFolder);
+            _pluginHost = new MessageChannelServerHost();
+            _pluginHost.SearchAsync(_tempFolder);
         }
 
         static void folderTracker_FolderChanged() {
-            _messageChannelServer.Stop();
-            PluginProxy.Singleton.ReleaseHost();
+            _pluginHost.Stop();
             BuildServerAndStartAsync();
         }
     }

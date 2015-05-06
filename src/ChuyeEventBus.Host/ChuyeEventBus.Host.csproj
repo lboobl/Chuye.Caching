@@ -61,7 +61,7 @@
     <Compile Include="MessageChannel.cs" />
     <Compile Include="MessageChannelServer.cs" />
     <Compile Include="MessageChannelStatus.cs" />
-    <Compile Include="PluginProxy.cs" />
+    <Compile Include="MessageChannelServerHost.cs" />
     <Compile Include="ProcessSingleton.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

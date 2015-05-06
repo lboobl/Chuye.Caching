@@ -3,13 +3,14 @@ using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Messaging;
 using System.Text;
 using System.Threading;
 
 namespace ChuyeEventBus.Host {
-    internal class MessageChannelServer : MarshalByRefObject {
+    public class MessageChannelServer : MarshalByRefObject {
         private const Int32 ERROR_CAPACITY = 3;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly IEventHandlerResolver _eventHandlerResolver = new EventHandlerResolver();

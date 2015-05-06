@@ -29,6 +29,17 @@ namespace ChuyeEventBus.Host {
                 _watcher.Created += watcher_Changed;
                 _watcher.Deleted += watcher_Changed;
                 _watcher.Renamed += watcher_Changed;
+
+                var subFolders = Directory.EnumerateDirectories(_watcher.Path, "*", SearchOption.TopDirectoryOnly);
+                foreach (var subFolder in subFolders) {
+                    var watcher = new FileSystemWatcher(subFolder, _watcher.Filter);
+                    watcher.Changed += watcher_Changed;
+                    watcher.Created += watcher_Changed;
+                    watcher.Deleted += watcher_Changed;
+                    watcher.Renamed += watcher_Changed;
+                    watcher.EnableRaisingEvents = true;
+                }
+
                 _watcher.EnableRaisingEvents = true;
                 _initialed = true;
             }
