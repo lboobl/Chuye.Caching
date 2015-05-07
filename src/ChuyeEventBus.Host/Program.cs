@@ -13,7 +13,7 @@ namespace ChuyeEventBus.Host {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private static String _pluginFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
         private static String _tempFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
-        private static MessageChannelServerHost _pluginHost;
+        private static MessageChannelServerProxy _pluginHost;
 
         static void Main(string[] args) {
             if (!ProcessSingleton.CreateMutex()) {
@@ -28,7 +28,7 @@ namespace ChuyeEventBus.Host {
 
             BuildServerAndStartAsync();
 
-            var folderTracker = new FolderTracker(_pluginFolder, "*.dll");
+            var folderTracker = new FileTracker(_pluginFolder, "*.dll");
             folderTracker.FolderChanged += folderTracker_FolderChanged;
             folderTracker.WatchAsync();
 
@@ -36,7 +36,7 @@ namespace ChuyeEventBus.Host {
             Console.ReadLine();
 
             _logger.Trace("Press <Ctrl + c> to abort, or waiting for task finish");
-            _pluginHost.Stop();
+            _pluginHost.ReleasePluginBatch();
 
             ProcessSingleton.ReleaseMutex();
         }
@@ -53,13 +53,17 @@ namespace ChuyeEventBus.Host {
             startInfo.UseShellExecute = false;
             Process.Start(startInfo).WaitForExit();
 
-            _pluginHost = new MessageChannelServerHost();
-            _pluginHost.SearchAsync(_tempFolder);
+            _pluginHost = new MessageChannelServerProxy();
+            _pluginHost.BuildPluginBatchAsync(_tempFolder);
         }
 
-        static void folderTracker_FolderChanged() {
-            _pluginHost.Stop();
-            BuildServerAndStartAsync();
+        static void folderTracker_FolderChanged(String file) {
+            var trackFolder = Path.GetDirectoryName(file);
+            var tempFolder = Path.Combine(_tempFolder, Path.GetFileName(trackFolder));
+            if (trackFolder != _pluginFolder) {
+                _pluginHost.ReleasePlugin(tempFolder);
+                _pluginHost.BuildPluginAsync(tempFolder);
+            }
         }
     }
 }

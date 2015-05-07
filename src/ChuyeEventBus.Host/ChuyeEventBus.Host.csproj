@@ -56,12 +56,12 @@
     <Compile Include="CommandParser.cs" />
     <Compile Include="EventHandlerResolver.cs" />
     <Compile Include="IEventHandlerResolver.cs" />
-    <Compile Include="FolderTracker.cs" />
+    <Compile Include="FileTracker.cs" />
     <Compile Include="IMessageChannel.cs" />
     <Compile Include="MessageChannel.cs" />
     <Compile Include="MessageChannelServer.cs" />
     <Compile Include="MessageChannelStatus.cs" />
-    <Compile Include="MessageChannelServerHost.cs" />
+    <Compile Include="MessageChannelServerProxy.cs" />
     <Compile Include="ProcessSingleton.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

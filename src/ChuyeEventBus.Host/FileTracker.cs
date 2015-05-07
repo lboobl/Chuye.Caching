@@ -8,17 +8,17 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
-    public class FolderTracker {
+    public class FileTracker {
         private Boolean _initialed = false;
         private const Int32 WaintSpan = 100;
-        private Boolean _hasChanged; //只关注 Changed，不关心细节时用 Boolean 值即可
+        private readonly Queue<String> _changes; //只关注 Changed，不关心细节时用 Boolean 值即可
         private readonly Timer _timer;
         private readonly FileSystemWatcher _watcher;
 
-        public event Action FolderChanged;
+        public event Action<String> FolderChanged;
 
-        public FolderTracker(String folder, String filter) {
-            _hasChanged = false;
+        public FileTracker(String folder, String filter) {
+            _changes = new Queue<String>();
             _watcher = new FileSystemWatcher(folder, filter);
             _timer = new Timer(callback, null, Timeout.Infinite, Timeout.Infinite);
         }
@@ -47,18 +47,23 @@ namespace ChuyeEventBus.Host {
 
         private void watcher_Changed(object sender, FileSystemEventArgs e) {
             //节流，保证回调未结束前，不再进行通知
-            if (!_hasChanged) {
-                _hasChanged = true;
+            if (_changes.Count == 0) {
+                _changes.Enqueue(e.FullPath);
                 _timer.Change(100, Timeout.Infinite);
             }
         }
 
         private void callback(Object state) {
             Debug.WriteLine(String.Format("{0:HH:mm:ss.ffff} Watcher: 文件变更", DateTime.Now));
-            if (FolderChanged != null) {
-                FolderChanged();
+            var changes = new List<String>();
+            while (_changes.Count > 0) {
+                changes.Add(_changes.Dequeue());
             }
-            _hasChanged = false;
+            foreach (var change in changes.Distinct(StringComparer.OrdinalIgnoreCase)) {
+                if (FolderChanged != null) {
+                    FolderChanged(change);
+                }
+            }
         }
     }
 }
