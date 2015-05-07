@@ -2,6 +2,8 @@
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -11,11 +13,11 @@ using System.Threading.Tasks;
 namespace ChuyeEventBus.Host {
     class Program {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private static String _pluginFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
-        private static String _tempFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
-        private static MessageChannelServerProxy _pluginHost;
+        private static String _pluginFolder;
+        private static String _tempFolder;
+        private static readonly MessageChannelServerProxy _pluginHost = new MessageChannelServerProxy();
 
-        static void Main(string[] args) {
+        static void Main(String[] args) {
             if (!ProcessSingleton.CreateMutex()) {
                 Console.WriteLine("Process is already running, exit");
                 return;
@@ -26,10 +28,11 @@ namespace ChuyeEventBus.Host {
                 Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
             }
 
-            BuildServerAndStartAsync();
+            PrepareFolders(form);
+            _pluginHost.BuildPluginBatchAsync(_tempFolder);
 
             var folderTracker = new FileTracker(_pluginFolder, "*.dll");
-            folderTracker.FolderChanged += folderTracker_FolderChanged;
+            folderTracker.FileChanged += fileTracker_FileChanged;
             folderTracker.WatchAsync();
 
             Console.WriteLine("Press <Enter> to exit");
@@ -41,26 +44,37 @@ namespace ChuyeEventBus.Host {
             ProcessSingleton.ReleaseMutex();
         }
 
-        static void BuildServerAndStartAsync() {
-            if (!Directory.Exists(_pluginFolder)) {
-                throw new Exception("Create your plugin folder and get dll copied");
+        static void PrepareFolders(NameValueCollection args) {
+            _pluginFolder = ConfigurationManager.AppSettings.Get("plugins");
+            if (String.IsNullOrWhiteSpace(_pluginFolder)) {
+                _pluginFolder = args.Get("plugins");
             }
-            //todo: 对根级别dll与plugin级别dll进行差集复制
-            var startInfo = new ProcessStartInfo("ROBOCOPY",
-                String.Format("\"{0}\" \"{1}\" /mir /NFL /NDL /NJS", _pluginFolder, _tempFolder));
-            startInfo.CreateNoWindow = false;
-            startInfo.RedirectStandardOutput = false;
-            startInfo.UseShellExecute = false;
-            Process.Start(startInfo).WaitForExit();
+            if (String.IsNullOrWhiteSpace(_pluginFolder) || !Directory.Exists(_pluginFolder)) {
+                throw new Exception("Create your plugin folder, config it and get dll copied first");
+            }
+            if (!Path.IsPathRooted(_pluginFolder)) {
+                _pluginFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _pluginFolder);
+            }
 
-            _pluginHost = new MessageChannelServerProxy();
-            _pluginHost.BuildPluginBatchAsync(_tempFolder);
+            _tempFolder = ConfigurationManager.AppSettings.Get("temp");
+            if (String.IsNullOrWhiteSpace(_tempFolder)) {
+                _tempFolder = args.Get("temp");
+            }
+            if (String.IsNullOrWhiteSpace(_pluginFolder)) {
+                _tempFolder = "temp";
+            }
+            if (!Path.IsPathRooted(_tempFolder)) {
+                _tempFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _tempFolder);
+            }
+            RoboCopy.Mir(_pluginFolder, _tempFolder);
         }
 
-        static void folderTracker_FolderChanged(String file) {
-            var trackFolder = Path.GetDirectoryName(file);
-            var tempFolder = Path.Combine(_tempFolder, Path.GetFileName(trackFolder));
-            if (trackFolder != _pluginFolder) {
+        static void fileTracker_FileChanged(String file) {
+            var pluginFolder = Path.GetDirectoryName(file);
+            var tempFolder = Path.Combine(_tempFolder, Path.GetFileName(pluginFolder));
+            if (pluginFolder != _pluginFolder) {
+
+                RoboCopy.Mir(pluginFolder, tempFolder);
                 _pluginHost.ReleasePlugin(tempFolder);
                 _pluginHost.BuildPluginAsync(tempFolder);
             }

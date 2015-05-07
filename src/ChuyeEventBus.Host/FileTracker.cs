@@ -15,7 +15,7 @@ namespace ChuyeEventBus.Host {
         private readonly Timer _timer;
         private readonly FileSystemWatcher _watcher;
 
-        public event Action<String> FolderChanged;
+        public event Action<String> FileChanged;
 
         public FileTracker(String folder, String filter) {
             _changes = new Queue<String>();
@@ -60,8 +60,8 @@ namespace ChuyeEventBus.Host {
                 changes.Add(_changes.Dequeue());
             }
             foreach (var change in changes.Distinct(StringComparer.OrdinalIgnoreCase)) {
-                if (FolderChanged != null) {
-                    FolderChanged(change);
+                if (FileChanged != null) {
+                    FileChanged(change);
                 }
             }
         }
