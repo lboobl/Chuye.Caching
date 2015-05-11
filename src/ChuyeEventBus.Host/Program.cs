@@ -31,7 +31,8 @@ namespace ChuyeEventBus.Host {
             PrepareFolders(form);
             _pluginHost.BuildPluginBatchAsync(_tempFolder);
 
-            var folderTracker = new FileTracker(_pluginFolder, "*.dll");
+            //todo: 如何同时处理 *.dll|*.exe|*.config
+            var folderTracker = new FileTracker(_pluginFolder, "*.dll", true);
             folderTracker.FileChanged += fileTracker_FileChanged;
             folderTracker.WatchAsync();
 
@@ -69,13 +70,15 @@ namespace ChuyeEventBus.Host {
             RoboCopy.Mir(_pluginFolder, _tempFolder);
         }
 
-        static void fileTracker_FileChanged(String file) {
-            var pluginFolder = Path.GetDirectoryName(file);
-            var tempFolder = Path.Combine(_tempFolder, Path.GetFileName(pluginFolder));
-            if (pluginFolder != _pluginFolder) {
+        static void fileTracker_FileChanged(List<FileSystemEventArgs> changes) {
+            var distinctChanges = changes.Select(c => c.FullPath).Distinct()
+                .Select(p => Directory.Exists(p) ? p : Path.GetDirectoryName(p))
+                .Distinct();
 
-                RoboCopy.Mir(pluginFolder, tempFolder);
+            foreach (var pluginFolder in distinctChanges) {
+                var tempFolder = Path.Combine(_tempFolder, Path.GetFileName(pluginFolder));
                 _pluginHost.ReleasePlugin(tempFolder);
+                RoboCopy.Mir(pluginFolder, tempFolder);
                 _pluginHost.BuildPluginAsync(tempFolder);
             }
         }
