@@ -46,9 +46,9 @@ namespace ChuyeEventBus.Host {
         }
 
         static void PrepareFolders(NameValueCollection args) {
-            _pluginFolder = ConfigurationManager.AppSettings.Get("plugins");
+            _pluginFolder = args.Get("plugins");             
             if (String.IsNullOrWhiteSpace(_pluginFolder)) {
-                _pluginFolder = args.Get("plugins");
+                _pluginFolder = ConfigurationManager.AppSettings.Get("plugins");    
             }
             if (String.IsNullOrWhiteSpace(_pluginFolder) || !Directory.Exists(_pluginFolder)) {
                 throw new Exception("Create your plugin folder, config it and get dll copied first");
@@ -57,11 +57,11 @@ namespace ChuyeEventBus.Host {
                 _pluginFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _pluginFolder);
             }
 
-            _tempFolder = ConfigurationManager.AppSettings.Get("temp");
+            _tempFolder = args.Get("temp");
             if (String.IsNullOrWhiteSpace(_tempFolder)) {
-                _tempFolder = args.Get("temp");
+                _tempFolder = ConfigurationManager.AppSettings.Get("temp");
             }
-            if (String.IsNullOrWhiteSpace(_pluginFolder)) {
+            if (String.IsNullOrWhiteSpace(_tempFolder)) {
                 _tempFolder = "temp";
             }
             if (!Path.IsPathRooted(_tempFolder)) {
