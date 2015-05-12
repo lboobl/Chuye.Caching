@@ -31,20 +31,27 @@ namespace ChuyeEventBus.Host {
             }
 
             PrepareFolders(form);
-            _channelHost.BuildAllAsync(_tempFolder);
 
-            //todo: 如何同时处理 *.dll|*.exe|*.config
-            var folderTracker = new FileTracker(_pluginFolder, "*.dll", true);
-            folderTracker.FileChanged += fileTracker_FileChanged;
-            folderTracker.WatchAsync();
+            try {
+                _channelHost.BuildAllAsync(_tempFolder);
 
-            Console.WriteLine("Press <Enter> to exit");
-            Console.ReadLine();
+                var folderTracker = new FileTracker(_pluginFolder, "*.dll", true);
+                folderTracker.FileChanged += fileTracker_FileChanged;
+                folderTracker.WatchAsync();
 
-            _logger.Trace("Press <Ctrl + c> to abort, or waiting for task finish");
-            _channelHost.StopAll();
-
-            ProcessSingleton.ReleaseMutex();
+                Console.WriteLine("Press <Enter> to exit");
+                Console.ReadLine();
+            }
+            catch (Exception ex) {
+                _logger.Error(ex);
+                throw;
+            }
+            finally {
+                _logger.Trace("Press <Ctrl + c> to abort, or waiting for task finish");
+                _channelHost.StopAll();
+                _channelHost.Dispose();
+                ProcessSingleton.ReleaseMutex();
+            }
         }
 
         static void PrepareFolders(NameValueCollection args) {

@@ -38,12 +38,16 @@ namespace ChuyeEventBus.Host {
         }
 
         public void StopAll() {
-            var stopTasks = _messageChannelServers
-                .Select(async p => await Task.Run(action: p.Value.StopChannels))
-                .ToArray();
-            Task.WaitAll(stopTasks);
-            _messageChannelServers.Clear();
-            _pluginCatalogProxy.ReleaseAll();
+            try {
+                var stopTasks = _messageChannelServers
+                    .Select(async p => await Task.Run(action: p.Value.StopChannels))
+                    .ToArray();
+                Task.WaitAll(stopTasks);
+            }
+            finally {
+                _messageChannelServers.Clear();
+                _pluginCatalogProxy.ReleaseAll();
+            }
         }
 
         public void Dispose() {
