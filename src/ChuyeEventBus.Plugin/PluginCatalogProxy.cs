@@ -7,12 +7,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Plugin {
-    public class PluginCatalogProxy : MarshalByRefObject, IPluginCatalogProxy, IDisposable {
+    public class PluginCatalogProxy : IPluginCatalogProxy, IDisposable {
         private readonly Dictionary<String, AppDomain> _pluginDomains
             = new Dictionary<String, AppDomain>();
         private readonly Dictionary<String, PluginCatalog> _pluginCatalogs
             = new Dictionary<String, PluginCatalog>();
         private Type _pluginCatalogType = typeof(PluginCatalog);
+
 
         public virtual Type PluginCatalogType {
             get {
