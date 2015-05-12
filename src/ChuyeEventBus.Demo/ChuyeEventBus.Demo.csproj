@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{29C8B46D-0E18-4554-8832-D8E7B25371CC}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ChuyeEventBus.Demo</RootNamespace>
     <AssemblyName>ChuyeEventBus.Demo</AssemblyName>
@@ -56,6 +56,10 @@
     <ProjectReference Include="..\ChuyeEventBus.Core\ChuyeEventBus.Core.csproj">
       <Project>{11af5085-1f09-44c3-8169-7539a08e37a8}</Project>
       <Name>ChuyeEventBus.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ChuyeEventBus.Plugin\ChuyeEventBus.Plugin.csproj">
+      <Project>{0066fb93-c415-4276-a1f8-d8f4f01610c5}</Project>
+      <Name>ChuyeEventBus.Plugin</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

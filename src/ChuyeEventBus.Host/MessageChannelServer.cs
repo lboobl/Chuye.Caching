@@ -1,4 +1,5 @@
 ﻿using ChuyeEventBus.Core;
+using ChuyeEventBus.Plugin;
 using Newtonsoft.Json;
 using NLog;
 using System;
@@ -10,20 +11,23 @@ using System.Text;
 using System.Threading;
 
 namespace ChuyeEventBus.Host {
-    public class MessageChannelServer : MarshalByRefObject {
+    public class MessageChannelServer : PluginCatalog {
         private const Int32 ERROR_CAPACITY = 3;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly IEventHandlerResolver _eventHandlerResolver = new EventHandlerResolver();
 
         private readonly List<IMessageChannel> _channels = new List<IMessageChannel>();
         private readonly Dictionary<Type, IMessageChannel> _channelMaps = new Dictionary<Type, IMessageChannel>();
 
-        public void StartAsync(String folder) {
-            var eventHandlers = _eventHandlerResolver.FindAll(folder);
+        protected override IEnumerable<Object> OnInitilized() {
+            var resolver = new ReflectionPluginResolver();
+            return resolver.FindAll<IEventHandler>(PluginFolder);
+        }
 
+        public void StartAsync() {
             EventBus.Singleton.UnsubscribeAll();
             EventBus.Singleton.ErrorOccured += Singleton_ErrorOccured;
 
+            var eventHandlers = Plugins.Cast<IEventHandler>();
             foreach (var handler in eventHandlers) {
                 EventBus.Singleton.Subscribe(handler);
             }
@@ -68,7 +72,7 @@ namespace ChuyeEventBus.Host {
             EventBus.Singleton.Publish(eventEntries);
         }
 
-        public void Stop() {
+        public void StopChannels() {
             _channels.ForEach(c => c.Stop());
             var allStoped = _channels.All(c => c.GetStatus() == MessageChannelStatus.Stoped);
             while (!allStoped) {
