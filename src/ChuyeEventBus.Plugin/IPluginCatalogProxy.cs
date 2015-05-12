@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Plugin {
     public interface IPluginCatalogProxy {
-        Type PluginCatalogType { get; set; }
-        PluginCatalog Construct(String pluginFolder);
+        T Construct<T>(String pluginFolder) where T : IPluginCatalog;
         void Release(String pluginFolder);
         void ReleaseAll();
     }

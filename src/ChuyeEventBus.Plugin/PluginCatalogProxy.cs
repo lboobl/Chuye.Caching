@@ -10,37 +10,21 @@ namespace ChuyeEventBus.Plugin {
     public class PluginCatalogProxy : IPluginCatalogProxy, IDisposable {
         private readonly Dictionary<String, AppDomain> _pluginDomains
             = new Dictionary<String, AppDomain>();
-        private readonly Dictionary<String, PluginCatalog> _pluginCatalogs
-            = new Dictionary<String, PluginCatalog>();
-        private Type _pluginCatalogType = typeof(PluginCatalog);
+        private readonly Dictionary<String, IPluginCatalog> _pluginCatalogs
+            = new Dictionary<String, IPluginCatalog>();
 
-
-        public virtual Type PluginCatalogType {
-            get {
-                return _pluginCatalogType;
-            }
-            set {
-                if (value == null) {
-                    throw new ArgumentNullException("PluginCatalogType");
-                }
-                if (!typeof(PluginCatalog).IsAssignableFrom(value) || !value.IsSubclassOf(typeof(MarshalByRefObject))) {
-                    throw new ArgumentOutOfRangeException("PluginCatalogType");
-                }
-                _pluginCatalogType = value;
-            }
-        }
-
-        public PluginCatalog Construct(String pluginFolder) {
-            PluginCatalog pluginCatalog;
+        public T Construct<T>(String pluginFolder) where T : IPluginCatalog {
+            var pluginCatalogType = typeof(T);
+            IPluginCatalog pluginCatalog;
             if (!_pluginCatalogs.TryGetValue(pluginFolder, out pluginCatalog)) {
                 var pluginDomain = CreatePluginDomain(pluginFolder);
-                pluginCatalog = (PluginCatalog)pluginDomain.CreateInstanceAndUnwrap(
-                    PluginCatalogType.Assembly.FullName,
-                    PluginCatalogType.FullName);
+                pluginCatalog = (IPluginCatalog)pluginDomain.CreateInstanceAndUnwrap(
+                    pluginCatalogType.Assembly.FullName,
+                    pluginCatalogType.FullName);
                 pluginCatalog.PluginFolder = pluginFolder;
                 _pluginCatalogs.Add(pluginFolder, pluginCatalog);
             }
-            return pluginCatalog;
+            return (T)pluginCatalog;
         }
 
         protected virtual AppDomain CreatePluginDomain(String pluginFolder) {

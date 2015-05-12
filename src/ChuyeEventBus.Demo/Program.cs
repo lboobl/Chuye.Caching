@@ -17,9 +17,8 @@ namespace ChuyeEventBus.Demo {
 
         static void PluginDemo() {
             var pluginCatalogProxy = new PluginCatalogProxy();
-            pluginCatalogProxy.PluginCatalogType = typeof(MyPluginCatalog);
             var pluginFolder = AppDomain.CurrentDomain.BaseDirectory;
-            var pluginCatalog = (MyPluginCatalog)pluginCatalogProxy.Construct(pluginFolder);
+            var pluginCatalog = pluginCatalogProxy.Construct<MyPluginCatalog>(pluginFolder);
 
             pluginCatalog.StartAll();
 
@@ -28,7 +27,7 @@ namespace ChuyeEventBus.Demo {
         }
     }
 
-    public interface IFeature : IPlugin {
+    public interface IFeature {
         void Start();
     }
 
@@ -39,8 +38,8 @@ namespace ChuyeEventBus.Demo {
         }
     }
 
-    public class MyPluginCatalog : PluginCatalog {
-        protected override IEnumerable<Object> OnInitilized() {
+    public class MyPluginCatalog : PluginCatalog<IFeature> {
+        protected override IEnumerable<IFeature> OnInitilized() {
             //return base.OnBuild(pluginFolder);
             var resolver = new ReflectionPluginResolver();
             return resolver.FindAll<IFeature>(PluginFolder);

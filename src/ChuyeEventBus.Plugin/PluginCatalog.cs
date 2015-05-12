@@ -6,12 +6,17 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Plugin {
-    [InheritedExport]
-    public interface IPlugin {
+
+    public interface IPluginCatalog {
+        String PluginFolder { get; set; }
     }
 
-    public class PluginCatalog : MarshalByRefObject {
-        private IEnumerable<Object> _plugins;
+    public interface IPluginCatalog<out T> : IPluginCatalog {
+        IEnumerable<T> Plugins { get; }
+    }
+
+    public abstract class PluginCatalog<T> : MarshalByRefObject, IPluginCatalog<T> {
+        private IEnumerable<T> _plugins;
 
         public String PluginFolder { get; set; }
 
@@ -20,7 +25,7 @@ namespace ChuyeEventBus.Plugin {
             return null;
         }
 
-        public IEnumerable<Object> Plugins {
+        public IEnumerable<T> Plugins {
             get {
                 if (_plugins == null) {
                     _plugins = OnInitilized();
@@ -29,9 +34,6 @@ namespace ChuyeEventBus.Plugin {
             }
         }
 
-        protected virtual IEnumerable<Object> OnInitilized() {
-            var resolver = new ReflectionPluginResolver();
-            return resolver.FindAll<IPlugin>(PluginFolder);
-        }
+        protected abstract IEnumerable<T> OnInitilized();
     }
 }

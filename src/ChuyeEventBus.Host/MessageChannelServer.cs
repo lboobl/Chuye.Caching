@@ -11,14 +11,14 @@ using System.Text;
 using System.Threading;
 
 namespace ChuyeEventBus.Host {
-    public class MessageChannelServer : PluginCatalog {
+    public class MessageChannelServer : PluginCatalog<IEventHandler> {
         private const Int32 ERROR_CAPACITY = 3;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         private readonly List<IMessageChannel> _channels = new List<IMessageChannel>();
         private readonly Dictionary<Type, IMessageChannel> _channelMaps = new Dictionary<Type, IMessageChannel>();
 
-        protected override IEnumerable<Object> OnInitilized() {
+        protected override IEnumerable<IEventHandler> OnInitilized() {
             var resolver = new ReflectionPluginResolver();
             return resolver.FindAll<IEventHandler>(PluginFolder);
         }
