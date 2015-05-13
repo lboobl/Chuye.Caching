@@ -10,22 +10,16 @@ namespace ChuyeEventBus.Plugin {
     public class PluginCatalogProxy : IPluginCatalogProxy, IDisposable {
         private readonly Dictionary<String, AppDomain> _pluginDomains
             = new Dictionary<String, AppDomain>();
-        private readonly Dictionary<String, IPluginCatalog> _pluginCatalogs
-            = new Dictionary<String, IPluginCatalog>();
 
         public T Construct<T, P>(String pluginFolder) where T : IPluginCatalog<P> {
             var pluginCatalogType = typeof(T);
             //todo: 从同一目录获取不同的 IPluginCatalog<P> 实例如何处理
             //var pluginKey = String.Concat(Path.GetFileName(pluginFolder), "_", pluginCatalogType.FullName);
-            IPluginCatalog pluginCatalog;
-            if (!_pluginCatalogs.TryGetValue(pluginFolder, out pluginCatalog)) {
-                var pluginDomain = CreatePluginDomain(pluginFolder);
-                pluginCatalog = (IPluginCatalog)pluginDomain.CreateInstanceAndUnwrap(
-                    pluginCatalogType.Assembly.FullName,
-                    pluginCatalogType.FullName);
-                pluginCatalog.PluginFolder = pluginFolder;
-                _pluginCatalogs.Add(pluginFolder, pluginCatalog);
-            }
+            var pluginDomain = CreatePluginDomain(pluginFolder);
+            var pluginCatalog = (IPluginCatalog)pluginDomain.CreateInstanceAndUnwrap(
+                  pluginCatalogType.Assembly.FullName,
+                  pluginCatalogType.FullName);
+            pluginCatalog.PluginFolder = pluginFolder;
             return (T)pluginCatalog;
         }
 
@@ -70,7 +64,6 @@ namespace ChuyeEventBus.Plugin {
             AppDomain pluginDoamin;
             if (_pluginDomains.TryGetValue(pluginFolder, out pluginDoamin)) {
                 AppDomain.Unload(pluginDoamin);
-                _pluginCatalogs.Remove(pluginFolder);
                 _pluginDomains.Remove(pluginFolder);
             }
         }
@@ -79,7 +72,6 @@ namespace ChuyeEventBus.Plugin {
             var unloadTasks = _pluginDomains.Select(async p =>
                 await Task.Run(action: () => AppDomain.Unload(p.Value))).ToArray();
             Task.WaitAll(unloadTasks);
-            _pluginCatalogs.Clear();
             _pluginDomains.Clear();
         }
 
