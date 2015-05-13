@@ -17,17 +17,12 @@ namespace ChuyeEventBus.Host {
 
         private readonly List<IMessageChannel> _channels = new List<IMessageChannel>();
         private readonly Dictionary<Type, IMessageChannel> _channelMaps = new Dictionary<Type, IMessageChannel>();
-
-        protected override IEnumerable<IEventHandler> OnInitilized() {
-            var resolver = new ReflectionPluginResolver();
-            return resolver.FindAll<IEventHandler>(PluginFolder);
-        }
-
+        
         public void StartAsync() {
             EventBus.Singleton.UnsubscribeAll();
             EventBus.Singleton.ErrorOccured += Singleton_ErrorOccured;
 
-            var eventHandlers = Plugins.Cast<IEventHandler>();
+            var eventHandlers = FindPlugins();
             foreach (var handler in eventHandlers) {
                 EventBus.Singleton.Subscribe(handler);
             }

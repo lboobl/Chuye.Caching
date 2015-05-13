@@ -42,10 +42,13 @@ namespace ChuyeEventBus.Host {
                 Console.WriteLine("Press <Enter> to exit");
                 Console.ReadLine();
             }
+#if DEBUG
+#else
             catch (Exception ex) {
                 _logger.Error(ex);
                 throw;
             }
+#endif
             finally {
                 _logger.Trace("Press <Ctrl + c> to abort, or waiting for task finish");
                 _channelHost.StopAll();

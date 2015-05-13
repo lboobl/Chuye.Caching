@@ -12,12 +12,10 @@ namespace ChuyeEventBus.Plugin {
     }
 
     public interface IPluginCatalog<out T> : IPluginCatalog {
-        IEnumerable<T> Plugins { get; }
+        IEnumerable<T> FindPlugins();
     }
 
     public abstract class PluginCatalog<T> : MarshalByRefObject, IPluginCatalog<T> {
-        private IEnumerable<T> _plugins;
-
         public String PluginFolder { get; set; }
 
         public override object InitializeLifetimeService() {
@@ -25,15 +23,9 @@ namespace ChuyeEventBus.Plugin {
             return null;
         }
 
-        public IEnumerable<T> Plugins {
-            get {
-                if (_plugins == null) {
-                    _plugins = OnInitilized();
-                }
-                return _plugins;
-            }
+        public virtual IEnumerable<T> FindPlugins() {
+            var resolver = new ReflectionPluginResolver();
+            return resolver.FindAll<T>(PluginFolder);
         }
-
-        protected abstract IEnumerable<T> OnInitilized();
     }
 }

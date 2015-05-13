@@ -15,7 +15,7 @@ namespace ChuyeEventBus.Host {
             = new Dictionary<String, MessageChannelServer>();
 
         public void BuildAsync(String pluginPath) {
-            var messageChannelServer = _pluginCatalogProxy.Construct<MessageChannelServer>(pluginPath);
+            var messageChannelServer = _pluginCatalogProxy.Construct<MessageChannelServer, IEventHandler>(pluginPath);
             _messageChannelServers.Add(pluginPath, messageChannelServer);
             messageChannelServer.StartAsync();
         }

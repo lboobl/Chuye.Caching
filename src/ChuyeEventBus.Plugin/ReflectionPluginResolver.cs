@@ -13,7 +13,8 @@ namespace ChuyeEventBus.Plugin {
             var pluginTypes = Directory.EnumerateFiles(pluginFolder, "*.dll", SearchOption.TopDirectoryOnly)
                 .Concat(Directory.EnumerateFiles(pluginFolder, "*.exe", SearchOption.TopDirectoryOnly))
                 .SelectMany(f => Assembly.LoadFrom(f).ExportedTypes)
-                .Where(t => basePluginType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+                .Where(t => basePluginType.IsAssignableFrom(t) && t != basePluginType 
+                    && !t.IsInterface && !t.IsAbstract);
             foreach (var pluginType in pluginTypes) {
                 yield return (T)Activator.CreateInstance(pluginType);
             }

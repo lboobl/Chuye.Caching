@@ -13,7 +13,7 @@ namespace ChuyeEventBus.Plugin {
         private readonly Dictionary<String, IPluginCatalog> _pluginCatalogs
             = new Dictionary<String, IPluginCatalog>();
 
-        public T Construct<T>(String pluginFolder) where T : IPluginCatalog {
+        public T Construct<T, P>(String pluginFolder) where T : IPluginCatalog<P> {
             var pluginCatalogType = typeof(T);
             IPluginCatalog pluginCatalog;
             if (!_pluginCatalogs.TryGetValue(pluginFolder, out pluginCatalog)) {
@@ -52,7 +52,8 @@ namespace ChuyeEventBus.Plugin {
             }
             if (!File.Exists(config)) {
                 var configs = Directory.GetFiles(pluginFolder, "*.dll.config", SearchOption.TopDirectoryOnly);
-                Debug.WriteLine(String.Format("Unknown configuration as too many .dll.config files in \"{0}\"", pluginFolder));
+                Debug.WriteLine(String.Format("Unknown configuration as too many .dll.config files in \"{0}\""
+                    , pluginFolder.Substring(pluginFolder.Length)));
                 if (config.Length == 1) {
                     config = configs[0];
                 }
