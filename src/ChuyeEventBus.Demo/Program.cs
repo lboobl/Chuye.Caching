@@ -41,8 +41,8 @@ namespace ChuyeEventBus.Demo {
 
         public void StartAll() {
             Console.WriteLine("MyPluginCatalog.StartAll()");
-            foreach (var plugin in FindPlugins()) {
-                plugin.Start();
+            foreach (var feature in FindPlugins()) {
+                feature.Start();
             }
         }
     }

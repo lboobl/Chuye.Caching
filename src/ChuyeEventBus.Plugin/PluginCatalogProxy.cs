@@ -15,6 +15,8 @@ namespace ChuyeEventBus.Plugin {
 
         public T Construct<T, P>(String pluginFolder) where T : IPluginCatalog<P> {
             var pluginCatalogType = typeof(T);
+            //todo: 从同一目录获取不同的 IPluginCatalog<P> 实例如何处理
+            //var pluginKey = String.Concat(Path.GetFileName(pluginFolder), "_", pluginCatalogType.FullName);
             IPluginCatalog pluginCatalog;
             if (!_pluginCatalogs.TryGetValue(pluginFolder, out pluginCatalog)) {
                 var pluginDomain = CreatePluginDomain(pluginFolder);
@@ -52,9 +54,12 @@ namespace ChuyeEventBus.Plugin {
             }
             if (!File.Exists(config)) {
                 var configs = Directory.GetFiles(pluginFolder, "*.dll.config", SearchOption.TopDirectoryOnly);
-                Debug.WriteLine(String.Format("Unknown configuration as too many .dll.config files in \"{0}\""
-                    , pluginFolder.Substring(pluginFolder.Length)));
-                if (config.Length == 1) {
+
+                if (config.Length > 1) {
+                    Debug.WriteLine(String.Format("Unknown configuration as too many .dll.config files in \"{0}\""
+                        , Path.GetFileName(pluginFolder)));
+                }
+                else if (config.Length == 1) {
                     config = configs[0];
                 }
             }

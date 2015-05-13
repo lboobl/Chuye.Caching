@@ -46,8 +46,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IPluginCatalogProxy.cs" />
+    <Compile Include="IPluginCatalog`.cs" />
     <Compile Include="IPluginResolver.cs" />
     <Compile Include="MefPluginResolver.cs" />
+    <Compile Include="IPluginCatalog.cs" />
     <Compile Include="PluginCatalog.cs" />
     <Compile Include="PluginCatalogProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
