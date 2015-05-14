@@ -11,10 +11,9 @@ namespace ChuyeEventBus.Plugin {
         private readonly Dictionary<String, AppDomain> _pluginDomains
             = new Dictionary<String, AppDomain>();
 
-        public T Construct<T, P>(String pluginFolder) where T : IPluginCatalog<P> {
+        public T Construct<T, P>(String pluginFolder) where T : IPluginCatalog<P>, new() {
             var pluginCatalogType = typeof(T);
             //todo: 从同一目录获取不同的 IPluginCatalog<P> 实例如何处理
-            //var pluginKey = String.Concat(Path.GetFileName(pluginFolder), "_", pluginCatalogType.FullName);
             var pluginDomain = CreatePluginDomain(pluginFolder);
             var pluginCatalog = (IPluginCatalog)pluginDomain.CreateInstanceAndUnwrap(
                   pluginCatalogType.Assembly.FullName,
@@ -48,7 +47,6 @@ namespace ChuyeEventBus.Plugin {
             }
             if (!File.Exists(config)) {
                 var configs = Directory.GetFiles(pluginFolder, "*.dll.config", SearchOption.TopDirectoryOnly);
-
                 if (config.Length > 1) {
                     Debug.WriteLine(String.Format("Unknown configuration as too many .dll.config files in \"{0}\""
                         , Path.GetFileName(pluginFolder)));

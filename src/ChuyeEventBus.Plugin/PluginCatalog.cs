@@ -9,7 +9,6 @@ namespace ChuyeEventBus.Plugin {
         public String PluginFolder { get; set; }
 
         public override object InitializeLifetimeService() {
-            //return base.InitializeLifetimeService();
             return null;
         }
 
