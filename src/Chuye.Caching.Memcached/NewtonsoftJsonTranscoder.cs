@@ -19,7 +19,7 @@ namespace Chuye.Caching.Memcached {
             _donetBytes = new[] { (Byte)0, (Byte)1, (Byte)255 };
         }
 
-        private static Object JsonDeserialize(Byte[] buffer) {
+        private Object JsonDeserialize(Byte[] buffer) {
             JsonSerializer serializer = JsonSerializer.CreateDefault();
             serializer.NullValueHandling = NullValueHandling.Ignore;
             using (MemoryStream memoryStream = new MemoryStream(buffer))
@@ -30,17 +30,19 @@ namespace Chuye.Caching.Memcached {
         }
 
         protected override object DeserializeObject(ArraySegment<byte> value) {
+            var buffer = value.Offset != 0 ? new Byte[value.Count] : value.Array;
+            Array.Copy(value.Array, value.Offset, buffer, 0, value.Count);
             Boolean isJson = false;
-            if (value.Array[0] == 123 && value.Array[value.Array.Length - 1] == 125) {
+            if (buffer[0] == 123 && buffer[buffer.Length - 1] == 125) {
                 isJson = true;
             }
             if (!isJson) {
-                var isOrignalObjectByte = value.Array.Take(10).Distinct().All(_donetBytes.Contains);
+                var isOrignalObjectByte = buffer.Take(10).Distinct().All(_donetBytes.Contains);
                 isJson = !isOrignalObjectByte;
             }
 
             if (isJson) {
-                return JsonDeserialize(value.Array);
+                return JsonDeserialize(buffer);
             }
             else {
                 try {
@@ -48,7 +50,7 @@ namespace Chuye.Caching.Memcached {
                 }
                 catch (SerializationException) {
                     // Log or something
-                    return JsonDeserialize(value.Array);
+                    return JsonDeserialize(buffer);
                 }
             }
         }
@@ -61,7 +63,7 @@ namespace Chuye.Caching.Memcached {
                 serializer.Serialize(jsonWriter, value);
                 jsonWriter.Flush();
                 memoryStream.Seek(0L, SeekOrigin.Begin);
-                return new ArraySegment<byte>(memoryStream.ToArray());
+                return new ArraySegment<byte>(memoryStream.ToArray(), 0, (Int32)memoryStream.Length);
             }
         }
     }
