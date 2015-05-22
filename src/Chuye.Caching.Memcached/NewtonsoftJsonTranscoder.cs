@@ -13,9 +13,6 @@ namespace Chuye.Caching.Memcached {
         private static readonly Byte[] _donetBytes;
 
         static NewtonsoftJsonTranscoder() {
-            //_donetBytes = new[] { 0, 0, 1, 1, 0, 0, 0, 0, 255 }
-            //_donetBytes = new[] { 0, 1, 0, 0, 0, 255, 255, 255, 255 }
-            //.Select(x => Convert.ToByte(x)).ToArray();
             _donetBytes = new[] { (Byte)0, (Byte)1, (Byte)255 };
         }
 
@@ -30,8 +27,15 @@ namespace Chuye.Caching.Memcached {
         }
 
         protected override object DeserializeObject(ArraySegment<byte> value) {
-            var buffer = value.Offset != 0 ? new Byte[value.Count] : value.Array;
-            Array.Copy(value.Array, value.Offset, buffer, 0, value.Count);
+            Byte[] buffer;
+            if (value.Offset != 0) {
+                buffer = new Byte[value.Count];
+                Array.Copy(value.Array, value.Offset, buffer, 0, value.Count);
+            }
+            else {
+                buffer = value.Array;
+            }
+
             Boolean isJson = false;
             if (buffer[0] == 123 && buffer[buffer.Length - 1] == 125) {
                 isJson = true;
