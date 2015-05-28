@@ -13,6 +13,7 @@ namespace ChuyeEventBus.Plugin {
         }
 
         public virtual IEnumerable<T> FindPlugins() {
+            //var resolver = new MefPluginResolver();
             var resolver = new ReflectionPluginResolver();
             return resolver.FindAll<T>(PluginFolder);
         }

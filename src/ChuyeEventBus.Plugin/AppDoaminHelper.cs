@@ -13,7 +13,7 @@ namespace ChuyeEventBus.Plugin {
         }
 
         public static AppDomain CreateAppDomain(string friendlyName, AppDomainSetup setup) {
-            return CreateAppDomain(friendlyName, AppDomain.CurrentDomain.Evidence, AppDomain.CurrentDomain.SetupInformation);
+            return CreateAppDomain(friendlyName, AppDomain.CurrentDomain.Evidence, setup);
         }
 
         public static AppDomain CreateAppDomain(string friendlyName, Evidence securityInfo, AppDomainSetup setup) {

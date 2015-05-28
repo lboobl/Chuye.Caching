@@ -19,7 +19,7 @@ namespace ChuyeEventBus.Host {
         private readonly Dictionary<Type, IMessageChannel> _channelMaps = new Dictionary<Type, IMessageChannel>();
         
         public void StartAsync() {
-            EventBus.Singleton.UnsubscribeAll();
+            //EventBus.Singleton.UnsubscribeAll();
             EventBus.Singleton.ErrorOccured += Singleton_ErrorOccured;
 
             var eventHandlers = FindPlugins();
