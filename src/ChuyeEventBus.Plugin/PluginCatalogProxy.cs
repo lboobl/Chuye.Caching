@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -34,7 +35,7 @@ namespace ChuyeEventBus.Plugin {
 
             AppDomain pluginDoamin;
             if (!_pluginDomains.TryGetValue(pluginFolder, out pluginDoamin)) {
-                pluginDoamin = AppDomain.CreateDomain(pluginFolder, null, setup);
+                pluginDoamin = AppDoaminHelper.CreateAppDomain(pluginFolder, setup);
                 _pluginDomains.Add(pluginFolder, pluginDoamin);
             }
             return pluginDoamin;
@@ -61,14 +62,14 @@ namespace ChuyeEventBus.Plugin {
         public void Release(String pluginFolder) {
             AppDomain pluginDoamin;
             if (_pluginDomains.TryGetValue(pluginFolder, out pluginDoamin)) {
-                AppDomain.Unload(pluginDoamin);
+                AppDoaminHelper.UnloadAppDomain(pluginDoamin);
                 _pluginDomains.Remove(pluginFolder);
             }
         }
 
         public void ReleaseAll() {
             var unloadTasks = _pluginDomains.Select(async p =>
-                await Task.Run(action: () => AppDomain.Unload(p.Value))).ToArray();
+                await Task.Run(action: () => Release(p.Key))).ToArray();
             Task.WaitAll(unloadTasks);
             _pluginDomains.Clear();
         }

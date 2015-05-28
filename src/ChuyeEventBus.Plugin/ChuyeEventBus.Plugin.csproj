@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppDoaminHelper.cs" />
     <Compile Include="IPluginCatalogProxy.cs" />
     <Compile Include="IPluginCatalog`.cs" />
     <Compile Include="IPluginResolver.cs" />
