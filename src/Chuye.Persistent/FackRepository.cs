@@ -47,6 +47,9 @@ namespace Chuye.Persistent {
             if (entry.Id == 0) {
                 Create(entry);
             }
+            else {
+                _all.Add(entry);
+            }
         }
 
         public override TEntry Retrive(int key) {
