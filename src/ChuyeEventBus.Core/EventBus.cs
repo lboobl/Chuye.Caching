@@ -6,18 +6,13 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {
     public class EventBus {
-        private static readonly EventBus _singleton = new EventBus();
         private readonly EventHandlerEqualityComparer _comparer = new EventHandlerEqualityComparer();
-        private Dictionary<Type, List<IEventHandler>> _eventHandlers = new Dictionary<Type, List<IEventHandler>>();
-        private Dictionary<IEventHandler, Int32> _errors = new Dictionary<IEventHandler, Int32>();
+        private readonly Dictionary<Type, List<IEventHandler>> _eventHandlers = new Dictionary<Type, List<IEventHandler>>();
+        private readonly Dictionary<IEventHandler, Int32> _errors = new Dictionary<IEventHandler, Int32>();
 
         public event EventHandler<ErrorOccuredEventArgs> ErrorOccured;
 
-        public static EventBus Singleton {
-            get { return _singleton; }
-        }
-
-        private EventBus() {
+        public EventBus() {
             ErrorOccured += (x, y) => { };
         }
 
@@ -116,8 +111,6 @@ namespace ChuyeEventBus.Core {
         }
 
         internal class EventHandlerEqualityComparer : IEqualityComparer<IEventHandler> {
-            private static readonly Type BaseEventHandlerType = typeof(IEventHandler);
-
             public bool Equals(IEventHandler x, IEventHandler y) {
                 return x.GetType() == y.GetType();
             }

@@ -13,18 +13,19 @@ using System.Threading;
 namespace ChuyeEventBus.Host {
     public class MessageChannelServer : PluginCatalog<IEventHandler> {
         private const Int32 ERROR_CAPACITY = 3;
-        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
+        private readonly EventBus _eventBus = new EventBus();
         private readonly List<IMessageChannel> _channels = new List<IMessageChannel>();
         private readonly Dictionary<Type, IMessageChannel> _channelMaps = new Dictionary<Type, IMessageChannel>();
-        
+
         public void StartAsync() {
             //EventBus.Singleton.UnsubscribeAll();
-            EventBus.Singleton.ErrorOccured += Singleton_ErrorOccured;
+            _eventBus.ErrorOccured += Singleton_ErrorOccured;
 
             var eventHandlers = FindPlugins();
             foreach (var handler in eventHandlers) {
-                EventBus.Singleton.Subscribe(handler);
+                _eventBus.Subscribe(handler);
             }
 
             var hgs = eventHandlers.GroupBy(r => r.GetEventType());
@@ -50,7 +51,7 @@ namespace ChuyeEventBus.Host {
             _logger.Error(errorDetailBuilder);
 
             if (e.TotalErrors >= ERROR_CAPACITY) {
-                EventBus.Singleton.Unsubscribe(e.EventHandler);
+                _eventBus.Unsubscribe(e.EventHandler);
                 var eventType = e.EventHandler.GetEventType();
                 _channels.Remove(_channelMaps[eventType]);
                 _channelMaps.Remove(eventType);
@@ -59,20 +60,22 @@ namespace ChuyeEventBus.Host {
 
         private void Channel_MessageReceived(Message message) {
             var eventEntry = (IEvent)message.Body;
-            EventBus.Singleton.Publish(eventEntry);
+            _eventBus.Publish(eventEntry);
         }
 
         private void Channel_MultipleMessageReceived(IList<Message> messages) {
             var eventEntries = messages.Select(m => m.Body).Cast<IEvent>().ToList();
-            EventBus.Singleton.Publish(eventEntries);
+            _eventBus.Publish(eventEntries);
         }
 
         public void StopChannels() {
             _channels.ForEach(c => c.Stop());
-            var allStoped = _channels.All(c => c.GetStatus() == MessageChannelStatus.Stoped);
-            while (!allStoped) {
-                Thread.Sleep(1000);
-                allStoped = _channels.All(c => c.GetStatus() == MessageChannelStatus.Stoped);
+            for (int i = 1; i <= 10; i++) {
+                var stoped = _channels.All(c => c.GetStatus() == MessageChannelStatus.Stoped);
+                if (stoped) {
+                    break;
+                }
+                Thread.Sleep(1000 * i);
             }
         }
     }

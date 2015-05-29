@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
     internal class MessageChannel : IMessageChannel {
-        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly MessageReceiver _msgReceiver;
         private readonly CancellationTokenSource _ctx;
         private readonly IEventBehaviour _eventBehaviour;
@@ -45,9 +45,7 @@ namespace ChuyeEventBus.Host {
                     await ListenMutipleAsync(dequeueQuantity);
                 }
             }
-            if (_status == MessageChannelStatus.Suspended) {
-                _status = MessageChannelStatus.Stoped;
-            }
+            _status = MessageChannelStatus.Stoped;
             _logger.Debug("MessageChannel: {0} stoped", FriendlyName);
         }
 
