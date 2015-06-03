@@ -66,6 +66,9 @@ namespace Chuye.Persistent.Mongo {
 
         public override void Save(TEntry entry) {
             var docs = _context.Database.GetCollection<TEntry>();
+            if (entry.Id == 0) {
+                entry.Id = _autoincrementGenerator.GetNewId(docs.Name);
+            }            
             docs.Update(Query<TEntry>.EQ(r => r.Id, entry.Id),
                 Update<TEntry>.Replace(entry),
                 UpdateFlags.Upsert);
