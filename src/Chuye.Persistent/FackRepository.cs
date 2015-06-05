@@ -52,16 +52,25 @@ namespace Chuye.Persistent {
             }
         }
 
+        public override void Save(IEnumerable<TEntry> entries) {
+            entries.ToList().ForEach(Save);
+        }
+
         public override TEntry Retrive(int key) {
             return _all.FirstOrDefault(r => r.Id == key);
+        }
+
+        public override IEnumerable<TEntry> Retrive(IList<Int32> keys) {
+            return _all.Where(r => keys.Contains(r.Id));
         }
 
         public override IEnumerable<TEntry> Retrive<TKey>(String field, IList<TKey> keys) {
             throw new NotImplementedException();
         }
 
-        public override IQueryable<TEntry> All {
-            get { return _all.AsQueryable(); }
+        public override IEnumerable<TEntry> Retrive<TKey>(Expression<Func<TEntry, TKey>> selector, IList<TKey> keys) {
+            var predicate = selector.Compile();
+            return _all.Where(r => keys.Contains(predicate(r))).ToList();
         }
 
         public override bool Any(params Expression<Func<TEntry, bool>>[] predicates) {
@@ -70,6 +79,10 @@ namespace Chuye.Persistent {
                 left = left.Where(predicate);
             }
             return left.Any();
+        }
+
+        public override IQueryable<TEntry> All {
+            get { return _all.AsQueryable(); }
         }
     }
 }

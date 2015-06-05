@@ -1,12 +1,13 @@
+using NHibernate;
+using NHibernate.Criterion;
+using NHibernate.Exceptions;
+using NHibernate.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
-using NHibernate;
-using NHibernate.Criterion;
-using NHibernate.Linq;
-using System.Linq.Expressions;
 
 namespace Chuye.Persistent.NH {
     public class NHibernateRepository<TEntry> : Repository<TEntry> where TEntry : class, IAggregate {
@@ -31,58 +32,105 @@ namespace Chuye.Persistent.NH {
             }
         }
 
+        private void Proceed(Action action) {
+            try {
+                action();
+            }
+            catch (GenericADOException ex) {
+                throw ex.InnerException;
+            }
+        }
+
+        private TResult Proceed<TResult>(Func<TResult> func) {
+            try {
+                return func();
+            }
+            catch (GenericADOException ex) {
+                throw ex.InnerException;
+            }
+        }
+
         public override TEntry Retrive(Int32 id) {
-            return _context.EnsureSession().Get<TEntry>(id);
+            return Proceed(() => _context.EnsureSession().Get<TEntry>(id));
             //return (TEntry)NHContext.EnsureSession().Get(typeof(TEntry), id);
         }
 
+        public override IEnumerable<TEntry> Retrive(IList<Int32> keys) {
+            return Retrive<Int32>("Id", keys);
+        }
+
         public override IEnumerable<TEntry> Retrive<TKey>(String field, IList<TKey> keys) {
-            var session = NHContext.EnsureSession();
-            ICriteria criteria = session.CreateCriteria<TEntry>()
-                .Add(Restrictions.In(field, keys.ToArray()));
-            return criteria.List<TEntry>();
+            return Proceed(() => {
+                var session = NHContext.EnsureSession();
+                ICriteria criteria = session.CreateCriteria<TEntry>()
+                    .Add(Restrictions.In(field, keys.ToArray()));
+                return criteria.List<TEntry>();
+            });
+        }
+
+        public override IEnumerable<TEntry> Retrive<TKey>(Expression<Func<TEntry, TKey>> selector, IList<TKey> keys) {
+            var field = ExpressionBuilder.GetPropertyInfo(selector).Name;
+            return Retrive(field, keys);
         }
 
         public override void Create(TEntry entry) {
-            _context.EnsureSession().Save(entry);
+            Proceed(() => _context.EnsureSession().Save(entry));
         }
 
         public override void Update(TEntry entry) {
-            _context.EnsureSession().Update(entry);
+            Proceed(() => _context.EnsureSession().Update(entry));
         }
 
         public override void Update(IEnumerable<TEntry> entries) {
-            var session = _context.EnsureSession();
-            foreach (var entry in entries) {
-                session.Update(entry);
-            }
-            session.Flush();
+            Proceed(() => {
+                var session = _context.EnsureSession();
+                foreach (var entry in entries) {
+                    session.Update(entry);
+                }
+                session.Flush();
+            });
         }
 
         public override void Save(TEntry entry) {
-            _context.EnsureSession().SaveOrUpdate(entry);
+            Proceed(() => _context.EnsureSession().SaveOrUpdate(entry));
+        }
+
+        public override void Save(IEnumerable<TEntry> entries) {
+            Proceed(() => {
+                var session = _context.EnsureSession();
+                foreach (var entry in entries) {
+                    session.SaveOrUpdate(entry);
+                }
+                session.Flush();
+            });
         }
 
         public override void Delete(TEntry entry) {
-            var session = _context.EnsureSession();
-            session.Delete(entry);
-            session.Flush();
+            Proceed(() => {
+                var session = _context.EnsureSession();
+                session.Delete(entry);
+                session.Flush();
+            });
         }
 
         public override void Delete(IEnumerable<TEntry> entries) {
-            var session = _context.EnsureSession();
-            foreach (var entry in entries) {
-                session.Delete(entry);
-            }
-            session.Flush();
+            Proceed(() => {
+                var session = _context.EnsureSession();
+                foreach (var entry in entries) {
+                    session.Delete(entry);
+                }
+                session.Flush();
+            });
         }
 
         public override bool Any(params Expression<Func<TEntry, bool>>[] predicates) {
-            IQueryable<TEntry> query = All;
-            foreach (var predicate in predicates) {
-                query = query.Where(predicate);
-            }
-            return query.Select(r => r.Id).Any();
+            return Proceed(() => {
+                IQueryable<TEntry> query = All;
+                foreach (var predicate in predicates) {
+                    query = query.Where(predicate);
+                }
+                return query.Select(r => r.Id).Any();
+            });
         }
     }
 }

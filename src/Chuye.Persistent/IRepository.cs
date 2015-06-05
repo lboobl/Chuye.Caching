@@ -11,11 +11,13 @@ namespace Chuye.Persistent {
         void Update(TEntry entry);
         void Update(IEnumerable<TEntry> entries);
         void Save(TEntry entry);
+        void Save(IEnumerable<TEntry> entries);
         void Delete(TEntry entry);
         void Delete(IEnumerable<TEntry> entries);
 
         IQueryable<TResult> All { get; }
         TResult Retrive(Int32 id);
+        IEnumerable<TResult> Retrive(IList<Int32> keys);
         IEnumerable<TResult> Retrive<TKey>(String field, IList<TKey> keys);
     }
 }

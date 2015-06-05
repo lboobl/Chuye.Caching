@@ -39,10 +39,21 @@ namespace Chuye.Persistent.Mongo {
             return docs.FindOneById(id);
         }
 
+        
+
+        public override IEnumerable<TEntry> Retrive(IList<Int32> keys) {
+            return Retrive<Int32>("_id", keys);
+        }
+
         public override IEnumerable<TEntry> Retrive<TKey>(String field, IList<TKey> keys) {
             var docs = _context.Database.GetCollection<TEntry>();
             //return docs.Find(Query<TEntry>.In(r => r.Id, keys));
             return docs.Find(Query.In(field, keys.Select(k => BsonValue.Create(k)))).AsEnumerable();
+        }
+
+        public override IEnumerable<TEntry> Retrive<TKey>(Expression<Func<TEntry, TKey>> selector, IList<TKey> keys) {
+            var docs = _context.Database.GetCollection<TEntry>();
+            return docs.Find(Query<TEntry>.In(selector, keys));
         }
 
         public override void Create(TEntry entry) {
@@ -72,6 +83,12 @@ namespace Chuye.Persistent.Mongo {
             docs.Update(Query<TEntry>.EQ(r => r.Id, entry.Id),
                 Update<TEntry>.Replace(entry),
                 UpdateFlags.Upsert);
+        }
+
+        public override void Save(IEnumerable<TEntry> entries) {
+            foreach (var entry in entries) {
+                Save(entry);
+            }
         }
 
         public void Save<TMember>(Int32 id, Expression<Func<TEntry, TMember>> memberExpression, TMember value) {

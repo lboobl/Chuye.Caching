@@ -9,7 +9,7 @@ namespace Chuye.Persistent.Demo {
         static void Main(string[] args) {
             Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
-            //PrepareData();
+            PrepareData();
             BasicCrud();
         }
 
@@ -58,9 +58,12 @@ namespace Chuye.Persistent.Demo {
 
             Console.WriteLine("Create employee");
             var Aimee = new Employee {
-                Name = "Aimee", Address = "Los Angeles", Birth = DateTime.Now,
+                Name = "Aimee",
+                Address = "Los Angeles",
+                Birth = DateTime.Now,
                 Job = new Job {
-                    Title = "C#", Salary = 4
+                    Title = "C#",
+                    Salary = 4
                 }
             };
             repository.Save(Aimee);
@@ -68,16 +71,22 @@ namespace Chuye.Persistent.Demo {
             repository.Retrive(Aimee.Id);
 
             var Becky = new Employee {
-                Name = "Becky", Address = "Bejing", Birth = DateTime.Now,
+                Name = "Becky",
+                Address = "Bejing",
+                Birth = DateTime.Now,
                 Job = new Job {
-                    Title = "Java", Salary = 5
+                    Title = "Java",
+                    Salary = 5
                 }
             };
             repository.Create(Becky);
             var Carmen = new Employee {
-                Name = "Carmen", Address = "Salt Lake City", Birth = DateTime.Now,
+                Name = "Carmen",
+                Address = "Salt Lake City",
+                Birth = DateTime.Now,
                 Job = new Job {
-                    Title = "Javascript", Salary = 3
+                    Title = "Javascript",
+                    Salary = 3
                 }
             };
             repository.Create(Carmen);
@@ -92,6 +101,14 @@ namespace Chuye.Persistent.Demo {
 
             Console.WriteLine("Employee live in USA");
             foreach (var entry in repository.Retrive("Address", new[] { "Los Angeles", "Salt Lake City" })) {
+                Console.WriteLine("{0,-10} {1} {2}",
+                   entry.Name, entry.Job.Salary, entry.Address);
+            }
+            Console.WriteLine();
+
+            Console.WriteLine("Employee live in specfied names");
+            var names = repository.All.Select(r => r.Name).Take(5).ToArray();
+            foreach (var entry in repository.Retrive(r => r.Name, names)) {
                 Console.WriteLine("{0,-10} {1} {2}",
                    entry.Name, entry.Job.Salary, entry.Address);
             }
