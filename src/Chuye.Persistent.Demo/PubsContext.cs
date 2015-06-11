@@ -23,7 +23,7 @@ namespace Chuye.Persistent.Demo {
         }
 
         private static ISessionFactory BuildSessionFactory() {
-            var dbConStr = System.Configuration.ConfigurationManager.ConnectionStrings["Pubs"].ConnectionString;
+            var dbConStr = System.Configuration.ConfigurationManager.ConnectionStrings["PubsMysql"].ConnectionString;
             var dbFluentConfig = Fluently.Configure()
                    .Database(MySQLConfiguration.Standard.ConnectionString(dbConStr))
                    .Mappings(m => m.FluentMappings.AddFromAssemblyOf<Program>());

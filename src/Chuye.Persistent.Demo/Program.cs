@@ -1,4 +1,5 @@
 using Chuye.Persistent.Mongo;
+using Chuye.Persistent.NH;
 using System;
 using System.Configuration;
 using System.Diagnostics;
@@ -9,9 +10,34 @@ namespace Chuye.Persistent.Demo {
         static void Main(string[] args) {
             Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
+            HasOne(); return;
             PrepareData();
             BasicCrud();
         }
+
+        private static void HasOne() {
+            var context = new PubsContext();
+            context.Begin();
+
+            var jobRepo = new NHibernateRepository<Job>(context);
+            var employeeRepo = new NHibernateRepository<Employee>(context);
+
+            var job = jobRepo.Retrive(44);
+            //var employee = employeeRepo.All.Where(e => e.Job == job).ToList();
+            //Console.WriteLine(employee.Count);
+
+            var employee = employeeRepo.All.Where(e => e.Job.Id == job.Id).ToList();
+            Console.WriteLine(employee.Count);
+            
+        }
+
+        private static MongoRepository<Employee> MongoRepository() {
+            var conStr = ConfigurationManager.ConnectionStrings["PubsMongo"].ConnectionString;
+            var context = new MongoRepositoryContext(conStr);
+            var repository = new MongoRepository<Employee>(context);
+            return repository;
+        }
+
 
         private static void PrepareData() {
             var conStr = ConfigurationManager.ConnectionStrings["PubsMongo"].ConnectionString;
