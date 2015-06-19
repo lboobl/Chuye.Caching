@@ -41,10 +41,12 @@ namespace ChuyeEventBus.Core {
                     : attr.Label;
 
                 var msmqHost = ".";
-                var msmqHostConfig = ConfigurationManager.ConnectionStrings["MsmqHost"];
-                if (msmqHostConfig != null && !String.IsNullOrWhiteSpace(msmqHostConfig.ConnectionString)) {
-                    msmqHost = "FormatName:DIRECT=TCP:" + msmqHostConfig.ConnectionString;
+                var msmqHostStr = ConfigurationManager.AppSettings.Get("app:MsmqHost");
+                if (!String.IsNullOrWhiteSpace(msmqHostStr)) {
+                    //todo：If msmqHostStr is not a ip address, throw errors
+                    msmqHost = "FormatName:DIRECT=TCP:" + msmqHostStr;
                 }
+
                 _msgPath = String.Format(@"{0}\Private$\{1}", msmqHost, msgLabel);
 
                 if (attr.FormatterType == null) {
