@@ -53,6 +53,8 @@ namespace ChuyeEventBus.Host {
             if (e.TotalErrors >= ERROR_CAPACITY) {
                 _eventBus.Unsubscribe(e.EventHandler);
                 var eventType = e.EventHandler.GetEventType();
+                _logger.Warn("MessageChannel {0} stoped", ((MessageChannel)_channelMaps[eventType]).FriendlyName);
+                _channelMaps[eventType].Stop();
                 _channels.Remove(_channelMaps[eventType]);
                 _channelMaps.Remove(eventType);
             }
