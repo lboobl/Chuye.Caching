@@ -16,11 +16,14 @@ namespace ChuyeEventBus.Host {
         private readonly IEventBehaviour _eventBehaviour;
         private MessageChannelStatus _status;
 
+        public event Action<IMessageChannel, Exception> ErrorOccured;
         public event Action<Message> MessageReceived;
         public event Action<IList<Message>> MultipleMessageReceived;
         public String FriendlyName { get; private set; }
 
         public MessageChannel(IEventBehaviour eventBehaviour) {
+            ErrorOccured += MessageChannel_ErrorOccured;
+
             var msgQueue = MessageQueueFactory.Build(eventBehaviour);
             FriendlyName = msgQueue.Path.Split('\\').Last();
 
@@ -32,21 +35,30 @@ namespace ChuyeEventBus.Host {
             MultipleMessageReceived += x => { };
         }
 
+        private void MessageChannel_ErrorOccured(IMessageChannel sender, Exception obj) {
+            Stop();
+        }
+
         public async virtual Task ListenAsync() {
             _logger.Debug("MessageChannel: {0} ListenAsync", FriendlyName);
             _status = MessageChannelStatus.Runing;
 
-            while (!_ctx.IsCancellationRequested) {
-                var dequeueQuantity = _eventBehaviour.GetDequeueQuantity();
-                if (dequeueQuantity == 1) {
-                    await ListenOneAsync();
+            try {
+                while (!_ctx.IsCancellationRequested) {
+                    var dequeueQuantity = _eventBehaviour.GetDequeueQuantity();
+                    if (dequeueQuantity == 1) {
+                        await ListenOneAsync();
+                    }
+                    else {
+                        await ListenMutipleAsync(dequeueQuantity);
+                    }
                 }
-                else {
-                    await ListenMutipleAsync(dequeueQuantity);
-                }
+                _status = MessageChannelStatus.Stoped;
+                _logger.Debug("MessageChannel: {0} stoped", FriendlyName);
             }
-            _status = MessageChannelStatus.Stoped;
-            _logger.Debug("MessageChannel: {0} stoped", FriendlyName);
+            catch (Exception ex) {
+                ErrorOccured(this, ex); ;
+            }
         }
 
         private async Task ListenOneAsync() {
@@ -82,9 +94,9 @@ namespace ChuyeEventBus.Host {
         }
 
         public virtual void Stop() {
-            if (!_ctx.IsCancellationRequested) {
+            _logger.Debug("MessageChannel: {0} suspend", FriendlyName);
+            if (_ctx != null && !_ctx.IsCancellationRequested) {
                 _status = MessageChannelStatus.Suspended;
-                _logger.Debug("MessageChannel: {0} suspend", FriendlyName);
                 _ctx.Cancel();
             }
         }

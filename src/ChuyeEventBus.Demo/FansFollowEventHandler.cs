@@ -9,7 +9,7 @@ namespace ChuyeEventBus.Demo {
     [Export(typeof(IEventHandler))]
     public class FansFollowEventHandler1 : IEventHandler<FansFollowEvent> {
         public void Handle(FansFollowEvent eventEntry) {
-            Thread.Sleep(5000);
+            //Thread.Sleep(5000);
             Console.WriteLine("FansFollowEventHandler1 : 用户 {0} Follow 用户 {1}",
                 eventEntry.FromId, eventEntry.ToId);
         }
@@ -25,7 +25,7 @@ namespace ChuyeEventBus.Demo {
     [Export(typeof(IEventHandler))]
     public class FansFollowEventHandler2 : IEventHandler<FansFollowEvent> {
         public void Handle(FansFollowEvent eventEntry) {
-            Thread.Sleep(5000);
+            //Thread.Sleep(5000);
             Console.WriteLine("FansFollowEventHandler2 : 用户 {0} Follow 用户 {1}",
                 eventEntry.FromId, eventEntry.ToId);
         }

@@ -1,5 +1,6 @@
 ﻿using ChuyeEventBus.Core;
 using ChuyeEventBus.Plugin;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,14 +11,25 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
     internal class MessageChannelServerHost : IDisposable {
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly PluginCatalogProxy _pluginCatalogProxy = new PluginCatalogProxy();
         private readonly Dictionary<String, MessageChannelServer> _messageChannelServers
             = new Dictionary<String, MessageChannelServer>();
 
         public void BuildAsync(String pluginPath) {
-            var messageChannelServer = _pluginCatalogProxy.Construct<MessageChannelServer, IEventHandler>(pluginPath);
-            _messageChannelServers.Add(pluginPath, messageChannelServer);
-            messageChannelServer.StartAsync();
+            try {
+                var messageChannelServer = _pluginCatalogProxy.Construct<MessageChannelServer, IEventHandler>(pluginPath);
+                _messageChannelServers.Add(pluginPath, messageChannelServer);
+                messageChannelServer.StartAsync();
+            }
+            catch (AggregateException ex) {
+                _logger.Error("Error occured while build message channel server for \"{0}\", {1}",
+                    pluginPath, ex.GetBaseException());
+            }
+            catch (Exception ex) {
+                _logger.Error("Error occured while build message channel server for \"{0}\", {1}",
+                    pluginPath, ex);
+            }
         }
 
         public void BuildAllAsync(String pluginFolder) {

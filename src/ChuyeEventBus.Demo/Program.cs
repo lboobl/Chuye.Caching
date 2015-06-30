@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 namespace ChuyeEventBus.Demo {
     class Program {
         static void Main(string[] args) {
-            PluginDemo();
-            //EventMocker.MockClientAsync();
+            //PluginDemo();
+            EventMocker.MockClientAsync();
 
             Console.WriteLine("Press <Enter> to exit");
             Console.ReadLine();
