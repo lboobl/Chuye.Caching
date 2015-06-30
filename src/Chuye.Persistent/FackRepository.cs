@@ -10,15 +10,19 @@ using System.Threading.Tasks;
 
 namespace Chuye.Persistent {
     public class FackRepository<TEntry> : Repository<TEntry> where TEntry : class, IAggregate {
-        private Int32 _id = 0;
+        private static Int32 _id = 0;
         private readonly List<TEntry> _all = new List<TEntry>();
+
+        protected virtual Int32 CreateNewId(TEntry entry) {
+            return Interlocked.Increment(ref _id);
+        }
 
         public FackRepository()
             : base(null) {
         }
 
         public override void Create(TEntry entry) {
-            entry.Id = Interlocked.Increment(ref _id);
+            entry.Id = CreateNewId(entry);
             _all.Add(entry);
         }
 
@@ -83,6 +87,12 @@ namespace Chuye.Persistent {
 
         public override IQueryable<TEntry> All {
             get { return _all.AsQueryable(); }
+        }
+    }
+
+    public class FackFixedRepository<TEntry> : FackRepository<TEntry> where TEntry : class, IAggregate {
+        protected override int CreateNewId(TEntry entry) {
+            return entry.Id;
         }
     }
 }
