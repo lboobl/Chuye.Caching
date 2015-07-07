@@ -7,23 +7,16 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {
     public static class MessageQueueFactory {
-        private static readonly Dictionary<IEventBehaviour, MessageQueue> _msgQueues
-            = new Dictionary<IEventBehaviour, MessageQueue>();
-
         public static MessageQueue Build(IEventBehaviour eventBehaviour) {
-            MessageQueue msgQueue;
-            if (!_msgQueues.TryGetValue(eventBehaviour, out msgQueue)) {
-                var msgPath = eventBehaviour.GetMessagePath();
-                var dequeueQuantity = eventBehaviour.GetDequeueQuantity();
+            var msgPath = eventBehaviour.GetMessagePath();
+            var dequeueQuantity = eventBehaviour.GetDequeueQuantity();
 
-                if (!msgPath.StartsWith("FormatName:") && !MessageQueue.Exists(msgPath)) {
-                    MessageQueue.Create(msgPath);
-                }
-
-                msgQueue = new MessageQueue(msgPath);
-                msgQueue.Formatter = eventBehaviour.GetMessageFormatter();
-                _msgQueues.Add(eventBehaviour, msgQueue);
+            if (!msgPath.StartsWith("FormatName:") && !MessageQueue.Exists(msgPath)) {
+                MessageQueue.Create(msgPath);
             }
+
+            var msgQueue = new MessageQueue(msgPath);
+            msgQueue.Formatter = eventBehaviour.GetMessageFormatter();
             return msgQueue;
         }
     }

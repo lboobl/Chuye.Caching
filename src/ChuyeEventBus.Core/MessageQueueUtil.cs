@@ -8,18 +8,31 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {
     public static class MessageQueueUtil {
+        private static readonly Dictionary<Type, MessageQueue> _msgQueue
+            = new Dictionary<Type, MessageQueue>();
+
         public static void Send(IEvent eventEntry) {
-            if (Boolean.FalseString.Equals(ConfigurationManager.AppSettings.Get("chuye:SendEvent"), StringComparison.OrdinalIgnoreCase)) {
-                return;
+            MessageQueue msgQueue;
+            var eventType = eventEntry.GetType();
+            if (!_msgQueue.TryGetValue(eventType, out msgQueue)) {
+                if (Boolean.FalseString.Equals(ConfigurationManager.AppSettings.Get("chuye:SendEvent"), StringComparison.OrdinalIgnoreCase)) {
+                    return;
+                }
+                var eventBehaviour = EventExtension.GetEventBehaviour(eventEntry.GetType());
+                msgQueue = MessageQueueFactory.Build(eventBehaviour);
+                _msgQueue.Add(eventType, msgQueue);
             }
-            var eventBehaviour = EventExtension.GetEventBehaviour(eventEntry.GetType());
-            var msgQueue = MessageQueueFactory.Build(eventBehaviour);
+
             msgQueue.Send(eventEntry);
         }
 
         public static async Task<IEvent> ReceiveAsync(Type eventType) {
-            var eventBehaviour = EventExtension.GetEventBehaviour(eventType);
-            var msgQueue = MessageQueueFactory.Build(eventBehaviour);
+            MessageQueue msgQueue;
+            if (!_msgQueue.TryGetValue(eventType, out msgQueue)) {
+                var eventBehaviour = EventExtension.GetEventBehaviour(eventType);
+                msgQueue = MessageQueueFactory.Build(eventBehaviour);
+                _msgQueue.Add(eventType, msgQueue);
+            }
             var msg = await new MessageReceiver(msgQueue).ReceiveAsync();
             return (IEvent)msg.Body;
         }
