@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace ChuyeEventBus.Host {
     public class MessageChannelServer : PluginCatalog<IEventHandler> {
         private const Int32 ERROR_CAPACITY = 3;
-        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly Logger _logger = LogManager.GetLogger("Host");
 
         private readonly EventBus _eventBus = new EventBus();
         private readonly List<IMessageChannel> _channels = new List<IMessageChannel>();
@@ -51,6 +51,7 @@ namespace ChuyeEventBus.Host {
             var channel = (MessageChannel)sender;
             _logger.Error("Error occured in {0}\r\n{1}", channel.FriendlyName, ex);
             if (!(ex is System.Runtime.Serialization.SerializationException)) {
+                sender.Stop();
                 _channels.Remove(sender);
             }
         }

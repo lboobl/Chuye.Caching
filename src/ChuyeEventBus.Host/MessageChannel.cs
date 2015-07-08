@@ -22,7 +22,7 @@ namespace ChuyeEventBus.Host {
         public String FriendlyName { get; private set; }
 
         public MessageChannel(IEventBehaviour eventBehaviour) {
-            ErrorOccured += MessageChannel_ErrorOccured;
+            ErrorOccured += (x, y) => { };
 
             var msgQueue = MessageQueueFactory.Build(eventBehaviour);
             FriendlyName = msgQueue.Path.Split('\\').Last();
@@ -33,10 +33,6 @@ namespace ChuyeEventBus.Host {
 
             MessageReceived += x => { };
             MultipleMessageReceived += x => { };
-        }
-
-        private void MessageChannel_ErrorOccured(IMessageChannel sender, Exception obj) {
-            Stop();
         }
 
         public async virtual Task ListenAsync() {
