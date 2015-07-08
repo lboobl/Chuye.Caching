@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
     class Program {
-        private static readonly Logger _logger = LogManager.GetLogger("Host");
+        private static readonly Logger _logger = LogManager.GetLogger("host");
         private static readonly MessageChannelServerHost _channelHost = new MessageChannelServerHost();
 
         private static String _pluginFolder;

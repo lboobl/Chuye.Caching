@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
     internal class MessageChannel : IMessageChannel {
-        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly Logger _logger = LogManager.GetLogger("host");
         private readonly MessageReceiver _msgReceiver;
         private readonly CancellationTokenSource _ctx;
         private readonly IEventBehaviour _eventBehaviour;
@@ -36,7 +36,7 @@ namespace ChuyeEventBus.Host {
         }
 
         public async virtual Task ListenAsync() {
-            _logger.Debug("MessageChannel: {0} ListenAsync", FriendlyName);
+            _logger.Info("MessageChannel: {0} ListenAsync", FriendlyName);
             _status = MessageChannelStatus.Runing;
 
             try {
@@ -50,7 +50,7 @@ namespace ChuyeEventBus.Host {
                     }
                 }
                 _status = MessageChannelStatus.Stoped;
-                _logger.Debug("MessageChannel: {0} stoped", FriendlyName);
+                _logger.Info("MessageChannel: {0} stoped", FriendlyName);
             }
             catch (Exception ex) {
                 ErrorOccured(this, ex); ;
@@ -89,8 +89,8 @@ namespace ChuyeEventBus.Host {
             }
         }
 
-        public virtual void Stop() {
-            _logger.Debug("MessageChannel: {0} suspend", FriendlyName);
+        public virtual void Stop(String reason) {
+            _logger.Info("MessageChannel: {0} suspend, reason: {1}", FriendlyName, reason);
             if (_ctx != null && !_ctx.IsCancellationRequested) {
                 _status = MessageChannelStatus.Suspended;
                 _ctx.Cancel();

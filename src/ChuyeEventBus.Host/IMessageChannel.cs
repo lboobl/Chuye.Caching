@@ -12,8 +12,9 @@ namespace ChuyeEventBus.Host {
         event Action<Message> MessageReceived;
         event Action<IList<Message>> MultipleMessageReceived;
 
+        String FriendlyName { get; }
         Task ListenAsync();
-        void Stop();
+        void Stop(String reason);
         MessageChannelStatus GetStatus();
     }
 }

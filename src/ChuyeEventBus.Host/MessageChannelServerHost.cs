@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Host {
     internal class MessageChannelServerHost : IDisposable {
-        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly Logger _logger = LogManager.GetLogger("host");
         private readonly PluginCatalogProxy _pluginCatalogProxy = new PluginCatalogProxy();
         private readonly Dictionary<String, MessageChannelServer> _messageChannelServers
             = new Dictionary<String, MessageChannelServer>();

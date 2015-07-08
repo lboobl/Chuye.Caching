@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace ChuyeEventBus.Host {
     public class MessageChannelServer : PluginCatalog<IEventHandler> {
         private const Int32 ERROR_CAPACITY = 3;
-        private readonly Logger _logger = LogManager.GetLogger("Host");
+        private readonly Logger _logger = LogManager.GetLogger("host");
 
         private readonly EventBus _eventBus = new EventBus();
         private readonly List<IMessageChannel> _channels = new List<IMessageChannel>();
@@ -51,7 +51,8 @@ namespace ChuyeEventBus.Host {
             var channel = (MessageChannel)sender;
             _logger.Error("Error occured in {0}\r\n{1}", channel.FriendlyName, ex);
             if (!(ex is System.Runtime.Serialization.SerializationException)) {
-                sender.Stop();
+                _logger.Warn("MessageChannel {0} stoped for {1}", sender.FriendlyName, ex.Message);
+                sender.Stop(String.Format("MessageChannelServer error {0}", ex.Message));
                 _channels.Remove(sender);
             }
         }
@@ -66,18 +67,17 @@ namespace ChuyeEventBus.Host {
             _logger.Error(errorDetailBuilder);
 
             if (e.TotalErrors >= ERROR_CAPACITY) {
-                StopMessageChannel(e.EventHandler);
+
+                _eventBus.Unsubscribe(e.EventHandler);
+                var eventType = e.EventHandler.GetEventType();
+                _logger.Warn("MessageChannel {0} stoped for too many error", _channelMaps[eventType].FriendlyName);
+                _channelMaps[eventType].Stop("MessageChannelServer too many error");
+                _channels.Remove(_channelMaps[eventType]);
+                _channelMaps.Remove(eventType);
+
             }
         }
 
-        private void StopMessageChannel(IEventHandler handler) {
-            _eventBus.Unsubscribe(handler);
-            var eventType = handler.GetEventType();
-            _logger.Warn("MessageChannel {0} stoped", ((MessageChannel)_channelMaps[eventType]).FriendlyName);
-            _channelMaps[eventType].Stop();
-            _channels.Remove(_channelMaps[eventType]);
-            _channelMaps.Remove(eventType);
-        }
 
         private void Channel_MessageReceived(Message message) {
             var eventEntry = (IEvent)message.Body;
@@ -90,7 +90,7 @@ namespace ChuyeEventBus.Host {
         }
 
         public void StopChannels() {
-            _channels.ForEach(c => c.Stop());
+            _channels.ForEach(c => c.Stop("StopChannels"));
             for (int i = 1; i <= 10; i++) {
                 var stoped = _channels.All(c => c.GetStatus() == MessageChannelStatus.Stoped);
                 if (stoped) {
