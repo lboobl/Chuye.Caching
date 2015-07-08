@@ -30,7 +30,10 @@ namespace ChuyeEventBus.Core {
                 return MessageQueueFactory.Build(eventBehaviour);
             });
             var msg = await new MessageReceiver(msgQueue).ReceiveAsync();
-            return (IEvent)msg.Body;
+            if (msg != null && msg.Body != null) {
+                return (IEvent)msg.Body;
+            }
+            return null;
         }
     }
 }

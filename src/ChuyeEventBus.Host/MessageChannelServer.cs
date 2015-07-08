@@ -42,15 +42,17 @@ namespace ChuyeEventBus.Host {
             //必须 await 以避免 MessageChannelServer 创建过程中的异常被吞噬
             //_channels.ForEach(c => c.ListenAsync());
             foreach (var channel in _channels) {
-                channel.ErrorOccured += channel_ErrorOccured;
+                channel.ErrorOccured += Channel_ErrorOccured;
                 channel.ListenAsync();
             }
         }
 
-        private void channel_ErrorOccured(IMessageChannel sender, Exception ex) {
+        private void Channel_ErrorOccured(IMessageChannel sender, Exception ex) {
             var channel = (MessageChannel)sender;
             _logger.Error("Error occured in {0}\r\n{1}", channel.FriendlyName, ex);
-            _channels.Remove(sender);
+            if (!(ex is System.Runtime.Serialization.SerializationException)) {
+                _channels.Remove(sender);
+            }
         }
 
         private void Singleton_ErrorOccured(Object sender, ErrorOccuredEventArgs e) {
