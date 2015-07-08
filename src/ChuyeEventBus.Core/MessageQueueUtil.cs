@@ -1,38 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Configuration;
-using System.Diagnostics;
 using System.Messaging;
-using System.Threading;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace ChuyeEventBus.Core {
     public static class MessageQueueUtil {
-        private static readonly Dictionary<Type, MessageQueue> _msgQueue
-            = new Dictionary<Type, MessageQueue>();
+        private static readonly ConcurrentDictionary<Type, MessageQueue> _msgQueue
+            = new ConcurrentDictionary<Type, MessageQueue>();
 
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public static void Send(IEvent eventEntry) {
-            MessageQueue msgQueue;
-            var eventType = eventEntry.GetType();
-            if (!_msgQueue.TryGetValue(eventType, out msgQueue)) {
-                if (Boolean.FalseString.Equals(ConfigurationManager.AppSettings.Get("chuye:SendEvent"), StringComparison.OrdinalIgnoreCase)) {
-                    return;
-                }
-                var eventBehaviour = EventExtension.GetEventBehaviour(eventEntry.GetType());
-                msgQueue = MessageQueueFactory.Build(eventBehaviour);
-                _msgQueue.Add(eventType, msgQueue);
+            if (Boolean.FalseString.Equals(ConfigurationManager.AppSettings.Get("chuye:EnableEvent"), StringComparison.OrdinalIgnoreCase)) {
+                return;
             }
-
+            var eventType = eventEntry.GetType();
+            var msgQueue = _msgQueue.GetOrAdd(eventType, et => {
+                var eventBehaviour = EventExtension.GetEventBehaviour(et);
+                return MessageQueueFactory.Build(eventBehaviour);
+            });
             msgQueue.Send(eventEntry);
         }
 
         public static async Task<IEvent> ReceiveAsync(Type eventType) {
-            MessageQueue msgQueue;
-            if (!_msgQueue.TryGetValue(eventType, out msgQueue)) {
-                var eventBehaviour = EventExtension.GetEventBehaviour(eventType);
-                msgQueue = MessageQueueFactory.Build(eventBehaviour);
-                _msgQueue.Add(eventType, msgQueue);
-            }
+            var msgQueue = _msgQueue.GetOrAdd(eventType, et => {
+                var eventBehaviour = EventExtension.GetEventBehaviour(et);
+                return MessageQueueFactory.Build(eventBehaviour);
+            });
             var msg = await new MessageReceiver(msgQueue).ReceiveAsync();
             return (IEvent)msg.Body;
         }
