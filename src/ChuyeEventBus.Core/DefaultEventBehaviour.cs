@@ -17,7 +17,6 @@ namespace ChuyeEventBus.Core {
         private String _msgPath;
         private IMessageFormatter _msgFormatter;
 
-        public const Int32 MAX_DEQUEUE_QUANTITY = 1024;
         public Type EventType { get; set; }
 
         private void Initialize() {
@@ -30,11 +29,6 @@ namespace ChuyeEventBus.Core {
                 if (attr == null) {
                     attr = new EventBehaviourAttribute() { DequeueQuantity = 1, ConcurrentQuantity = 1 };
                 }
-
-                if (attr.DequeueQuantity <= 0 || attr.DequeueQuantity > MAX_DEQUEUE_QUANTITY) {
-                    throw new ArgumentOutOfRangeException("DequeueQuantity");
-                }
-
                 _dequeueQuantity = attr.DequeueQuantity;
                 var msgLabel = String.IsNullOrWhiteSpace(attr.Label)
                     ? EventType.FullName.ToString().Replace('.', '_').ToLower()

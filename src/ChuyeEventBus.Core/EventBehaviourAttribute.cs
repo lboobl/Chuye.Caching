@@ -8,7 +8,7 @@ namespace ChuyeEventBus.Core {
         private Type _formatterType = null;
         private String _label;
 
-        public const Int32 MAX_DEQUEUE_QUANTITY = 1024;
+        public const Int32 MAX_DEQUEUE_QUANTITY = 40960;
         public const Int32 MAX_CONCURRENT_QUANTITY = 10;
 
         public String Label {
