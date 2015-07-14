@@ -39,7 +39,6 @@ namespace ChuyeEventBus.Host {
                 _channels.Add(msgChannel);
                 _channelMaps.Add(hg.Key, msgChannel);
             }
-            //必须 await 以避免 MessageChannelServer 创建过程中的异常被吞噬
             //_channels.ForEach(c => c.ListenAsync());
             foreach (var channel in _channels) {
                 channel.ErrorOccured += Channel_ErrorOccured;
