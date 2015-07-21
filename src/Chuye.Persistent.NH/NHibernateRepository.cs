@@ -32,7 +32,7 @@ namespace Chuye.Persistent.NH {
             }
         }
 
-        private void Proceed(Action action) {
+        private void SafeProceed(Action action) {
             try {
                 action();
             }
@@ -41,7 +41,7 @@ namespace Chuye.Persistent.NH {
             }
         }
 
-        private TResult Proceed<TResult>(Func<TResult> func) {
+        private TResult SafeProceed<TResult>(Func<TResult> func) {
             try {
                 return func();
             }
@@ -51,16 +51,16 @@ namespace Chuye.Persistent.NH {
         }
 
         public override TEntry Retrive(Int32 id) {
-            return Proceed(() => _context.EnsureSession().Get<TEntry>(id));
+            return SafeProceed(() => _context.EnsureSession().Get<TEntry>(id));
             //return (TEntry)NHContext.EnsureSession().Get(typeof(TEntry), id);
         }
 
-        public override IEnumerable<TEntry> Retrive(IList<Int32> keys) {
-            return Retrive<Int32>("Id", keys);
+        public override IEnumerable<TEntry> Retrive(params Int32[] keys) {
+            return SafeProceed(() => Retrive<Int32>("Id", keys));
         }
 
-        public override IEnumerable<TEntry> Retrive<TKey>(String field, IList<TKey> keys) {
-            return Proceed(() => {
+        public override IEnumerable<TEntry> Retrive<TKey>(String field, params TKey[] keys) {
+            return SafeProceed(() => {
                 var session = NHContext.EnsureSession();
                 ICriteria criteria = session.CreateCriteria<TEntry>()
                     .Add(Restrictions.In(field, keys.ToArray()));
@@ -68,21 +68,23 @@ namespace Chuye.Persistent.NH {
             });
         }
 
-        public override IEnumerable<TEntry> Retrive<TKey>(Expression<Func<TEntry, TKey>> selector, IList<TKey> keys) {
-            var field = ExpressionBuilder.GetPropertyInfo(selector).Name;
-            return Retrive(field, keys);
+        public override IEnumerable<TEntry> Retrive<TKey>(Expression<Func<TEntry, TKey>> selector, params TKey[] keys) {
+            return SafeProceed(() => {
+                var field = ExpressionBuilder.GetPropertyInfo(selector).Name;
+                return Retrive(field, keys);
+            });
         }
 
         public override void Create(TEntry entry) {
-            Proceed(() => _context.EnsureSession().Save(entry));
+            SafeProceed(() => _context.EnsureSession().Save(entry));
         }
 
         public override void Update(TEntry entry) {
-            Proceed(() => _context.EnsureSession().Update(entry));
+            SafeProceed(() => _context.EnsureSession().Update(entry));
         }
 
         public override void Update(IEnumerable<TEntry> entries) {
-            Proceed(() => {
+            SafeProceed(() => {
                 var session = _context.EnsureSession();
                 foreach (var entry in entries) {
                     session.Update(entry);
@@ -92,11 +94,11 @@ namespace Chuye.Persistent.NH {
         }
 
         public override void Save(TEntry entry) {
-            Proceed(() => _context.EnsureSession().SaveOrUpdate(entry));
+            SafeProceed(() => _context.EnsureSession().SaveOrUpdate(entry));
         }
 
         public override void Save(IEnumerable<TEntry> entries) {
-            Proceed(() => {
+            SafeProceed(() => {
                 var session = _context.EnsureSession();
                 foreach (var entry in entries) {
                     session.SaveOrUpdate(entry);
@@ -106,7 +108,7 @@ namespace Chuye.Persistent.NH {
         }
 
         public override void Delete(TEntry entry) {
-            Proceed(() => {
+            SafeProceed(() => {
                 var session = _context.EnsureSession();
                 session.Delete(entry);
                 session.Flush();
@@ -114,7 +116,7 @@ namespace Chuye.Persistent.NH {
         }
 
         public override void Delete(IEnumerable<TEntry> entries) {
-            Proceed(() => {
+            SafeProceed(() => {
                 var session = _context.EnsureSession();
                 foreach (var entry in entries) {
                     session.Delete(entry);
@@ -124,7 +126,7 @@ namespace Chuye.Persistent.NH {
         }
 
         public override bool Any(params Expression<Func<TEntry, bool>>[] predicates) {
-            return Proceed(() => {
+            return SafeProceed(() => {
                 IQueryable<TEntry> query = All;
                 foreach (var predicate in predicates) {
                     query = query.Where(predicate);

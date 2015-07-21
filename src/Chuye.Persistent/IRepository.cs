@@ -17,7 +17,7 @@ namespace Chuye.Persistent {
 
         IQueryable<TResult> All { get; }
         TResult Retrive(Int32 id);
-        IEnumerable<TResult> Retrive(IList<Int32> keys);
-        IEnumerable<TResult> Retrive<TKey>(String field, IList<TKey> keys);
+        IEnumerable<TResult> Retrive(params Int32[] keys);
+        IEnumerable<TResult> Retrive<TKey>(String field, params TKey[] keys);
     }
 }

@@ -64,15 +64,15 @@ namespace Chuye.Persistent {
             return _all.FirstOrDefault(r => r.Id == key);
         }
 
-        public override IEnumerable<TEntry> Retrive(IList<Int32> keys) {
+        public override IEnumerable<TEntry> Retrive(params Int32[] keys) {
             return _all.Where(r => keys.Contains(r.Id));
         }
 
-        public override IEnumerable<TEntry> Retrive<TKey>(String field, IList<TKey> keys) {
+        public override IEnumerable<TEntry> Retrive<TKey>(String field, params TKey[] keys) {
             throw new NotImplementedException();
         }
 
-        public override IEnumerable<TEntry> Retrive<TKey>(Expression<Func<TEntry, TKey>> selector, IList<TKey> keys) {
+        public override IEnumerable<TEntry> Retrive<TKey>(Expression<Func<TEntry, TKey>> selector, params TKey[] keys) {
             var predicate = selector.Compile();
             return _all.Where(r => keys.Contains(predicate(r))).ToList();
         }

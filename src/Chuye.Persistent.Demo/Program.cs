@@ -12,7 +12,7 @@ namespace Chuye.Persistent.Demo {
             Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
             //MongoBasicCrud();
-            //NHibernateBasicCrud();
+            NHibernateBasicCrud();
         }
 
         private static void MongoBasicCrud() {
@@ -89,6 +89,7 @@ namespace Chuye.Persistent.Demo {
             Console.WriteLine();
 
             context.Commit();
+            context.Dispose();
         }
     }
 }
