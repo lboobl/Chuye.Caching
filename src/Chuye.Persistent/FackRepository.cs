@@ -12,17 +12,23 @@ namespace Chuye.Persistent {
     public class FackRepository<TEntry> : Repository<TEntry> where TEntry : class, IAggregate {
         private static Int32 _id = 0;
         private readonly List<TEntry> _all = new List<TEntry>();
+        private readonly Boolean _autoIncrement;
 
         protected virtual Int32 CreateNewId(TEntry entry) {
             return Interlocked.Increment(ref _id);
         }
 
         public FackRepository()
+            : this(true) {
+        }
+
+        public FackRepository(Boolean autoIncrement)
             : base(null) {
+            _autoIncrement = autoIncrement;
         }
 
         public override void Create(TEntry entry) {
-            entry.Id = CreateNewId(entry);
+            entry.Id = _autoIncrement ? CreateNewId(entry) : entry.Id;
             _all.Add(entry);
         }
 
@@ -49,6 +55,9 @@ namespace Chuye.Persistent {
 
         public override void Save(TEntry entry) {
             if (entry.Id == 0) {
+                if (!_autoIncrement) {
+                    throw new InvalidOperationException("Auto increment disabled");
+                }
                 Create(entry);
             }
             else {
@@ -87,12 +96,6 @@ namespace Chuye.Persistent {
 
         public override IQueryable<TEntry> All {
             get { return _all.AsQueryable(); }
-        }
-    }
-
-    public class FackFixedRepository<TEntry> : FackRepository<TEntry> where TEntry : class, IAggregate {
-        protected override int CreateNewId(TEntry entry) {
-            return entry.Id;
         }
     }
 }
