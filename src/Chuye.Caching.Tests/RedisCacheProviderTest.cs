@@ -1,18 +1,17 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Chuye.Caching;
-using Chuye.Caching.Memcached;
+using Chuye.Caching.Redis;
 using System.Threading;
 
 namespace Chuye.Caching.Tests {
     [TestClass]
-    public class MemcachedCacheProviderTest {
+    public class RedisCacheProviderTest {
         [TestMethod]
         public void GetOrCreateTest() {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider();
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(new ServiceStackRedis());
             var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
             Assert.AreEqual(result, val);
 
@@ -36,7 +35,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider();
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(new ServiceStackRedis());
             var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
             Assert.AreEqual(result, val);
 
@@ -54,7 +53,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider();
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(new ServiceStackRedis());
 
             //DateTime.Now
             Guid result;
@@ -77,7 +76,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider();
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(new ServiceStackRedis());
             var t1 = DateTime.Now.AddSeconds(8D);
             var t2 = DateTime.UtcNow.AddSeconds(8D);
             Assert.AreEqual(t1.ToTimestamp(), t2.ToTimestamp());
@@ -117,7 +116,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider();
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(new ServiceStackRedis());
             var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
             Assert.AreEqual(result, val);
 
@@ -131,18 +130,4 @@ namespace Chuye.Caching.Tests {
             Assert.AreEqual(val2, Guid.Empty);
         }
     }
-
-    public static class Util {
-        //((DateTime.UtcNow.Ticks - DateTime.Parse("01/01/1970 00:00:00").Ticks) / 10000000).Dump();
-        //((DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000000).Dump();
-        //((Int64)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, DateTime.Now.Kind)).TotalSeconds).Dump();
-        public static Int64 ToTimestamp(this DateTime time) {
-            return (Int64)(time.ToUniversalTime().Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))).TotalSeconds;
-        }
-
-        public static DateTime FromTimestamp(this Int64 timestamp) {
-            return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(timestamp);
-        }
-    }
 }
-
