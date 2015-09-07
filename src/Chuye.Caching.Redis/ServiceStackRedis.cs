@@ -58,6 +58,12 @@ namespace Chuye.Caching.Redis {
             return _client.HSet(key, hashField, value);
         }
 
+        public void HashSet(RedisKey key, IList<KeyValuePair<RedisKey, RedisKey>> pairs) {
+            var hashFields = pairs.Select(p =>(Byte[]) p.Key).ToArray();
+            var values = pairs.Select(p => (Byte[])p.Key).ToArray();
+            _client.HMSet(key, hashFields, values);
+        }
+
         public KeyValuePair<RedisKey, RedisKey>[] HashGetAll(RedisKey key) {
             var hash = _client.HGetAll(key);
             var list = new KeyValuePair<RedisKey, RedisKey>[hash.Length / 2];
@@ -69,6 +75,10 @@ namespace Chuye.Caching.Redis {
 
         public Int64 HashDelete(RedisKey key, RedisKey hashField) {
             return _client.HDel(key, hashField);
+        }
+
+        public Int64 ListLength(RedisKey key) {
+            return _client.LLen(key);
         }
 
         public Int64 ListLeftPush(RedisKey key, RedisKey value) {
@@ -85,10 +95,6 @@ namespace Chuye.Caching.Redis {
 
         public RedisKey ListRightPop(RedisKey key) {
             return _client.RPop(key);
-        }
-
-        public Int64 ListLength(RedisKey key) {
-            return _client.LLen(key);
         }
     }
 }

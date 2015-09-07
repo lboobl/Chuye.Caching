@@ -12,16 +12,20 @@ namespace Chuye.Caching.Redis {
         Int64 KeyDelete(RedisKey key);
         Boolean KeyExpire(RedisKey key, TimeSpan expiry);
         Boolean KeyExpire(RedisKey key, DateTime expiry);
+
         RedisKey StringGet(RedisKey key);
         void StringSet(RedisKey key, RedisKey value);
+
         RedisKey HashGet(RedisKey key, RedisKey hashField);
         Int64 HashSet(RedisKey key, RedisKey hashField, RedisKey value);
+        void HashSet(RedisKey key, IList<KeyValuePair<RedisKey, RedisKey>> pairs);
         KeyValuePair<RedisKey, RedisKey>[] HashGetAll(RedisKey key);
         Int64 HashDelete(RedisKey key, RedisKey hashField);
+
+        Int64 ListLength(RedisKey key);
         Int64 ListLeftPush(RedisKey key, RedisKey value);
         RedisKey ListLeftPop(RedisKey key);
         Int64 ListRightPush(RedisKey key, RedisKey value);
         RedisKey ListRightPop(RedisKey key);
-        Int64 ListLength(RedisKey key);
     }
 }
