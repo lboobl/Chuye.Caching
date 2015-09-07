@@ -60,15 +60,18 @@ namespace Chuye.Caching.Redis {
 
         public void HashSet(RedisKey key, IList<KeyValuePair<RedisKey, RedisKey>> pairs) {
             var hashFields = pairs.Select(p =>(Byte[]) p.Key).ToArray();
-            var values = pairs.Select(p => (Byte[])p.Key).ToArray();
+            var values = pairs.Select(p => (Byte[])p.Value).ToArray();
             _client.HMSet(key, hashFields, values);
         }
 
         public KeyValuePair<RedisKey, RedisKey>[] HashGetAll(RedisKey key) {
             var hash = _client.HGetAll(key);
+            if (hash.Length == 0) {
+                return null;
+            }
             var list = new KeyValuePair<RedisKey, RedisKey>[hash.Length / 2];
-            for (int i = 0; i < hash.Length; i += 2) {
-                list[i] = new KeyValuePair<RedisKey, RedisKey>(hash[i], hash[i + 1]);
+            for (int i = 0; i < list.Length; i++) {
+                list[i] = new KeyValuePair<RedisKey, RedisKey>(hash[2 * i], hash[2 * i + 1]);
             }
             return list;
         }
