@@ -8,24 +8,24 @@ using System.Threading.Tasks;
 
 namespace Chuye.Caching.Redis {
     public interface IRedis {
-        Boolean KeyExists(RedisKey key);
-        Int64 KeyDelete(RedisKey key);
-        Boolean KeyExpire(RedisKey key, TimeSpan expiry);
-        Boolean KeyExpire(RedisKey key, DateTime expiry);
+        Boolean KeyExists(RedisField key);
+        Int64 KeyDelete(RedisField key);
+        Boolean KeyExpire(RedisField key, TimeSpan expiry);
+        Boolean KeyExpire(RedisField key, DateTime expiry);
 
-        RedisKey StringGet(RedisKey key);
-        void StringSet(RedisKey key, RedisKey value);
+        RedisField StringGet(RedisField key);
+        void StringSet(RedisField key, RedisField value);
 
-        RedisKey HashGet(RedisKey key, RedisKey hashField);
-        Int64 HashSet(RedisKey key, RedisKey hashField, RedisKey value);
-        void HashSet(RedisKey key, IList<KeyValuePair<RedisKey, RedisKey>> pairs);
-        KeyValuePair<RedisKey, RedisKey>[] HashGetAll(RedisKey key);
-        Int64 HashDelete(RedisKey key, RedisKey hashField);
+        RedisField HashGet(RedisField key, RedisField hashField);
+        Int64 HashSet(RedisField key, RedisField hashField, RedisField value);
+        void HashSet(RedisField key, IList<KeyValuePair<RedisField, RedisField>> pairs);
+        KeyValuePair<RedisField, RedisField>[] HashGetAll(RedisField key);
+        Int64 HashDelete(RedisField key, RedisField hashField);
 
-        Int64 ListLength(RedisKey key);
-        Int64 ListLeftPush(RedisKey key, RedisKey value);
-        RedisKey ListLeftPop(RedisKey key);
-        Int64 ListRightPush(RedisKey key, RedisKey value);
-        RedisKey ListRightPop(RedisKey key);
+        Int64 ListLength(RedisField key);
+        Int64 ListLeftPush(RedisField key, RedisField value);
+        RedisField ListLeftPop(RedisField key);
+        Int64 ListRightPush(RedisField key, RedisField value);
+        RedisField ListRightPop(RedisField key);
     }
 }

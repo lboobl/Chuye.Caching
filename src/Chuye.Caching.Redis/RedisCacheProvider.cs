@@ -34,7 +34,7 @@ namespace Chuye.Caching.Redis {
 
         public override bool TryGet<T>(String key, out T entry) {
             var val = _redis.StringGet(BuildCacheKey(key));
-            if (val == null || !val.HasValue) {
+            if (!val.HasValue) {
                 entry = default(T);
                 return false;
             }

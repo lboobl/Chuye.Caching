@@ -5,17 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Chuye.Caching.Redis {
-    public class RedisKey {
+    public struct RedisField : IEquatable<RedisField> {
         private String key1;
         private byte[] key2;
-
-        private RedisKey(String key) {
-            key1 = key;
-        }
-
-        private RedisKey(byte[] key) {
-            key2 = key;
-        }
 
         public Boolean HasValue {
             get {
@@ -23,15 +15,38 @@ namespace Chuye.Caching.Redis {
             }
         }
 
-        public static implicit operator RedisKey(String key) {
-            return new RedisKey(key);
+        public static Boolean operator ==(RedisField f1, RedisField f2) {
+            return f1.Equals(f2);
         }
 
-        public static implicit operator RedisKey(Byte[] key) {
-            return new RedisKey(key);
+        public static Boolean operator !=(RedisField f1, RedisField f2) {
+            return !f1.Equals(f2);
         }
 
-        public static implicit operator String(RedisKey key) {
+        public override int GetHashCode() {
+            return ((String)this).GetHashCode();
+        }
+
+        public override bool Equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if(!(obj is RedisField)) {
+                return false;
+            }
+
+            return base.Equals((RedisField)obj);
+        }
+
+        public static implicit operator RedisField(String key) {
+            return new RedisField() { key1 = key };
+        }
+
+        public static implicit operator RedisField(Byte[] key) {
+            return new RedisField() { key2 = key };
+        }
+
+        public static implicit operator String(RedisField key) {
             if (key.key1 != null) {
                 return key.key1;
             }
@@ -42,7 +57,7 @@ namespace Chuye.Caching.Redis {
             return null;
         }
 
-        public static implicit operator byte[] (RedisKey key) {
+        public static implicit operator byte[] (RedisField key) {
             if (key.key2 != null) {
                 return key.key2;
             }
@@ -55,6 +70,37 @@ namespace Chuye.Caching.Redis {
 
         public override String ToString() {
             return (String)this;
+        }
+
+        public bool Equals(RedisField other) {
+            if((HasValue && !other.HasValue) || ((!HasValue && other.HasValue))) {
+                return false;
+            }
+            if (!HasValue && !other.HasValue) {
+                return true;
+            }
+
+            return key1.Equals(other.key1, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    public struct RedisEntry : IEquatable<RedisEntry> {
+        public RedisField Name { get; private set; }
+        public RedisField Value { get; private set; }
+
+        public bool Equals(RedisEntry other) {
+            return Name.Equals(other.Name) && Value.Equals(other.Value);
+        }
+
+        public static implicit operator RedisEntry(KeyValuePair<RedisField, RedisField> value) {
+            return new RedisEntry {
+                Name = value.Key,
+                Value = value.Value
+            };
+        }
+
+        public static implicit operator KeyValuePair<RedisField, RedisField>(RedisEntry value) {
+            return new KeyValuePair<RedisField, RedisField>(value.Name, value.Value);
         }
     }
 }
