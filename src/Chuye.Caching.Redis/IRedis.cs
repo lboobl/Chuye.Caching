@@ -18,8 +18,9 @@ namespace Chuye.Caching.Redis {
 
         RedisField HashGet(RedisField key, RedisField hashField);
         Int64 HashSet(RedisField key, RedisField hashField, RedisField value);
-        void HashSet(RedisField key, IList<KeyValuePair<RedisField, RedisField>> pairs);
-        KeyValuePair<RedisField, RedisField>[] HashGetAll(RedisField key);
+        Int64 HashSet(RedisField key, RedisEntry hash);
+        void HashSet(RedisField key, IList<RedisEntry> pairs);
+        RedisEntry[] HashGetAll(RedisField key);
         Int64 HashDelete(RedisField key, RedisField hashField);
 
         Int64 ListLength(RedisField key);

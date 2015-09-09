@@ -31,7 +31,42 @@ namespace Chuye.Caching.Tests {
 
             Assert.IsTrue(!f3.Equals(f2));
             Assert.IsTrue(!f2.Equals(f3));
+        }
 
+        [TestMethod]
+        public void RedisEntry_Equal_Test() {
+            var e1 = new RedisEntry();
+            var e2 = new RedisEntry();
+            Assert.IsTrue(e1 == e2);
+            Assert.IsTrue(e1.Equals(e2));
+
+            KeyValuePair<RedisField, RedisField> e3 = e2;
+            Assert.IsTrue(e1 == e2);
+            Assert.IsTrue(e1.Equals(e2));
+
+            Object e4 = e2;
+            Assert.IsTrue(e1.Equals(e4));
+            Assert.IsTrue(e4.Equals(e1));
+
+            var e5 = new RedisEntry(Guid.NewGuid().ToString(), e2.Value);
+            Assert.IsTrue(e1 != e5);
+            Assert.IsTrue(!e1.Equals(e5));
+        }
+
+        [TestMethod]
+        public void StringTest() {
+            IRedis redis = new ServiceStackRedis();
+            var cacheKey = Guid.NewGuid().ToString();
+            var cacheField = redis.StringGet(cacheKey);
+            Assert.IsFalse(cacheField.HasValue);
+            Assert.AreEqual((String)cacheField, null);
+
+            var cacheValue = Guid.NewGuid().ToString();
+            redis.StringSet(cacheKey, cacheValue);
+
+            cacheField = redis.StringGet(cacheKey);
+            Assert.IsTrue(cacheField.HasValue);
+            Assert.AreEqual((String)cacheField, cacheValue);
         }
     }
 }

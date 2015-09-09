@@ -31,7 +31,7 @@ namespace Chuye.Caching.Redis {
             if (obj == null) {
                 return false;
             }
-            if(!(obj is RedisField)) {
+            if (!(obj is RedisField)) {
                 return false;
             }
 
@@ -73,7 +73,7 @@ namespace Chuye.Caching.Redis {
         }
 
         public bool Equals(RedisField other) {
-            if((HasValue && !other.HasValue) || ((!HasValue && other.HasValue))) {
+            if ((HasValue && !other.HasValue) || ((!HasValue && other.HasValue))) {
                 return false;
             }
             if (!HasValue && !other.HasValue) {
@@ -88,6 +88,11 @@ namespace Chuye.Caching.Redis {
         public RedisField Name { get; private set; }
         public RedisField Value { get; private set; }
 
+        public RedisEntry(RedisField name, RedisField value) {
+            Name = name;
+            Value = value;
+        }
+
         public bool Equals(RedisEntry other) {
             return Name.Equals(other.Name) && Value.Equals(other.Value);
         }
@@ -101,6 +106,29 @@ namespace Chuye.Caching.Redis {
 
         public static implicit operator KeyValuePair<RedisField, RedisField>(RedisEntry value) {
             return new KeyValuePair<RedisField, RedisField>(value.Name, value.Value);
+        }
+
+        public static Boolean operator ==(RedisEntry re1, RedisEntry re2) {
+            return re1.Name.Equals(re2.Name) && re1.Value.Equals(re2.Value);
+        }
+
+        public static Boolean operator !=(RedisEntry re1, RedisEntry re2) {
+            return !re1.Name.Equals(re2.Name) || !re1.Value.Equals(re2.Value);
+        }
+
+        public override bool Equals(object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (!(obj is RedisEntry)) {
+                return false;
+            }
+
+            return this.Equals((RedisEntry)obj);
+        }
+
+        public override int GetHashCode() {
+            return Name.GetHashCode() ^ Value.GetHashCode();
         }
     }
 }
