@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Chuye.Caching.Redis {
     public interface IRedis {
         Boolean KeyExists(RedisField key);
-        Int64 KeyDelete(RedisField key);
+        Boolean KeyDelete(RedisField key);
         Boolean KeyExpire(RedisField key, TimeSpan expiry);
         Boolean KeyExpire(RedisField key, DateTime expiry);
 
@@ -24,6 +24,7 @@ namespace Chuye.Caching.Redis {
         Int64 HashDelete(RedisField key, RedisField hashField);
 
         Int64 ListLength(RedisField key);
+        RedisField[] ListRange(RedisField key, Int32 startingFrom, Int32 endingAt);
         Int64 ListLeftPush(RedisField key, RedisField value);
         RedisField ListLeftPop(RedisField key);
         Int64 ListRightPush(RedisField key, RedisField value);

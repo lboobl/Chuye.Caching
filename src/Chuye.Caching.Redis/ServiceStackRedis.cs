@@ -27,11 +27,11 @@ namespace Chuye.Caching.Redis {
         }
 
         public Boolean KeyExists(RedisField key) {
-            return _client.Exists(key) > 0;
+            return _client.Exists(key) == 1L;
         }
 
-        public Int64 KeyDelete(RedisField key) {
-            return _client.Del(key);
+        public Boolean KeyDelete(RedisField key) {
+            return _client.Del(key) == 1L;
         }
 
         public Boolean KeyExpire(RedisField key, TimeSpan expiry) {
@@ -63,7 +63,7 @@ namespace Chuye.Caching.Redis {
         }
 
         public void HashSet(RedisField key, IList<RedisEntry> pairs) {
-            var hashFields = pairs.Select(p =>(Byte[]) p.Name).ToArray();
+            var hashFields = pairs.Select(p => (Byte[])p.Name).ToArray();
             var values = pairs.Select(p => (Byte[])p.Value).ToArray();
             _client.HMSet(key, hashFields, values);
         }
@@ -94,6 +94,12 @@ namespace Chuye.Caching.Redis {
 
         public RedisField ListLeftPop(RedisField key) {
             return _client.LPop(key);
+        }
+
+        public RedisField[] ListRange(RedisField key, Int32 startingFrom, Int32 endingAt) {
+            return _client.LRange(key, startingFrom, endingAt)
+                .Select(r => (RedisField)r)
+                .ToArray();
         }
 
         public Int64 ListRightPush(RedisField key, RedisField value) {

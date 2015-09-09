@@ -55,18 +55,82 @@ namespace Chuye.Caching.Tests {
 
         [TestMethod]
         public void StringTest() {
-            IRedis redis = new ServiceStackRedis();
             var cacheKey = Guid.NewGuid().ToString();
+            IRedis redis = new ServiceStackRedis();
+
+            //StringGet
             var cacheField = redis.StringGet(cacheKey);
             Assert.IsFalse(cacheField.HasValue);
             Assert.AreEqual((String)cacheField, null);
 
+            //StringSet
             var cacheValue = Guid.NewGuid().ToString();
             redis.StringSet(cacheKey, cacheValue);
 
+            //StringGet again
             cacheField = redis.StringGet(cacheKey);
             Assert.IsTrue(cacheField.HasValue);
             Assert.AreEqual((String)cacheField, cacheValue);
+
+            //KeyDelete
+            redis.KeyDelete(cacheKey);
+        }
+
+        [TestMethod]
+        public void ListTest() {
+            var cacheKey = Guid.NewGuid().ToString();
+            IRedis redis = new ServiceStackRedis();
+            var linkList = new LinkedList<String>();
+            const Int32 listLength = 4;
+
+            Action init = () => {
+                redis.KeyDelete(cacheKey);
+                linkList.Clear();
+
+                for (int i = 0; i < listLength; i++) {
+                    var cacheValue = Guid.NewGuid().ToString();
+
+                    if ((Guid.NewGuid().GetHashCode() & 1) == 0) {
+                        linkList.AddFirst(cacheValue);
+                        //ListLeftPush
+                        redis.ListLeftPush(cacheKey, linkList.First.Value);
+                    }
+                    else {
+                        linkList.AddLast(cacheValue);
+                        //ListLeftPush
+                        redis.ListRightPush(cacheKey, linkList.Last.Value);
+                    }
+                }
+            };
+
+            init();
+            Assert.AreEqual(linkList.Count, redis.ListLength(cacheKey));
+            
+
+            for (int i = 0; i < listLength; i++) {
+                RedisField cacheItem;
+                if ((Guid.NewGuid().GetHashCode() & 1) == 0) {
+                    cacheItem = redis.ListLeftPop(cacheKey);
+                    Assert.AreEqual(linkList.First.Value, (String)cacheItem);
+                    linkList.RemoveFirst();
+                }
+                else {
+                    cacheItem = redis.ListRightPop(cacheKey);
+                    Assert.AreEqual(linkList.Last.Value, (String)cacheItem);
+                    linkList.RemoveLast();
+                }
+
+                Assert.AreEqual(linkList.Count, redis.ListLength(cacheKey));
+            } 
+
+            var cacheEists = redis.KeyExists(cacheKey);
+            Assert.IsFalse(cacheEists);
+        }
+
+        [TestMethod]
+        public void HashTest() {
+            var cacheKey = Guid.NewGuid().ToString();
+            IRedis redis = new ServiceStackRedis();
         }
     }
 }
