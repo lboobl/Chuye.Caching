@@ -80,7 +80,7 @@ namespace Chuye.Caching.Redis {
                 return true;
             }
 
-            return key1.Equals(other.key1, StringComparison.OrdinalIgnoreCase);
+            return ((String)this).Equals((String)other, StringComparison.OrdinalIgnoreCase);
         }
     }
 

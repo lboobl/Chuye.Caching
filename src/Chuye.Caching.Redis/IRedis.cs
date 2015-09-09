@@ -17,11 +17,12 @@ namespace Chuye.Caching.Redis {
         void StringSet(RedisField key, RedisField value);
 
         RedisField HashGet(RedisField key, RedisField hashField);
+        Int64 HashLength(RedisField key);
         Int64 HashSet(RedisField key, RedisField hashField, RedisField value);
         Int64 HashSet(RedisField key, RedisEntry hash);
         void HashSet(RedisField key, IList<RedisEntry> pairs);
         RedisEntry[] HashGetAll(RedisField key);
-        Int64 HashDelete(RedisField key, RedisField hashField);
+        Boolean HashDelete(RedisField key, RedisField hashField);
 
         Int64 ListLength(RedisField key);
         RedisField[] ListRange(RedisField key, Int32 startingFrom, Int32 endingAt);

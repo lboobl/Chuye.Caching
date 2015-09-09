@@ -50,6 +50,10 @@ namespace Chuye.Caching.Redis {
             _client.Set(key, value);
         }
 
+        public Int64 HashLength(RedisField key) {
+            return _client.HLen(key);
+        }
+
         public RedisField HashGet(RedisField key, RedisField hashField) {
             return _client.HGet(key, hashField);
         }
@@ -80,8 +84,8 @@ namespace Chuye.Caching.Redis {
             return list;
         }
 
-        public Int64 HashDelete(RedisField key, RedisField hashField) {
-            return _client.HDel(key, hashField);
+        public Boolean HashDelete(RedisField key, RedisField hashField) {
+            return _client.HDel(key, hashField) == 1;
         }
 
         public Int64 ListLength(RedisField key) {
