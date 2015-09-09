@@ -21,7 +21,7 @@ namespace Chuye.Caching.Redis {
                 throw new Exception("AppSettings \"redis\" missing");
             }
 
-            var redisManager = new PooledRedisClientManager(connectionString);
+            var redisManager = new BasicRedisClientManager(connectionString);
             redisManager.ConnectTimeout = 100;
             _client = (IRedisNativeClient)redisManager.GetClient();
         }
