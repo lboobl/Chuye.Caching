@@ -17,7 +17,7 @@ namespace Chuye.Caching.Redis {
 #if DEBUG
                 Formatting = Formatting.Indented,
 #else
-                    Formatting = Formatting.None,
+                Formatting = Formatting.None,
 #endif
             };
         }

@@ -134,14 +134,5 @@ namespace Chuye.Persistent.NH {
                 return query.Select(r => r.Id).Any();
             });
         }
-
-        public void Evit(params IAggregate[] entries) {
-            SafeProceed(() => {
-                var session = _context.EnsureSession();
-                foreach (var entry in entries) {
-                    session.Evict(entry);
-                }
-            });
-        }
     }
 }
