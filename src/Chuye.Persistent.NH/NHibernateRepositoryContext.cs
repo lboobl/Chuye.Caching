@@ -106,7 +106,7 @@ namespace Chuye.Persistent.NH {
             }
         }
 
-        public void Evit(params Object[] entries) {
+        public void Evict(params Object[] entries) {
             if (_session != null) {
                 foreach (var entry in entries) {
                     _session.Evict(entry);
