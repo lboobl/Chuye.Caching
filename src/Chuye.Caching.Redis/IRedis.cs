@@ -15,6 +15,8 @@ namespace Chuye.Caching.Redis {
 
         RedisField StringGet(RedisField key);
         void StringSet(RedisField key, RedisField value);
+        Int64 StringIncrement(RedisField key, Int64 value = 1L);
+        Double StringIncrement(RedisField key, Double value);
 
         RedisField HashGet(RedisField key, RedisField hashField);
         Int64 HashLength(RedisField key);
@@ -30,5 +32,14 @@ namespace Chuye.Caching.Redis {
         RedisField ListLeftPop(RedisField key);
         Int64 ListRightPush(RedisField key, RedisField value);
         RedisField ListRightPop(RedisField key);
+
+        Int64 SortedSetLength(RedisField key);
+        RedisField[] SortedSetRangeByRank(RedisField key, Int32 startPosition = 0, Int32 stopPosition = -1);
+        RedisField[] SortedSetRangeByScore(RedisField key, double startScore = double.NegativeInfinity, double stopScore = double.PositiveInfinity, Int32 skip = 0, Int32 take = -1);
+        Int64? SortedSetRank(RedisField key, RedisField member);
+        Int64 SortedSetAdd(RedisField key, RedisField value, Double score);
+        Boolean SortedSetRemove(RedisField key, RedisField member);
+        Int64 SortedSetRemoveRangeByRank(RedisField key, Int32 startPosition, Int32 stopPosition);
+        Int64 SortedSetRemoveRangeByScore(RedisField key, Double startScore, Double stopScore);
     }
 }

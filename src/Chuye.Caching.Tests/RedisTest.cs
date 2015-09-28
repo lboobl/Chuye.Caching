@@ -3,6 +3,11 @@ using System.Text;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Chuye.Caching.Redis;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Configuration;
+using ServiceStack.Redis;
+using System.Diagnostics;
 
 namespace Chuye.Caching.Tests {
     [TestClass]
@@ -129,13 +134,11 @@ namespace Chuye.Caching.Tests {
 
         [TestMethod]
         public void HashTest() {
-            //StackExchange.Redis.IDatabase d;
-
             var cacheKey = Guid.NewGuid().ToString();
             IRedis redis = new ServiceStackRedis();
 
             var hashListLength = Math.Abs(Guid.NewGuid().GetHashCode() % 24) + 8;
-            var names = new String[hashListLength];
+            var names = new String[hashListLength].ToList();
             var values = new String[hashListLength];
 
             var list = new List<RedisEntry>();
@@ -170,16 +173,20 @@ namespace Chuye.Caching.Tests {
             }
 
             for (int i = 0; i < 8; i++) {
-                var index = Math.Abs(Guid.NewGuid().GetHashCode() % hashListLength);
+                var index = Math.Abs(Guid.NewGuid().GetHashCode() % names.Count);
                 var cacheItem = redis.HashGet(cacheKey, names[index]);
                 Assert.IsTrue((String)cacheItem == values[index]);
             }
 
             for (int i = 0; i < 8; i++) {
                 if ((Guid.NewGuid().GetHashCode() & 1) == 0) {
-                    var index = Math.Abs(Guid.NewGuid().GetHashCode() % hashListLength);
+                    var index = Math.Abs(Guid.NewGuid().GetHashCode() % names.Count);
                     var deleted = redis.HashDelete(cacheKey, names[index]);
+                    if (!deleted) {
+                        Debugger.Launch();
+                    }
                     Assert.IsTrue(deleted);
+                    names.RemoveAt(index);
                 }
                 else {
                     var deleted = redis.HashDelete(cacheKey, Guid.NewGuid().ToString());
@@ -187,5 +194,146 @@ namespace Chuye.Caching.Tests {
                 }
             }
         }
+
+        [TestMethod]
+        public void SortSertTest() {
+            var cacheKey = Guid.NewGuid().ToString();
+            IRedis redis = new ServiceStackRedis();
+
+            var random = new Random();
+            var list = Enumerable.Repeat(0, 20).Select(r => random.Next(100)).Distinct().ToList();
+
+            for (int i = 0; i < list.Count; i++) {
+                redis.SortedSetAdd(cacheKey, list[i].ToString(), i);
+                var len = redis.SortedSetLength(cacheKey);
+                Assert.AreEqual(len, i + 1);
+            }
+
+            var values = redis.SortedSetRangeByRank(cacheKey, 0, -1);
+            Assert.AreEqual(values.Length, list.Count);
+            for (int i = 0; i < list.Count; i++) {
+                Assert.AreEqual((String)values[i], list[i].ToString());
+            }
+
+            for (int i = 0; i < 3; i++) {
+                var index1 = random.Next(list.Count);
+                var index2 = redis.SortedSetRank(cacheKey, list[index1].ToString());
+                Assert.AreEqual(index1, index2);
+            }
+
+            for (int i = 0; i < 3; i++) {
+                var index = random.Next(list.Count);
+                var value = list[index];
+                list.RemoveAt(index);
+                var removed = redis.SortedSetRemove(cacheKey, value.ToString());
+                Assert.IsTrue(removed);
+                var len = redis.SortedSetLength(cacheKey);
+                Assert.AreEqual(len, list.Count);
+            }
+
+            Assert.IsTrue(redis.SortedSetLength(cacheKey) > 3);
+            var removedByRank = redis.SortedSetRemoveRangeByRank(cacheKey, 0, 2);
+            Assert.AreEqual(removedByRank, 3);
+        }
+
+
+        [TestMethod]
+        public void RedisParallelTest() {
+            //StackExchange.Redis.IDatabase d;
+            var key = "RedisParallelTest";
+            var redis = new ServiceStackRedis();
+            redis.KeyDelete(key);
+
+            Action action = () => Console.WriteLine(redis.StringIncrement(key));
+            Parallel.Invoke(Enumerable.Repeat(1, 100).Select(i => action).ToArray());
+        }
+
+        [TestMethod]
+        public void RedisNativeClientTest1() {
+            var connectionString = ConfigurationManager.AppSettings.Get("cache:redis");
+            var key = "RedisParallelTest1";
+
+            using (var redisManager = new BasicRedisClientManager(connectionString)) {
+                redisManager.ConnectTimeout = 100;
+                using (var client = (IRedisNativeClient)redisManager.GetClient()) {
+                    client.Del(key);
+                }
+            }
+
+            var actions = Enumerable.Repeat(1, 100).Select(i => new Action(() => {
+                using (var redisManager = new BasicRedisClientManager(connectionString)) {
+                    redisManager.ConnectTimeout = 100;
+                    using (var client = (IRedisNativeClient)redisManager.GetClient()) {
+                        client.Incr(key);
+                    }
+                }
+            })).ToArray();
+
+            Parallel.Invoke(actions);
+        }
+
+        [TestMethod]
+        public void RedisNativeClientTest2() {
+            var connectionString = ConfigurationManager.AppSettings.Get("cache:redis");
+            var key = "RedisParallelTest2";
+
+            using (var redisManager = new BasicRedisClientManager(connectionString)) {
+                redisManager.ConnectTimeout = 100;
+                using (var client = (IRedisNativeClient)redisManager.GetCacheClient()) {
+                    client.Del(key);
+                }
+            }
+
+            var actions = Enumerable.Repeat(1, 100).Select(i => new Action(() => {
+                using (var redisManager = new BasicRedisClientManager(connectionString)) {
+                    redisManager.ConnectTimeout = 100;
+                    using (var client = (IRedisNativeClient)redisManager.GetCacheClient()) {
+                        client.Incr(key);
+                    }
+                }
+            })).ToArray();
+
+            Parallel.Invoke(actions);
+        }
+
+        [TestMethod]
+        public void RedisNativeClientTest3() {
+            var connectionString = ConfigurationManager.AppSettings.Get("cache:redis");
+            var key = "RedisParallelTest3";
+
+            var redisManager = new BasicRedisClientManager(connectionString);
+
+            redisManager.ConnectTimeout = 100;
+            using (var client = (IRedisNativeClient)redisManager.GetCacheClient()) {
+                client.Del(key);
+            }
+
+            var actions = Enumerable.Repeat(1, 100).Select(i => new Action(() => {
+                redisManager.ConnectTimeout = 100;
+                using (var client = (IRedisNativeClient)redisManager.GetCacheClient()) {
+                    client.Incr(key);
+                }
+            })).ToArray();
+
+            Parallel.Invoke(actions);
+        }
+
+        //[TestMethod]
+        //public void RedisNativeClientTest4() {
+        //    var connectionString = ConfigurationManager.AppSettings.Get("cache:redis");
+        //    var key = "RedisParallelTest4";
+        //    var redisManager = new PooledRedisClientManager(connectionString);
+        //    //var redisManager = new PooledRedisClientManager(connectionString);
+        //    redisManager.ConnectTimeout = 100;
+        //    //var client = (IRedisNativeClient)redisManager.GetCacheClient(); //type cast error with PooledRedisClientManager
+        //    var client = (IRedisNativeClient)redisManager.GetClient(); //death lock
+        //    client.Del(key);
+
+        //    var actions = Enumerable.Repeat(1, 100).Select(i => new Action(() => {
+        //        client.Incr(key);
+        //    })).ToArray();
+
+        //    Parallel.Invoke(actions);
+        //}
     }
 }
