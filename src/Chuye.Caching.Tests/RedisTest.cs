@@ -253,7 +253,7 @@ namespace Chuye.Caching.Tests {
             var connectionString = ConfigurationManager.AppSettings.Get("cache:redis");
             var key = "RedisParallelTest1";
 
-            using (var redisManager = new BasicRedisClientManager(connectionString)) {
+            using (var redisManager = new PooledRedisClientManager(connectionString)) {
                 redisManager.ConnectTimeout = 100;
                 using (var client = (IRedisNativeClient)redisManager.GetClient()) {
                     client.Del(key);
@@ -335,5 +335,14 @@ namespace Chuye.Caching.Tests {
 
         //    Parallel.Invoke(actions);
         //}
+
+        [TestMethod]
+        public void RedisNativeClientTest4() {
+            var redis = new ServiceStackRedis();
+            var key = "RedisParallelTest4";
+            redis.KeyDelete(key);
+            var actions = Enumerable.Repeat(1, 100).Select(i => new Action(() => redis.StringIncrement(key))).ToArray();
+            Parallel.Invoke(actions);
+        }
     }
 }
