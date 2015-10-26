@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace Chuye.Caching.Redis {
+namespace Chuye.Caching.Memcached {
     internal class NewtonsoftJsonUtil {
         private static readonly JsonSerializerSettings _jsonSettings;
 
@@ -37,6 +38,20 @@ namespace Chuye.Caching.Redis {
 
         public static Object Parse(String value, Type type) {
             return JsonConvert.DeserializeObject(value, type, _jsonSettings);
+        }
+
+
+        public static T EnsureObjectType<T>(Object obj) {
+            if (obj is T) {
+                return (T)obj;
+            }
+            else if (obj is JObject) {
+                return ((JObject)obj).ToObject<T>();
+            }
+            else {
+                //return (T)Convert.ChangeType(obj, typeof(T));  // Guid 类型将失败
+                return JToken.FromObject(obj).ToObject<T>();
+            }
         }
     }
 }

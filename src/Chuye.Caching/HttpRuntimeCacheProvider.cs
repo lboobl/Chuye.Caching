@@ -1,10 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
 
@@ -57,11 +52,8 @@ namespace Chuye.Caching {
             }
         }
 
-        protected override String BuildCacheKey(String key) {
-            //Region 为空将被当作  String.Empty 处理
-            return Region == null
-                ? String.Concat(_prefix, key)
-                : String.Concat(_prefix, Region, "_", key);
+        protected internal override String BuildCacheKey(String key) {
+            return String.Concat(_prefix, Region, "_", key);
         }
 
         private Object BuildCacheEntry<T>(T value) {
