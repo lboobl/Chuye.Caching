@@ -9,18 +9,31 @@ using System.Threading.Tasks;
 
 namespace Chuye.Caching.Redis {
     public class ServiceStackRedis : IRedis, IDisposable {
-        private static readonly IRedisClientsManager _redisFactory;
+        private static IRedisClientsManager _redisFactory;
 
         static ServiceStackRedis() {
+            Initialize();
+        }
+
+        private static void Initialize() {
             var connectionString = ConfigurationManager.AppSettings.Get("cache:redis");
-            if (String.IsNullOrWhiteSpace(connectionString)) {
-                throw new Exception("AppSettings \"redis\" missing");
+            if (!String.IsNullOrWhiteSpace(connectionString)) {
+                Initialize(connectionString);
             }
-            _redisFactory = new PooledRedisClientManager(connectionString) { ConnectTimeout = 100 };
+        }
+
+        public static void Initialize(params String[] hosts) {
+            if (_redisFactory != null) {
+                _redisFactory.Dispose();
+            }
+            _redisFactory = new PooledRedisClientManager(hosts) { ConnectTimeout = 100 };
         }
 
         //注意，用完需要dispose
         public IRedisNativeClient GetRedisClient() {
+            if (_redisFactory == null) {
+                throw new ArgumentException("Configuration \"cache:redis\" miss or method Initialize() not invoke");
+            }
             return (IRedisNativeClient)_redisFactory.GetClient();
         }
 
@@ -125,7 +138,7 @@ namespace Chuye.Caching.Redis {
         public RedisEntry[] HashGetAll(RedisField key) {
             using (var client = GetRedisClient()) {
                 var hash = client.HGetAll(key);
-                if (hash.Length == 0) {
+                if (hash == null || hash.Length == 0) {
                     return null;
                 }
                 var list = new RedisEntry[hash.Length / 2];
