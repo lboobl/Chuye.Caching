@@ -248,5 +248,11 @@ namespace Chuye.Caching.Redis {
                 return client.ZRemRangeByScore(key, startScore, stopScore);
             }
         }
+
+        public Double SortedSetIncrement(RedisField key, RedisField member, Double value) {
+            using (var client = GetRedisClient()) {
+                return client.ZIncrBy(key, value, member);
+            }
+        }
     }
 }
