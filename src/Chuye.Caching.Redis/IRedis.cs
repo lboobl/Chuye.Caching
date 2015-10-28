@@ -19,13 +19,14 @@ namespace Chuye.Caching.Redis {
         Double StringIncrement(RedisField key, Double value);
 
         RedisField HashGet(RedisField key, RedisField hashField);
+        RedisField[] HashGet(RedisField key, IList<RedisField> hashFields);
+        RedisEntry[] HashGetAll(RedisField key);
         Int64 HashLength(RedisField key);
         Int64 HashIncrement(RedisField key, RedisField hashField, Int32 value = 1);
         Double HashIncrement(RedisField key, RedisField hashField, Double value);
         Int64 HashSet(RedisField key, RedisField hashField, RedisField value);
         Int64 HashSet(RedisField key, RedisEntry hash);
         void HashSet(RedisField key, IList<RedisEntry> pairs);
-        RedisEntry[] HashGetAll(RedisField key);
         Boolean HashDelete(RedisField key, RedisField hashField);
 
         Int64 ListLength(RedisField key);

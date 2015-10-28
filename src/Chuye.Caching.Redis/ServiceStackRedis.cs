@@ -115,6 +115,27 @@ namespace Chuye.Caching.Redis {
             }
         }
 
+        public RedisField[] HashGet(RedisField key, IList<RedisField> hashFields) {
+            using (var client = GetRedisClient()) {
+                var list = client.HMGet(key, hashFields.Select(h => (Byte[])h).ToArray());
+                return list.Select(l => (RedisField)l).ToArray();
+            }
+        }
+
+        public RedisEntry[] HashGetAll(RedisField key) {
+            using (var client = GetRedisClient()) {
+                var hash = client.HGetAll(key);
+                if (hash == null || hash.Length == 0) {
+                    return null;
+                }
+                var list = new RedisEntry[hash.Length / 2];
+                for (int i = 0; i < list.Length; i++) {
+                    list[i] = new RedisEntry(hash[2 * i], hash[2 * i + 1]);
+                }
+                return list;
+            }
+        }
+
         public Int64 HashSet(RedisField key, RedisField hashField, RedisField value) {
             using (var client = GetRedisClient()) {
                 return client.HSet(key, hashField, value);
@@ -132,20 +153,6 @@ namespace Chuye.Caching.Redis {
                 var hashFields = pairs.Select(p => (Byte[])p.Name).ToArray();
                 var values = pairs.Select(p => (Byte[])p.Value).ToArray();
                 client.HMSet(key, hashFields, values);
-            }
-        }
-
-        public RedisEntry[] HashGetAll(RedisField key) {
-            using (var client = GetRedisClient()) {
-                var hash = client.HGetAll(key);
-                if (hash == null || hash.Length == 0) {
-                    return null;
-                }
-                var list = new RedisEntry[hash.Length / 2];
-                for (int i = 0; i < list.Length; i++) {
-                    list[i] = new RedisEntry(hash[2 * i], hash[2 * i + 1]);
-                }
-                return list;
             }
         }
 

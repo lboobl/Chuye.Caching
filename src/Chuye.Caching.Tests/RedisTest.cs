@@ -137,62 +137,46 @@ namespace Chuye.Caching.Tests {
             var cacheKey = Guid.NewGuid().ToString();
             IRedis redis = new ServiceStackRedis();
 
-            var hashListLength = Math.Abs(Guid.NewGuid().GetHashCode() % 24) + 8;
-            var names = new String[hashListLength].ToList();
-            var values = new String[hashListLength];
+            var count = 10;
+            var names = new String[count].ToList();
+            var values = new String[count];
 
-            var list = new List<RedisEntry>();
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i < count; i++) {
                 names[i] = Guid.NewGuid().ToString();
                 values[i] = Guid.NewGuid().ToString();
-                list.Add(new RedisEntry(names[i], values[i]));
             }
+            var list = Enumerable.Range(0, count)
+                .Select(i => new RedisEntry(names[i], values[i]))
+                .ToArray();
+
             redis.HashSet(cacheKey, list);
-            Assert.AreEqual(redis.HashLength(cacheKey), list.Count);
+            Assert.AreEqual(redis.HashLength(cacheKey), list);
 
-            for (int i = 8; i < hashListLength; i++) {
-                names[i] = Guid.NewGuid().ToString();
-                values[i] = Guid.NewGuid().ToString();
-
-                if ((Guid.NewGuid().GetHashCode() & 1) == 0) {
-                    redis.HashSet(cacheKey, new RedisEntry(names[i], values[i]));
-                }
-                else {
-                    redis.HashSet(cacheKey, names[i], values[i]);
-                }
+            var array = redis.HashGet(cacheKey, names.Select(x => (RedisField)x).ToArray());
+            for (int i = 0; i < count; i++) {
+                Assert.IsTrue(array[i] == values[i]);
             }
-
-            Assert.AreEqual(redis.HashLength(cacheKey), hashListLength);
 
             var hash = redis.HashGetAll(cacheKey);
-            Assert.AreEqual(hash.Length, hashListLength);
-
-            for (int i = 0; i < hashListLength; i++) {
+            Assert.AreEqual(hash.Length, count);
+            for (int i = 0; i < count; i++) {
                 Assert.IsTrue(hash[i].Name == names[i]);
                 Assert.IsTrue(hash[i].Value == values[i]);
             }
 
-            for (int i = 0; i < 8; i++) {
-                var index = Math.Abs(Guid.NewGuid().GetHashCode() % names.Count);
-                var cacheItem = redis.HashGet(cacheKey, names[index]);
-                Assert.IsTrue((String)cacheItem == values[index]);
+            for (int i = 0; i < count; i++) {
+                var cacheItem = redis.HashGet(cacheKey, names[i]);
+                Assert.IsTrue((String)cacheItem == values[i]);
             }
 
-            for (int i = 0; i < 8; i++) {
-                if ((Guid.NewGuid().GetHashCode() & 1) == 0) {
-                    var index = Math.Abs(Guid.NewGuid().GetHashCode() % names.Count);
-                    var deleted = redis.HashDelete(cacheKey, names[index]);
-                    if (!deleted) {
-                        Debugger.Launch();
-                    }
-                    Assert.IsTrue(deleted);
-                    names.RemoveAt(index);
-                }
-                else {
-                    var deleted = redis.HashDelete(cacheKey, Guid.NewGuid().ToString());
-                    Assert.IsFalse(deleted);
-                }
+            for (int i = 0; i < count; i++) {
+                var index = Math.Abs(Guid.NewGuid().GetHashCode() % names.Count);
+                var deleted = redis.HashDelete(cacheKey, names[index]);
+                Assert.IsTrue(deleted);
             }
+
+            var exist = redis.KeyExists(cacheKey);
+            Assert.IsFalse(exist);
         }
 
         [TestMethod]
