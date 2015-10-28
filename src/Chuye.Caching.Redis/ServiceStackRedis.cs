@@ -117,20 +117,23 @@ namespace Chuye.Caching.Redis {
 
         public RedisField[] HashGet(RedisField key, IList<RedisField> hashFields) {
             using (var client = GetRedisClient()) {
-                var list = client.HMGet(key, hashFields.Select(h => (Byte[])h).ToArray());
-                return list.Select(l => (RedisField)l).ToArray();
+                var bytes = client.HMGet(key, hashFields.Select(h => (Byte[])h).ToArray());
+                if (bytes == null) {
+                    return null;
+                }
+                return bytes.Select(x => (RedisField)x).ToArray();
             }
         }
 
         public RedisEntry[] HashGetAll(RedisField key) {
             using (var client = GetRedisClient()) {
-                var hash = client.HGetAll(key);
-                if (hash == null) {
+                var bytes = client.HGetAll(key);
+                if (bytes == null) {
                     return null;
                 }
-                var list = new RedisEntry[hash.Length / 2];
+                var list = new RedisEntry[bytes.Length / 2];
                 for (int i = 0; i < list.Length; i++) {
-                    list[i] = new RedisEntry(hash[2 * i], hash[2 * i + 1]);
+                    list[i] = new RedisEntry(bytes[2 * i], bytes[2 * i + 1]);
                 }
                 return list;
             }

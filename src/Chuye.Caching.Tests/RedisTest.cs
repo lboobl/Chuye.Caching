@@ -154,7 +154,7 @@ namespace Chuye.Caching.Tests {
                 .ToArray();
 
             redis.HashSet(cacheKey, list);
-            Assert.AreEqual(redis.HashLength(cacheKey), list);
+            Assert.AreEqual(redis.HashLength(cacheKey), count);
 
             var array = redis.HashGet(cacheKey, names.Select(x => (RedisField)x).ToArray());
             for (int i = 0; i < count; i++) {
@@ -174,8 +174,7 @@ namespace Chuye.Caching.Tests {
             }
 
             for (int i = 0; i < count; i++) {
-                var index = Math.Abs(Guid.NewGuid().GetHashCode() % names.Count);
-                var deleted = redis.HashDelete(cacheKey, names[index]);
+                var deleted = redis.HashDelete(cacheKey, names[i]);
                 Assert.IsTrue(deleted);
             }
 
@@ -306,23 +305,15 @@ namespace Chuye.Caching.Tests {
             Parallel.Invoke(actions);
         }
 
-        //[TestMethod]
-        //public void RedisNativeClientTest4() {
-        //    var connectionString = ConfigurationManager.AppSettings.Get("cache:redis");
-        //    var key = "RedisParallelTest4";
-        //    var redisManager = new PooledRedisClientManager(connectionString);
-        //    //var redisManager = new PooledRedisClientManager(connectionString);
-        //    redisManager.ConnectTimeout = 100;
-        //    //var client = (IRedisNativeClient)redisManager.GetCacheClient(); //type cast error with PooledRedisClientManager
-        //    var client = (IRedisNativeClient)redisManager.GetClient(); //death lock
-        //    client.Del(key);
+        [TestMethod]
+        public void HMGet() {
+            var redis = new ServiceStackRedis();
+            var key = "/Work/0/100";
+            redis.HashSet(key, "Read", "2");
+            redis.HashSet(key, "Share", "3");
+            var hash = redis.HashGet(key, new RedisField[] { "Id", "Read", "Share" });
 
-        //    var actions = Enumerable.Repeat(1, 100).Select(i => new Action(() => {
-        //        client.Incr(key);
-        //    })).ToArray();
-
-        //    Parallel.Invoke(actions);
-        //}
+        }
 
         [TestMethod]
         public void RedisNativeClientTest4() {
