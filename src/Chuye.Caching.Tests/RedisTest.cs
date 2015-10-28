@@ -15,6 +15,10 @@ namespace Chuye.Caching.Tests {
 
         [TestMethod]
         public void RedisField_Equal_Test() {
+            //StackExchange.Redis.IDatabase d;
+            //d.SortedSetRangeByRankWithScores;
+            //d.SortedSetRangeByScoreWithScores;
+
             RedisField f1 = new RedisField();
             RedisField f2 = new RedisField();
             Assert.IsTrue(f1 == f2);

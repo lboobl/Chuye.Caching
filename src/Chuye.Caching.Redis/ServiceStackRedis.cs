@@ -125,7 +125,7 @@ namespace Chuye.Caching.Redis {
         public RedisEntry[] HashGetAll(RedisField key) {
             using (var client = GetRedisClient()) {
                 var hash = client.HGetAll(key);
-                if (hash == null || hash.Length == 0) {
+                if (hash == null) {
                     return null;
                 }
                 var list = new RedisEntry[hash.Length / 2];
@@ -206,6 +206,16 @@ namespace Chuye.Caching.Redis {
             }
         }
 
+        public Double? SortedSetScore(RedisField key, RedisField member) {
+            using (var client = GetRedisClient()) {
+                var value = client.ZScore(key, member);
+                if (Double.IsNaN(value)) {
+                    return null;
+                }
+                return value;
+            }
+        }
+
         public RedisField[] SortedSetRangeByRank(RedisField key, Int32 startPosition = 0, Int32 stopPosition = -1) {
             using (var client = GetRedisClient()) {
                 return client.ZRange(key, startPosition, stopPosition)
@@ -219,6 +229,34 @@ namespace Chuye.Caching.Redis {
                 return client.ZRangeByScore(key, startScore, stopScore, skip, take)
                     .Select(r => (RedisField)r)
                     .ToArray();
+            }
+        }
+
+        public RedisEntry[] SortedSetRangeByRankWithScores(RedisField key, Int32 startPosition = 0, Int32 stopPosition = -1) {
+            using (var client = GetRedisClient()) {
+                var set = client.ZRangeWithScores(key, startPosition, stopPosition);
+                if (set == null) {
+                    return null;
+                }
+                var list = new RedisEntry[set.Length / 2];
+                for (int i = 0; i < list.Length; i++) {
+                    list[i] = new RedisEntry(set[2 * i], set[2 * i + 1]);
+                }
+                return list;
+            }
+        }
+
+        public RedisEntry[] SortedSetRangeByScoreWithScores(RedisField key, Double startScore = Double.NegativeInfinity, Double stopScore = double.PositiveInfinity, Int32 skip = 0, Int32 take = -1) {
+            using (var client = GetRedisClient()) {
+                var set = client.ZRangeByScoreWithScores(key, startScore, stopScore, skip, take);
+                if (set == null) {
+                    return null;
+                }
+                var list = new RedisEntry[set.Length / 2];
+                for (int i = 0; i < list.Length; i++) {
+                    list[i] = new RedisEntry(set[2 * i], set[2 * i + 1]);
+                }
+                return list;
             }
         }
 
