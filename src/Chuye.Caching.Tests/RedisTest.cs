@@ -223,6 +223,34 @@ namespace Chuye.Caching.Tests {
             Assert.AreEqual(removedByRank, 3);
         }
 
+        [TestMethod]
+        public void SortSertOrderTest() {
+            var cacheKey = Guid.NewGuid().ToString();
+            IRedis redis = new ServiceStackRedis();
+
+            var random = new Random();
+            var list = Enumerable.Repeat(0, 4).Select(r => random.Next(100)).ToList();
+            list.ForEach(i => redis.SortedSetAdd(cacheKey, i.ToString(), (double)i));
+
+            var list1 = redis.SortedSetRangeByRank(cacheKey, order: Order.Ascending);
+            Assert.AreEqual(list1.Length, list.Count);
+
+            var array1 = list.ToArray();
+            Array.Sort(array1);
+            for (int i = 0; i < list1.Length; i++) {
+                Assert.AreEqual(Convert.ToInt32( list1[i]), array1[i]);
+            }
+
+            var list2 = redis.SortedSetRangeByRank(cacheKey, order: Order.Descending);
+            Assert.AreEqual(list2.Length, list.Count);
+
+            var array2 = array1.Reverse().ToArray();
+            for (int i = 0; i < list2.Length; i++) {
+                Assert.AreEqual(Convert.ToInt32(list2[i]), array2[i]);
+            }
+
+        }
+
 
         [TestMethod]
         public void RedisParallelTest() {

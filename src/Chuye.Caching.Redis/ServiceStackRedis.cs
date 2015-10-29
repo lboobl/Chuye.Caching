@@ -43,6 +43,8 @@ namespace Chuye.Caching.Redis {
             }
         }
 
+        //Key api
+
         public Boolean KeyExists(RedisField key) {
             using (var client = GetRedisClient()) {
                 return client.Exists(key) == 1L;
@@ -67,6 +69,8 @@ namespace Chuye.Caching.Redis {
             }
         }
 
+        //String api
+
         public RedisField StringGet(RedisField key) {
             using (var client = GetRedisClient()) {
                 return client.Get(key);
@@ -90,6 +94,8 @@ namespace Chuye.Caching.Redis {
                 return client.IncrByFloat(key, value);
             }
         }
+
+        //Hash api
 
         public Int64 HashLength(RedisField key) {
             using (var client = GetRedisClient()) {
@@ -165,6 +171,8 @@ namespace Chuye.Caching.Redis {
             }
         }
 
+        //List api
+
         public Int64 ListLength(RedisField key) {
             using (var client = GetRedisClient()) {
                 return client.LLen(key);
@@ -203,6 +211,8 @@ namespace Chuye.Caching.Redis {
             }
         }
 
+        //SortedSet api
+
         public Int64 SortedSetLength(RedisField key) {
             using (var client = GetRedisClient()) {
                 return client.ZCard(key);
@@ -219,45 +229,59 @@ namespace Chuye.Caching.Redis {
             }
         }
 
-        public RedisField[] SortedSetRangeByRank(RedisField key, Int32 startPosition = 0, Int32 stopPosition = -1) {
+        public RedisField[] SortedSetRangeByRank(RedisField key, Int64 startPosition = 0, Int64 stopPosition = -1, Order order = Order.Ascending) {
             using (var client = GetRedisClient()) {
-                return client.ZRange(key, startPosition, stopPosition)
-                    .Select(r => (RedisField)r)
-                    .ToArray();
-            }
-        }
-
-        public RedisField[] SortedSetRangeByScore(RedisField key, double startScore = double.NegativeInfinity, double stopScore = double.PositiveInfinity, Int32 skip = 0, Int32 take = -1) {
-            using (var client = GetRedisClient()) {
-                return client.ZRangeByScore(key, startScore, stopScore, skip, take)
-                    .Select(r => (RedisField)r)
-                    .ToArray();
-            }
-        }
-
-        public RedisEntry[] SortedSetRangeByRankWithScores(RedisField key, Int32 startPosition = 0, Int32 stopPosition = -1) {
-            using (var client = GetRedisClient()) {
-                var set = client.ZRangeWithScores(key, startPosition, stopPosition);
-                if (set == null) {
+                Byte[][] bytes = order == Order.Ascending
+                    ? client.ZRange(key, (int)startPosition, (int)stopPosition)
+                    : client.ZRevRange(key, (int)startPosition, (int)stopPosition);
+                if (bytes == null) {
                     return null;
                 }
-                var list = new RedisEntry[set.Length / 2];
+                return bytes.Select(r => (RedisField)r)
+                    .ToArray();
+            }
+        }
+
+        public RedisField[] SortedSetRangeByScore(RedisField key, Double startScore = Double.NegativeInfinity, Double stopScore = Double.PositiveInfinity, Int64 skip = 0, Int64 take = -1, Order order = Order.Ascending) {
+            using (var client = GetRedisClient()) {
+                Byte[][] bytes = order == Order.Ascending
+                    ? client.ZRangeByScore(key, startScore, stopScore, (int)skip, (int)take)
+                    : client.ZRevRangeByScore(key, startScore, stopScore, (int)skip, (int)take);
+                if (bytes == null) {
+                    return null;
+                }
+                return bytes.Select(r => (RedisField)r)
+                    .ToArray();
+            }
+        }
+
+        public RedisEntry[] SortedSetRangeByRankWithScores(RedisField key, Int64 startPosition = 0, Int64 stopPosition = -1, Order order = Order.Ascending) {
+            using (var client = GetRedisClient()) {
+                Byte[][] bytes = order == Order.Ascending
+                    ? client.ZRangeWithScores(key, (int)startPosition, (int)stopPosition)
+                    : client.ZRevRangeWithScores(key, (int)startPosition, (int)stopPosition);
+                if (bytes == null) {
+                    return null;
+                }
+                var list = new RedisEntry[bytes.Length / 2];
                 for (int i = 0; i < list.Length; i++) {
-                    list[i] = new RedisEntry(set[2 * i], set[2 * i + 1]);
+                    list[i] = new RedisEntry(bytes[2 * i], bytes[2 * i + 1]);
                 }
                 return list;
             }
         }
 
-        public RedisEntry[] SortedSetRangeByScoreWithScores(RedisField key, Double startScore = Double.NegativeInfinity, Double stopScore = double.PositiveInfinity, Int32 skip = 0, Int32 take = -1) {
+        public RedisEntry[] SortedSetRangeByScoreWithScores(RedisField key, Double startScore = Double.NegativeInfinity, Double stopScore = Double.PositiveInfinity, Int64 skip = 0, Int64 take = -1, Order order = Order.Ascending) {
             using (var client = GetRedisClient()) {
-                var set = client.ZRangeByScoreWithScores(key, startScore, stopScore, skip, take);
-                if (set == null) {
+                Byte[][] bytes = order == Order.Ascending
+                    ? client.ZRangeByScoreWithScores(key, startScore, stopScore, (int)skip, (int)take)
+                    : client.ZRevRangeByScoreWithScores(key, startScore, stopScore, (int)skip, (int)take);
+                if (bytes == null) {
                     return null;
                 }
-                var list = new RedisEntry[set.Length / 2];
+                var list = new RedisEntry[bytes.Length / 2];
                 for (int i = 0; i < list.Length; i++) {
-                    list[i] = new RedisEntry(set[2 * i], set[2 * i + 1]);
+                    list[i] = new RedisEntry(bytes[2 * i], bytes[2 * i + 1]);
                 }
                 return list;
             }
@@ -273,7 +297,7 @@ namespace Chuye.Caching.Redis {
             }
         }
 
-        public long SortedSetAdd(RedisField key, RedisField value, double score) {
+        public Int64 SortedSetAdd(RedisField key, RedisField value, Double score) {
             using (var client = GetRedisClient()) {
                 return client.ZAdd(key, score, value);
             }
@@ -285,13 +309,13 @@ namespace Chuye.Caching.Redis {
             }
         }
 
-        public long SortedSetRemoveRangeByRank(RedisField key, Int32 startPosition, Int32 stopPosition) {
+        public Int64 SortedSetRemoveRangeByRank(RedisField key, Int64 startPosition, Int64 stopPosition) {
             using (var client = GetRedisClient()) {
-                return client.ZRemRangeByRank(key, startPosition, stopPosition);
+                return client.ZRemRangeByRank(key, (int)startPosition, (int)stopPosition);
             }
         }
 
-        public long SortedSetRemoveRangeByScore(RedisField key, double startScore, double stopScore) {
+        public Int64 SortedSetRemoveRangeByScore(RedisField key, Double startScore, Double stopScore) {
             using (var client = GetRedisClient()) {
                 return client.ZRemRangeByScore(key, startScore, stopScore);
             }
