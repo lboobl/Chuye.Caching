@@ -1,4 +1,4 @@
-using NHibernate;
+﻿using NHibernate;
 using NHibernate.Linq;
 using System;
 using System.Collections.Generic;
@@ -102,14 +102,6 @@ namespace Chuye.Persistent.NH {
                         Debug.WriteLine("(NH:Transaction dispose)");
                         _session.Transaction.Dispose();
                     }
-                }
-            }
-        }
-
-        public void Evict(params Object[] entries) {
-            if (_session != null) {
-                foreach (var entry in entries) {
-                    _session.Evict(entry);
                 }
             }
         }

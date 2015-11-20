@@ -1,4 +1,4 @@
-using MongoDB.Driver;
+ï»¿using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +39,7 @@ namespace Chuye.Persistent.Mongo {
         }
 
         public MongoRepositoryContext(String connectionString, String databaseName) {
-            //mongodb://ÓÃ»§Ãû:ÃÜÂë@ip:¶Ë¿Ú/Á¬½ÓµÄÄ¬ÈÏÊý¾Ý¿â
+            //mongodb://ï¿½Ã»ï¿½ï¿½ï¿½:ï¿½ï¿½ï¿½ï¿½@ip:ï¿½Ë¿ï¿½/ï¿½ï¿½ï¿½Óµï¿½Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½
             var match = Regex.Match(connectionString, ConnectionStringPattern);
             if (!match.Success) {
                 throw new ArgumentOutOfRangeException("connectionString");

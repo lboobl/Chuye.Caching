@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +13,10 @@ using FluentNHibernate.Cfg.Db;
 namespace Chuye.Persistent.Demo {
     class PubsContext : NHibernateRepositoryContext {
         private static readonly ISessionFactory _dbFactory;
+
+        public static ISessionFactory DbFactory {
+            get { return _dbFactory; }
+        }
 
         static PubsContext() {
             _dbFactory = BuildSessionFactory();

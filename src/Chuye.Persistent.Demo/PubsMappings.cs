@@ -1,4 +1,4 @@
-using FluentNHibernate.Mapping;
+﻿using FluentNHibernate.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace Chuye.Persistent.Demo {
             Map(x => x.Name).Not.Nullable().Length(255);
             Map(x => x.Birth).Not.Nullable();
             Map(x => x.Address).Nullable();
-            References(x => x.Job).Column("JobId");
+            References(x => x.Job).Column("JobId").NotFound.Ignore();
             //HasOne(x => x.Job).ForeignKey("JobId");
         }
     }

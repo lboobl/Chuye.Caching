@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +9,12 @@ namespace Chuye.Persistent.Demo {
     [PetaPoco.TableName("job")]
     public class Job : IAggregate
     {
+        [PetaPoco.Ignore]
+        public virtual Guid Guid { get; set; }
+        public Job() {
+            Guid = Guid.NewGuid();
+        }
+
         public virtual Int32                      Id                        { get; set; }  //pk, identity, int not null
         public virtual String                     Title                     { get; set; }  //varchar(50) not null
         public virtual Decimal                    Salary                    { get; set; }  //decimal(12,2) not null
