@@ -97,5 +97,9 @@ namespace Chuye.Persistent {
         public override IQueryable<TEntry> All {
             get { return _all.AsQueryable(); }
         }
+
+        public override TReutrn Fetch<TReutrn>(Func<IQueryable<TEntry>, TReutrn> query) {
+            return query(_all.AsQueryable());
+        }
     }
 }

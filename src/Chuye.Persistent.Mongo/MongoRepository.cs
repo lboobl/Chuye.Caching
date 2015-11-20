@@ -34,12 +34,15 @@ namespace Chuye.Persistent.Mongo {
             }
         }
 
+        public override TReutrn Fetch<TReutrn>(Func<IQueryable<TEntry>, TReutrn> query) {
+            var docs = _context.Database.GetCollection<TEntry>();
+            return query(docs.AsQueryable());
+        }
+
         public override TEntry Retrive(int id) {
             var docs = _context.Database.GetCollection<TEntry>();
             return docs.FindOneById(id);
         }
-
-        
 
         public override IEnumerable<TEntry> Retrive(params Int32[] keys) {
             return Retrive<Int32>("_id", keys);

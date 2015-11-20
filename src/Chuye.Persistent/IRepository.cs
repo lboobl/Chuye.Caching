@@ -16,6 +16,7 @@ namespace Chuye.Persistent {
         void Delete(IEnumerable<TEntry> entries);
 
         IQueryable<TResult> All { get; }
+        TReutrn Fetch<TReutrn>(Func<IQueryable<TResult>, TReutrn> query);
         TResult Retrive(Int32 id);
         IEnumerable<TResult> Retrive(params Int32[] keys);
         IEnumerable<TResult> Retrive<TKey>(String field, params TKey[] keys);

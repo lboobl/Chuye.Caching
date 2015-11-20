@@ -19,9 +19,9 @@ namespace Chuye.Persistent.Demo {
             //Null_could_evict();
             //Dupliate_entity_update_need_evict();
             //Dupliate_entity_mock_web_cache();
-            //Dupliate_entity_use_trans();
+            Dupliate_entity_use_trans();
             //MongoBasicCrud();
-            Mongo_Sort_Limit();
+            //Mongo_Sort_Limit();
         }
 
         private static void Dupliate_entity_use_trans() {
@@ -167,7 +167,7 @@ namespace Chuye.Persistent.Demo {
                     Debug.Fail("Should failed for NHibernate.NonUniqueObjectException");
                 }
                 catch (NHibernate.NonUniqueObjectException ex) {
-                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("Got NHibernate.NonUniqueObjectException with Entity {0}", ex.EntityName);
                     Console.ResetColor();
                 }
@@ -179,7 +179,7 @@ namespace Chuye.Persistent.Demo {
                     Debug.Fail("Should failed for NHibernate.NonUniqueObjectException");
                 }
                 catch (NHibernate.NonUniqueObjectException ex) {
-                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("Got NHibernate.NonUniqueObjectException with Entity {0}", ex.EntityName);
                     Console.ResetColor();
                 }
@@ -240,7 +240,7 @@ namespace Chuye.Persistent.Demo {
                 Debug.Fail("Should failed for NHibernate.NonUniqueObjectException");
             }
             catch (NHibernate.NonUniqueObjectException ex) {
-                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Got NHibernate.NonUniqueObjectException with Entity {0}", ex.EntityName);
                 Console.ResetColor();
             }
@@ -304,7 +304,8 @@ namespace Chuye.Persistent.Demo {
             }
 
             Console.WriteLine("Query all employee");
-            foreach (var entry in employeeRepo.All.Where(r => r.Job.Salary > 3000)) {
+            var list = employeeRepo.Fetch(q => q.Where(r => r.Job.Salary > 3000).AsEnumerable());
+            foreach (var entry in list) {
                 Console.WriteLine("{0,-10} {1}", entry.Name, entry.Job.Salary);
             }
             Console.WriteLine();
@@ -327,7 +328,7 @@ namespace Chuye.Persistent.Demo {
                 jobRepo.Create(job);
             }
 
-            var jobs = jobRepo.All.ToList();
+            var jobs = jobRepo.Fetch(q => q.ToList());
             var employeeRepo = new NHibernateRepository<Employee>(context);
             Console.WriteLine("Remove all employee");
             context.EnsureSession().CreateSQLQuery("delete from Employee").ExecuteUpdate();
@@ -346,7 +347,8 @@ namespace Chuye.Persistent.Demo {
             }
 
             Console.WriteLine("Query all employee");
-            foreach (var entry in employeeRepo.All.Where(r => r.Job.Salary > 3000)) {
+            var list = employeeRepo.Fetch(q => q.Where(r => r.Job.Salary > 3000));
+            foreach (var entry in list) {
                 Console.WriteLine("{0,-10} {1}", entry.Name, entry.Job.Salary);
             }
             Console.WriteLine();
@@ -360,7 +362,7 @@ namespace Chuye.Persistent.Demo {
             var context = new MongoRepositoryContext(conStr);
             var employeeRepo = new MongoRepository<Employee>(context);
 
-            var arr = employeeRepo.All.Where(r => r.Id > 2).Take(2).ToArray();
+            var arr = employeeRepo.Fetch(all => all.Where(r => r.Id > 2).Take(2));
             var arr2 = context.Database.GetCollection("Employee").Find(Query.GT("_id", 3)).SetLimit(2).ToArray();
         }
     }

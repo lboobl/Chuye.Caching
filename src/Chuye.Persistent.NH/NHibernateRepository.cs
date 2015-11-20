@@ -32,6 +32,10 @@ namespace Chuye.Persistent.NH {
             }
         }
 
+        public override TReutrn Fetch<TReutrn>(Func<IQueryable<TEntry>, TReutrn> query) {
+            return SafeProceed(() => query(_context.Of<TEntry>()));
+        }
+
         private void SafeProceed(Action action) {
             try {
                 action();

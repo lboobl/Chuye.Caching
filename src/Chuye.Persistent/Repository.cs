@@ -17,6 +17,7 @@ namespace Chuye.Persistent {
         }
 
         public abstract IQueryable<TEntry> All { get; }
+        public abstract TReutrn Fetch<TReutrn>(Func<IQueryable<TEntry>, TReutrn> query);
         public abstract Boolean Any(params Expression<Func<TEntry, Boolean>>[] predicates);
         public abstract TEntry Retrive(Int32 id);
         public abstract IEnumerable<TEntry> Retrive(params Int32[] keys);
