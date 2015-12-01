@@ -1,7 +1,7 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Chuye.Caching.Redis;
 using System.Threading;
+using Chuye.Caching.Redis;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Chuye.Caching.Tests {
     [TestClass]
@@ -10,7 +10,7 @@ namespace Chuye.Caching.Tests {
         public void GetOrCreateTest() {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
-
+            
             IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(new ServiceStackRedis());
             var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
             Assert.AreEqual(result, val);

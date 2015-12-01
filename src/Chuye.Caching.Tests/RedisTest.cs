@@ -183,7 +183,7 @@ namespace Chuye.Caching.Tests {
         }
 
         [TestMethod]
-        public void SortSertTest() {
+        public void SortedSetRange() {
             var cacheKey = Guid.NewGuid().ToString();
             IRedis redis = new ServiceStackRedis();
 
@@ -224,7 +224,7 @@ namespace Chuye.Caching.Tests {
         }
 
         [TestMethod]
-        public void SortSertOrderTest() {
+        public void SortedSet_Ordered() {
             var cacheKey = Guid.NewGuid().ToString();
             IRedis redis = new ServiceStackRedis();
 
@@ -238,7 +238,7 @@ namespace Chuye.Caching.Tests {
             var array1 = list.ToArray();
             Array.Sort(array1);
             for (int i = 0; i < list1.Length; i++) {
-                Assert.AreEqual(Convert.ToInt32( list1[i]), array1[i]);
+                Assert.AreEqual(Convert.ToInt32(list1[i]), array1[i]);
             }
 
             var list2 = redis.SortedSetRangeByRank(cacheKey, order: Order.Descending);
@@ -253,7 +253,7 @@ namespace Chuye.Caching.Tests {
 
 
         [TestMethod]
-        public void RedisParallelTest() {
+        public void StringIncrement() {
             //StackExchange.Redis.IDatabase d;
             var key = "RedisParallelTest";
             var redis = new ServiceStackRedis();
@@ -350,6 +350,28 @@ namespace Chuye.Caching.Tests {
             redis.KeyDelete(key);
             var actions = Enumerable.Repeat(1, 100).Select(i => new Action(() => redis.StringIncrement(key))).ToArray();
             Parallel.Invoke(actions);
+        }
+
+        [TestMethod]
+        public void HashIncrement() {
+            var redis = new ServiceStackRedis();
+            var key = "RedisParallelTest5";
+            var field = "HashIncrement";
+            var repeat = 10000;
+            redis.KeyDelete(key);
+            Int64 last = 0;
+            for (int i = 0; i < repeat; i++) {
+                last = redis.HashIncrement(key, field, 1);
+            }
+            Assert.AreEqual(last, repeat);
+
+            last = Int64.Parse((String)redis.HashGet(key, field));
+            Assert.AreEqual(last, repeat);
+
+            redis.KeyDelete(key);
+            Parallel.For(0, repeat, x => last = redis.HashIncrement(key, "HashIncrement", 1));
+            last = Int64.Parse((String)redis.HashGet(key, field));
+            Assert.AreEqual(last, repeat);
         }
     }
 }
