@@ -7,7 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Chuye.Caching.Redis {
-    public interface IRedis {
+    
+    public interface IRedis : IDistributedLock {
         //Key
         Boolean KeyExists(RedisField key);
         Boolean KeyDelete(RedisField key);

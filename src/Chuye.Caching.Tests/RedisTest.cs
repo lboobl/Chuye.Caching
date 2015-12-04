@@ -373,5 +373,36 @@ namespace Chuye.Caching.Tests {
             last = Int64.Parse((String)redis.HashGet(key, field));
             Assert.AreEqual(last, repeat);
         }
+
+        [TestMethod]
+        public void DistributedLock() {
+            var redis = new ServiceStackRedis();
+            var key = "DistributedLock1";
+            {
+                
+                var total = 0;
+                var except = new Random().Next(1000, 2000);
+                Parallel.For(0, except, i => {
+                    using (redis.Lock(key)) {
+                        total++;
+                    }
+                });
+                Assert.AreEqual(total, except);
+            }
+
+            {
+                var total = 0;
+                var except = new Random().Next(1000, 2000);
+                Parallel.For(0, except, i => {
+                    redis.Lock(key);
+                    total++;
+                    redis.UnLock(key);
+                });
+                Assert.AreEqual(total, except);
+            }
+
+
+            
+        }
     }
 }
