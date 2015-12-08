@@ -399,10 +399,7 @@ namespace Chuye.Caching.Tests {
                     redis.UnLock(key);
                 });
                 Assert.AreEqual(list.Count, except);
-            }
-
-
-            
+            }            
         }
     }
 }

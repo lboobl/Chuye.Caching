@@ -3,6 +3,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Chuye.Caching;
 using Chuye.Caching.Memcached;
 using System.Threading;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Chuye.Caching.Tests {
     [TestClass]
@@ -129,6 +131,34 @@ namespace Chuye.Caching.Tests {
             exist = cacheProvider.TryGet<Guid>(key, out val2);
             Assert.IsFalse(exist);
             Assert.AreEqual(val2, Guid.Empty);
+        }
+
+        [TestMethod]
+        public void DistributedLock() {
+            IDistributedLock memcached = new MemcachedCacheProvider();
+            var key = "DistributedLock1";
+            {
+
+                var list = new List<int>();
+                var except = new Random().Next(1000, 2000);
+                Parallel.For(0, except, i => {
+                    using (memcached.Lock(key)) {
+                        list.Add(i);
+                    }
+                });
+                Assert.AreEqual(list.Count, except);
+            }
+
+            {
+                var list = new List<int>();
+                var except = new Random().Next(1000, 2000);
+                Parallel.For(0, except, i => {
+                    memcached.Lock(key);
+                    list.Add(i);
+                    memcached.UnLock(key);
+                });
+                Assert.AreEqual(list.Count, except);
+            }
         }
     }
 
