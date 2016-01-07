@@ -51,7 +51,7 @@ namespace Chuye.Caching.Redis {
         RedisEntry[] SortedSetRangeByScoreWithScores(RedisField key, Double startScore = Double.NegativeInfinity, Double stopScore = Double.PositiveInfinity, Int64 skip = 0, Int64 take = -1, Order order = Order.Ascending);
         Int64? SortedSetRank(RedisField key, RedisField member);
         Int64 SortedSetAdd(RedisField key, RedisField value, Double score);
-        Boolean SortedSetRemove(RedisField key, RedisField member);
+        Int64 SortedSetRemove(RedisField key, RedisField member);
         Int64 SortedSetRemoveRangeByRank(RedisField key, Int64 startPosition, Int64 stopPosition);
         Int64 SortedSetRemoveRangeByScore(RedisField key, Double startScore, Double stopScore);
         Double SortedSetIncrement(RedisField key, RedisField member, Double value);

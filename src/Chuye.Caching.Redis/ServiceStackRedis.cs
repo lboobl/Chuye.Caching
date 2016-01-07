@@ -331,9 +331,9 @@ namespace Chuye.Caching.Redis {
             }
         }
 
-        public bool SortedSetRemove(RedisField key, RedisField member) {
+        public Int64 SortedSetRemove(RedisField key, RedisField member) {
             using (var client = GetRedisClient()) {
-                return client.ZRem(key, member) == 1;
+                return client.ZRem(key, member);
             }
         }
 

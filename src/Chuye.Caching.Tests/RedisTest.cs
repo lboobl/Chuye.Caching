@@ -213,7 +213,7 @@ namespace Chuye.Caching.Tests {
                 var value = list[index];
                 list.RemoveAt(index);
                 var removed = redis.SortedSetRemove(cacheKey, value.ToString());
-                Assert.IsTrue(removed);
+                Assert.IsTrue(removed > 0);
                 var len = redis.SortedSetLength(cacheKey);
                 Assert.AreEqual(len, list.Count);
             }
@@ -238,7 +238,7 @@ namespace Chuye.Caching.Tests {
             var array1 = list.ToArray();
             Array.Sort(array1);
             for (int i = 0; i < list1.Length; i++) {
-                Assert.AreEqual(Convert.ToInt32(list1[i]), array1[i]);
+                Assert.AreEqual((Int32) list1[i], array1[i]);
             }
 
             var list2 = redis.SortedSetRangeByRank(cacheKey, order: Order.Descending);
@@ -246,7 +246,7 @@ namespace Chuye.Caching.Tests {
 
             var array2 = array1.Reverse().ToArray();
             for (int i = 0; i < list2.Length; i++) {
-                Assert.AreEqual(Convert.ToInt32(list2[i]), array2[i]);
+                Assert.AreEqual((Int32)list2[i], array2[i]);
             }
 
         }
