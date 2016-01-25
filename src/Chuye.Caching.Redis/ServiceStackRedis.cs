@@ -213,6 +213,14 @@ namespace Chuye.Caching.Redis {
             }
         }
 
+        public Int64 ListLeftPush(RedisField key, IList<RedisField> values) {
+            using (var client = (IRedisClient) GetRedisClient()) {
+                client.AddRangeToList((String)key, 
+                    values.Reverse().Select(x => (String)x).ToList());
+            }
+            return 1; //因 ServiceStack.Redis 未返回数值
+        }
+
         public RedisField ListLeftPop(RedisField key) {
             using (var client = GetRedisClient()) {
                 return client.LPop(key);
@@ -231,6 +239,14 @@ namespace Chuye.Caching.Redis {
             using (var client = GetRedisClient()) {
                 return client.RPush(key, value);
             }
+        }
+
+        public Int64 ListRightPush(RedisField key, IList<RedisField> values) {
+            using (var client = (IRedisClient)GetRedisClient()) {
+                client.AddRangeToList((String)key,
+                    values.Select(x => (String)x).ToList());
+            }
+            return 1; //因 ServiceStack.Redis 未返回数值
         }
 
         public RedisField ListRightPop(RedisField key) {

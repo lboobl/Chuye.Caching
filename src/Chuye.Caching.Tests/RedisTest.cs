@@ -137,6 +137,45 @@ namespace Chuye.Caching.Tests {
         }
 
         [TestMethod]
+        public void ListMultiTest() {
+            var cacheKey = Guid.NewGuid().ToString();
+            IRedis redis = new ServiceStackRedis();
+            var linkList = new List<String>();
+            var listLength = Math.Abs(Guid.NewGuid().GetHashCode() % 5) + 5;
+
+            redis.KeyDelete(cacheKey);
+            linkList = Enumerable.Repeat(0, listLength)
+                .Select(x => Guid.NewGuid().ToString())
+                .ToList();
+
+            {
+                redis.ListRightPush(cacheKey, linkList.Select(x => (RedisField)x).ToArray());
+                Assert.AreEqual(linkList.Count, redis.ListLength(cacheKey));
+
+                for (int i = 0; i < listLength; i++) {
+                    var cacheItem = redis.ListLeftPop(cacheKey);
+                    Assert.AreEqual(linkList[i], (String)cacheItem);
+                }
+
+                var cacheEists = redis.KeyExists(cacheKey);
+                Assert.IsFalse(cacheEists);
+            }
+
+            {
+                redis.ListLeftPush(cacheKey, linkList.Select(x => (RedisField)x).ToArray());
+                Assert.AreEqual(linkList.Count, redis.ListLength(cacheKey));
+
+                for (int i = 0; i < listLength; i++) {
+                    var cacheItem = redis.ListRightPop(cacheKey);
+                    Assert.AreEqual(linkList[i], (String)cacheItem);
+                }
+
+                var cacheEists = redis.KeyExists(cacheKey);
+                Assert.IsFalse(cacheEists);
+            }
+        }
+
+        [TestMethod]
         public void HashTest() {
             var cacheKey = Guid.NewGuid().ToString();
             IRedis redis = new ServiceStackRedis();
@@ -238,7 +277,7 @@ namespace Chuye.Caching.Tests {
             var array1 = list.ToArray();
             Array.Sort(array1);
             for (int i = 0; i < list1.Length; i++) {
-                Assert.AreEqual((Int32) list1[i], array1[i]);
+                Assert.AreEqual((Int32)list1[i], array1[i]);
             }
 
             var list2 = redis.SortedSetRangeByRank(cacheKey, order: Order.Descending);
@@ -379,7 +418,7 @@ namespace Chuye.Caching.Tests {
             var redis = new ServiceStackRedis();
             var key = "DistributedLock1";
             {
-                
+
                 var list = new List<int>();
                 var except = new Random().Next(1000, 2000);
                 var stopwatch = Stopwatch.StartNew();
@@ -413,7 +452,7 @@ namespace Chuye.Caching.Tests {
                     except, stopwatch.Elapsed.TotalSeconds, except / stopwatch.Elapsed.TotalSeconds);
 
                 Assert.AreEqual(list.Count, except);
-            }            
+            }
         }
     }
 }

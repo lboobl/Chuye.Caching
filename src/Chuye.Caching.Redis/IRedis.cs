@@ -38,8 +38,10 @@ namespace Chuye.Caching.Redis {
         Int64 ListLength(RedisField key);
         RedisField[] ListRange(RedisField key, Int32 startingFrom, Int32 endingAt);
         Int64 ListLeftPush(RedisField key, RedisField value);
+        Int64 ListLeftPush(RedisField key, IList<RedisField> values);
         RedisField ListLeftPop(RedisField key);
         Int64 ListRightPush(RedisField key, RedisField value);
+        Int64 ListRightPush(RedisField key, IList<RedisField> values);
         RedisField ListRightPop(RedisField key);
 
         //ZSet
