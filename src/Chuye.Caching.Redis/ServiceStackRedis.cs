@@ -97,6 +97,10 @@ namespace Chuye.Caching.Redis {
             return Excute(c => c.RandomKey());
         }
 
+        public Boolean KeyRename(RedisField key, RedisField newKey) {
+            return Excute(c => c.RenameNx(key, newKey));
+        }
+
         //String api
 
         public RedisField StringGet(RedisField key) {
@@ -214,8 +218,8 @@ namespace Chuye.Caching.Redis {
         }
 
         public Int64 ListLeftPush(RedisField key, IList<RedisField> values) {
-            using (var client = (IRedisClient) GetRedisClient()) {
-                client.AddRangeToList((String)key, 
+            using (var client = (IRedisClient)GetRedisClient()) {
+                client.AddRangeToList((String)key,
                     values.Reverse().Select(x => (String)x).ToList());
             }
             return 1; //因 ServiceStack.Redis 未返回数值

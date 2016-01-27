@@ -15,6 +15,7 @@ namespace Chuye.Caching.Redis {
         Boolean KeyExpire(RedisField key, TimeSpan expiry);
         Boolean KeyExpire(RedisField key, DateTime expiry);
         RedisField KeyRandom();
+        Boolean KeyRename(RedisField key, RedisField newKey);
 
         //String
         RedisField StringGet(RedisField key);

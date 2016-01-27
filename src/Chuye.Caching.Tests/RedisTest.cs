@@ -63,6 +63,33 @@ namespace Chuye.Caching.Tests {
         }
 
         [TestMethod]
+        public void KeyRename() {
+            IRedis redis = new ServiceStackRedis();
+            var key = Guid.NewGuid().ToString();
+            var value = Guid.NewGuid().ToString();
+
+            redis.StringSet(key, value);
+            Assert.IsTrue(redis.KeyExists(key));
+
+            var key2= Guid.NewGuid().ToString();
+            var renamed1 = redis.KeyRename(key, key2);
+            Assert.IsTrue(renamed1);
+
+            Assert.IsFalse(redis.KeyExists(key));
+            Assert.IsTrue(redis.KeyExists(key2));
+
+            redis.KeyDelete(key2);
+            try {
+                var renamed12 = redis.KeyRename(key, key2);
+                Assert.Fail();
+
+            }
+            catch(Exception ex) {
+                Assert.IsTrue(ex is RedisException);
+            }
+        }
+
+        [TestMethod]
         public void StringTest() {
             var cacheKey = Guid.NewGuid().ToString();
             IRedis redis = new ServiceStackRedis();
