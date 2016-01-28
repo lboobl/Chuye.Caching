@@ -11,7 +11,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
             
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(new ServiceStackRedis());
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(ServiceStackRedis.Default);
             var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
             Assert.AreEqual(result, val);
 
@@ -35,7 +35,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(new ServiceStackRedis());
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(ServiceStackRedis.Default);
             var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
             Assert.AreEqual(result, val);
 
@@ -53,7 +53,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(new ServiceStackRedis());
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(ServiceStackRedis.Default);
 
             //DateTime.Now
             Guid result;
@@ -76,7 +76,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(new ServiceStackRedis());
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(ServiceStackRedis.Default);
             var t1 = DateTime.Now.AddSeconds(8D);
             var t2 = DateTime.UtcNow.AddSeconds(8D);
             Assert.AreEqual(t1.ToTimestamp(), t2.ToTimestamp());
@@ -116,7 +116,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IRedis redis = new ServiceStackRedis();
+            IRedis redis = ServiceStackRedis.Default;
             IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(redis);
 
             {

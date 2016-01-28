@@ -64,7 +64,7 @@ namespace Chuye.Caching.Tests {
 
         [TestMethod]
         public void KeyRename() {
-            IRedis redis = new ServiceStackRedis();
+            IRedis redis = ServiceStackRedis.Default;
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid().ToString();
 
@@ -92,7 +92,7 @@ namespace Chuye.Caching.Tests {
         [TestMethod]
         public void StringTest() {
             var cacheKey = Guid.NewGuid().ToString();
-            IRedis redis = new ServiceStackRedis();
+            IRedis redis = ServiceStackRedis.Default;
 
             //StringGet
             var cacheField = redis.StringGet(cacheKey);
@@ -115,7 +115,7 @@ namespace Chuye.Caching.Tests {
         [TestMethod]
         public void ListTest() {
             var cacheKey = Guid.NewGuid().ToString();
-            IRedis redis = new ServiceStackRedis();
+            IRedis redis = ServiceStackRedis.Default;
             var linkList = new LinkedList<String>();
             const Int32 listLength = 4;
 
@@ -166,7 +166,7 @@ namespace Chuye.Caching.Tests {
         [TestMethod]
         public void ListMultiTest() {
             var cacheKey = Guid.NewGuid().ToString();
-            IRedis redis = new ServiceStackRedis();
+            IRedis redis = ServiceStackRedis.Default;
             var linkList = new List<String>();
             var listLength = Math.Abs(Guid.NewGuid().GetHashCode() % 5) + 5;
 
@@ -205,7 +205,7 @@ namespace Chuye.Caching.Tests {
         [TestMethod]
         public void HashTest() {
             var cacheKey = Guid.NewGuid().ToString();
-            IRedis redis = new ServiceStackRedis();
+            IRedis redis = ServiceStackRedis.Default;
 
             var count = 10;
             var names = new String[count].ToList();
@@ -251,7 +251,7 @@ namespace Chuye.Caching.Tests {
         [TestMethod]
         public void SortedSetRange() {
             var cacheKey = Guid.NewGuid().ToString();
-            IRedis redis = new ServiceStackRedis();
+            IRedis redis = ServiceStackRedis.Default;
 
             var random = new Random();
             var list = Enumerable.Repeat(0, 20).Select(r => random.Next(100)).Distinct().ToList();
@@ -292,7 +292,7 @@ namespace Chuye.Caching.Tests {
         [TestMethod]
         public void SortedSet_Ordered() {
             var cacheKey = Guid.NewGuid().ToString();
-            IRedis redis = new ServiceStackRedis();
+            IRedis redis = ServiceStackRedis.Default;
 
             var random = new Random();
             var list = Enumerable.Repeat(0, 4).Select(r => random.Next(100)).ToList();
@@ -322,7 +322,7 @@ namespace Chuye.Caching.Tests {
         public void StringIncrement() {
             //StackExchange.Redis.IDatabase d;
             var key = "RedisParallelTest";
-            var redis = new ServiceStackRedis();
+            var redis = ServiceStackRedis.Default;
             redis.KeyDelete(key);
 
             Action action = () => Console.WriteLine(redis.StringIncrement(key));
@@ -401,7 +401,7 @@ namespace Chuye.Caching.Tests {
 
         [TestMethod]
         public void HMGet() {
-            var redis = new ServiceStackRedis();
+            var redis = ServiceStackRedis.Default;
             var key = "/Work/0/100";
             redis.HashSet(key, "Read", "2");
             redis.HashSet(key, "Share", "3");
@@ -411,7 +411,7 @@ namespace Chuye.Caching.Tests {
 
         [TestMethod]
         public void RedisNativeClientTest4() {
-            var redis = new ServiceStackRedis();
+            var redis = ServiceStackRedis.Default;
             var key = "RedisParallelTest4";
             redis.KeyDelete(key);
             var actions = Enumerable.Repeat(1, 100).Select(i => new Action(() => redis.StringIncrement(key))).ToArray();
@@ -420,7 +420,7 @@ namespace Chuye.Caching.Tests {
 
         [TestMethod]
         public void HashIncrement() {
-            var redis = new ServiceStackRedis();
+            var redis = ServiceStackRedis.Default;
             var key = "RedisParallelTest5";
             var field = "HashIncrement";
             var repeat = 10000;
@@ -442,7 +442,7 @@ namespace Chuye.Caching.Tests {
 
         [TestMethod]
         public void DistributedLock() {
-            var redis = new ServiceStackRedis();
+            var redis = ServiceStackRedis.Default;
             var key = "DistributedLock1";
             {
 
@@ -451,7 +451,7 @@ namespace Chuye.Caching.Tests {
                 var stopwatch = Stopwatch.StartNew();
 
                 Parallel.For(0, except, i => {
-                    using (redis.Lock(key)) {
+                    using (redis.ReleasableLock(key)) {
                         list.Add(i);
                     }
                 });
@@ -469,7 +469,7 @@ namespace Chuye.Caching.Tests {
                 var stopwatch = Stopwatch.StartNew();
 
                 Parallel.For(0, except, i => {
-                    redis.Lock(key);
+                    redis.Lock(key, DistributedLockTime.IntervalMillisecond);
                     list.Add(i);
                     redis.UnLock(key);
                 });

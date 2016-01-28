@@ -1,38 +1,41 @@
-﻿using ServiceStack.Redis;
-using ServiceStack.Text;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
+using ServiceStack.Redis;
+using ServiceStack.Text;
 
 namespace Chuye.Caching.Redis {
+
     public class ServiceStackRedis : IDistributedLock, IRedis, IDisposable {
-        private static IRedisClientsManager _redisFactory;
-        private static Byte[] _mutexBytes;
-
-        public const Int32 DistributedSleepTime = 5;
-        public const Int32 DistributedMaxTime = 60000;
-
-        static ServiceStackRedis() {
+        private static ServiceStackRedis _default;
+        private IRedisClientsManager _redisFactory;
+        private readonly Byte[] _mutexBytes;
+        
+        private ServiceStackRedis() {
             _mutexBytes = Encoding.UTF8.GetBytes("Lock");
-            Initialize();
         }
 
-        private static void Initialize() {
-            var connectionString = ConfigurationManager.AppSettings.Get("cache:redis");
-            if (!String.IsNullOrWhiteSpace(connectionString)) {
-                Initialize(connectionString);
+        public static IRedis Default {
+            get {
+                if (_default == null) {
+                    var connectionString = ConfigurationManager.AppSettings.Get("cache:redis");
+                    if (String.IsNullOrWhiteSpace(connectionString)) {
+                        throw new ArgumentOutOfRangeException("cache:redis", "Configuration \"cache:redis\" missing");
+                    }
+                    _default = new ServiceStackRedis(connectionString);
+                }
+                return _default;
             }
         }
 
-        public static void Initialize(params String[] hosts) {
-            if (_redisFactory != null) {
-                _redisFactory.Dispose();
+        public ServiceStackRedis(String connectionString) {
+            if (String.IsNullOrWhiteSpace(connectionString)) {
+                throw new ArgumentOutOfRangeException("connectionString");
             }
-            _redisFactory = new PooledRedisClientManager(hosts) { ConnectTimeout = 100 };
+            _redisFactory = new PooledRedisClientManager(connectionString) { ConnectTimeout = 100 };
         }
 
         //注意，用完需要dispose
@@ -375,18 +378,25 @@ namespace Chuye.Caching.Redis {
             }
         }
 
-        public void Lock(String key, Int32 timeoutSecond) {
-            while (!TryLock(key, timeoutSecond)) {
-                Thread.Sleep(DistributedSleepTime);
+        public IDisposable ReleasableLock(String key, Int32 expire = DistributedLockTime.DisposeMillisecond) {
+            while (!TryLock(key, expire)) {
+                Thread.Sleep(DistributedLockTime.IntervalMillisecond);
+            }
+            return new RedisLockReleaser(this, key);
+        }
+
+        public void Lock(String key, Int32 expire) { 
+            while (!TryLock(key, expire)) {
+                Thread.Sleep(DistributedLockTime.IntervalMillisecond);
             }
         }
 
-        public Boolean TryLock(String key, Int32 timeoutSecond) {
+        public Boolean TryLock(String key, Int32 expire) {
             if (Excute(x => x.SetNX(key, _mutexBytes) == 0L)) {
                 return false;
             }
-            if (timeoutSecond > 0) {
-                KeyExpire(key, TimeSpan.FromMilliseconds(timeoutSecond));
+            if (expire > 0) {
+                KeyExpire(key, TimeSpan.FromMilliseconds(expire));
             }
             return true;
         }
@@ -395,17 +405,9 @@ namespace Chuye.Caching.Redis {
             KeyDelete(key);
         }
 
-        public IDisposable Lock(String key) {
-            while (!TryLock(key, DistributedMaxTime)) {
-                Thread.Sleep(DistributedSleepTime);
-            }
-            return new RedisLockReleaser(this, key);
-        }
-
         private struct RedisLockReleaser : IDisposable {
             private IRedis _redis;
             private String _key;
-
 
             public RedisLockReleaser(IRedis redis, String key) {
                 _redis = redis;
