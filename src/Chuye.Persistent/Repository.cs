@@ -6,7 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Chuye.Persistent {
-    public abstract class Repository<TEntry> : IRepository<TEntry, TEntry> where TEntry : class, IAggregate {
+
+    public abstract class Repository<TEntry> : IRepository<TEntry, TEntry> where TEntry : class, IEntry {
         private IRepositoryContext _context;
         public IRepositoryContext Context {
             get { return _context; }

@@ -1,13 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
-using MongoDB.Driver.Builders;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Chuye.Persistent.Mongo {
     public class MongoAutoincrementGenerator {
@@ -23,15 +17,20 @@ namespace Chuye.Persistent.Mongo {
 
         public Int32 GetNewId(String entryName) {
             var collection = _context.Database.GetCollection<NewId>("_NewId");
-            var famArgs = new FindAndModifyArgs {
-                Query = Query<NewId>.EQ(r => r.Entry, entryName),
-                SortBy = SortBy<NewId>.Descending(r => r.Id),
-                Update = Update<NewId>.Inc(r => r.Last, 1),
-                Upsert = true,
-                VersionReturned = FindAndModifyDocumentVersion.Modified,
+            var famArgs = new FindOneAndUpdateOptions<NewId, NewId>
+            {
+                IsUpsert = true,
+                ReturnDocument = ReturnDocument.After,
+                Sort =  new SortDefinitionBuilder<NewId>().Descending(r => r.Id)
             };
-            var result = collection.FindAndModify(famArgs);
-            return (int)result.ModifiedDocument.GetElement("Last").Value;
+
+            var result = collection.FindOneAndUpdate(
+                new FilterDefinitionBuilder<NewId>().Eq(r => r.Entry, entryName),
+                new UpdateDefinitionBuilder<NewId>().Inc(r => r.Last, 1),
+                famArgs);
+
+
+            return (int)result.ToBsonDocument().GetElement("Last").Value;
         }
 
         public class NewId {

@@ -1,27 +1,46 @@
-﻿using Chuye.Persistent.Mongo;
-using Chuye.Persistent.NH;
-using MongoDB.Driver.Builders;
-using NHibernate;
-using NHibernate.Linq;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Configuration;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Linq;
+using Chuye.Persistent.Mongo;
+using Chuye.Persistent.NH;
+using MongoDB.Driver;
+using NHibernate;
+using NHibernate.Linq;
 
 namespace Chuye.Persistent.Demo {
     class Program {
         static void Main(string[] args) {
             Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
+            GuidAggregateRoot();
             //NHibernateBasicCrud();
             //Null_could_evict();
             //Dupliate_entity_update_need_evict();
             //Dupliate_entity_mock_web_cache();
-            Dupliate_entity_use_trans();
+            //Dupliate_entity_use_trans();
             //MongoBasicCrud();
             //Mongo_Sort_Limit();
+        }
+
+        private static void GuidAggregateRoot() {
+            var context = new PubsContext();
+            var deptRepo = new NHibernateRepository<Department>(context);
+
+            context.Begin();
+            var list = deptRepo.All.ToArray();
+            foreach(var item in list) {
+                deptRepo.Delete(item);
+            }
+
+            for (int i = 0; i < 10; i++) {
+                deptRepo.Create(new Department {
+                    Id = Guid.NewGuid(),
+                    Name = Guid.NewGuid().ToString("n")
+                });
+            }
+            context.Commit();
+            context.Dispose();
         }
 
         private static void Dupliate_entity_use_trans() {
@@ -49,7 +68,6 @@ namespace Chuye.Persistent.Demo {
             using (var session = sessionFactory.OpenSession()) {
                 var j1 = session.Get<Job>(1);
                 var j2 = new Job {
-                    Guid = j1.Guid,
                     Id = j1.Id,
                     Salary = j1.Salary,
                     Title = j1.Title
@@ -284,7 +302,9 @@ namespace Chuye.Persistent.Demo {
             var employeeRepo = new MongoRepository<Employee>(context);
 
             Console.WriteLine("Remove all employee");
-            context.Database.GetCollection<Employee>().RemoveAll();
+//            var collection = context.Database.GetCollection<Employee>();
+//            .DeleteMany(new BsonDocument());
+            context.Database.DropCollection(context.Database.CollectionName<Employee>());
             Console.WriteLine();
 
             var jobTitles = new[] { "Java", "C", "C++", "Objective-C", "C#", "JavaScript", "PHP", "Python" };
@@ -363,7 +383,11 @@ namespace Chuye.Persistent.Demo {
             var employeeRepo = new MongoRepository<Employee>(context);
 
             var arr = employeeRepo.Fetch(all => all.Where(r => r.Id > 2).Take(2));
-            var arr2 = context.Database.GetCollection("Employee").Find(Query.GT("_id", 3)).SetLimit(2).ToArray();
+            var arr2 =
+                context.Database.GetCollection<Employee>()
+                    .Find(new FilterDefinitionBuilder<Employee>().Gt("_id", 3))
+                    .Limit(2)
+                    .ToList();
         }
     }
 }

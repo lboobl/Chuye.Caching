@@ -9,10 +9,8 @@ namespace Chuye.Caching.Redis {
         private String key1;
         private byte[] key2;
 
-        public Boolean HasValue
-        {
-            get
-            {
+        public Boolean HasValue {
+            get {
                 return key1 != null || key2 != null;
             }
         }

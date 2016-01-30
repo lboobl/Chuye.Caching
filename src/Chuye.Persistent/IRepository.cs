@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Chuye.Persistent {
-    public interface IRepository<in TEntry, out TResult> where TEntry : IAggregate {
+    public interface IRepository<in TEntry, out TResult> where TEntry : IEntry {
         void Create(TEntry entry);
         void Update(TEntry entry);
         void Update(IEnumerable<TEntry> entries);

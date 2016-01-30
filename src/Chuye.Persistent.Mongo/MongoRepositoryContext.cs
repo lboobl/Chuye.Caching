@@ -1,10 +1,6 @@
 ﻿using MongoDB.Driver;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Chuye.Persistent.Mongo {
     public class MongoRepositoryContext : DisposableObject, IRepositoryContext {
@@ -12,7 +8,7 @@ namespace Chuye.Persistent.Mongo {
         private readonly MongoClient _client;
         private const String ConnectionStringPattern = "mongodb://[^/]+/(?<db>.+)";
 
-        public MongoDatabase Database { get; private set; }
+        public IMongoDatabase Database { get; private set; }
 
         public Guid ID {
             get { return _id; }
@@ -45,14 +41,11 @@ namespace Chuye.Persistent.Mongo {
                 throw new ArgumentOutOfRangeException("connectionString");
             }
             _client = new MongoClient(connectionString);
-            var server = _client.GetServer();
             if (databaseName == null) {
                 databaseName = match.Groups["db"].Value;
-            }            
-			if (!server.DatabaseExists(databaseName)) {
-				throw new Exception(String.Format("Database \"{0}\" not exists", databaseName));
-			}
-            Database = server.GetDatabase(databaseName);
+            }
+
+            Database = _client.GetDatabase(databaseName);
         }
     }
 }

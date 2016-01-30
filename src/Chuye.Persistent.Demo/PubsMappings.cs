@@ -1,9 +1,9 @@
-﻿using FluentNHibernate.Mapping;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FluentNHibernate.Mapping;
 
 namespace Chuye.Persistent.Demo {
     public class JobMap : ClassMap<Job> {
@@ -25,13 +25,10 @@ namespace Chuye.Persistent.Demo {
         }
     }
 
-    public class JobEx : Job {
-        public DateTime Time { get; set; }
-    }
-
-    public class JobExMap : JobMap {
-        public JobExMap() {
-            Table("Job");
+    public class DepartmentMap : ClassMap<Department> {
+        public DepartmentMap() {
+            Id(x => x.Id).GeneratedBy.Assigned();
+            Map(x => x.Name);
         }
     }
 }
