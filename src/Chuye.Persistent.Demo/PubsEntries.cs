@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Chuye.Persistent;
+using MongoDB.Bson;
 
 namespace Chuye.Persistent.Demo {
-
     [PetaPoco.TableName("job")]
     public class Job : IAggregate
     {
@@ -32,4 +32,10 @@ namespace Chuye.Persistent.Demo {
         public virtual String                     Name                      { get; set; }  //varchar(50) not null
     }
 
+    public class Shipper : IAggregate<ObjectId>
+    {
+        public virtual ObjectId                   Id                        { get; set; }  //pk, identity, int not null
+        public virtual String                     CompanyName               { get; set; }  //varchar(50) not null
+        public virtual String                     Phone                     { get; set; }  //varchar(50) not null
+    }
 }

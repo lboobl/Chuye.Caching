@@ -33,22 +33,9 @@ namespace Chuye.Persistent.Mongo {
         }
     }
 
-    public static class MongoEntryMapperFactory {
-        private static IMongoEntryMapper _entryMapper;
+    public class MongoEntryMapperFactory {
+        public static IMongoEntryMapper Default = new MongoEntryMapper();
 
-        public static IMongoEntryMapper Mapper {
-            get {
-                if (_entryMapper == null) {
-                    _entryMapper = new MongoEntryMapper();
-                }
-                return _entryMapper;
-            }
-            set {
-                if (value == null) {
-                    throw new ArgumentNullException("value");
-                }
-                _entryMapper = value;
-            }
-        }
+        //todo, implement
     }
 }

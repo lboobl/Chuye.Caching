@@ -1,9 +1,9 @@
-﻿using System;
+﻿using FluentNHibernate.Mapping;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FluentNHibernate.Mapping;
 
 namespace Chuye.Persistent.Demo {
     public class JobMap : ClassMap<Job> {

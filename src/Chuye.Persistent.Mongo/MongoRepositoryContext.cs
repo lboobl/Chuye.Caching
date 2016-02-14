@@ -4,9 +4,8 @@ using System.Text.RegularExpressions;
 
 namespace Chuye.Persistent.Mongo {
     public class MongoRepositoryContext : DisposableObject, IRepositoryContext {
-        private readonly Guid _id = Guid.NewGuid();
+        private readonly Guid _id;
         private readonly MongoClient _client;
-        private const String ConnectionStringPattern = "mongodb://[^/]+/(?<db>.+)";
 
         public IMongoDatabase Database { get; private set; }
 
@@ -30,22 +29,11 @@ namespace Chuye.Persistent.Mongo {
             throw new NotImplementedException();
         }
 
-        public MongoRepositoryContext(String connectionString)
-            : this(connectionString, null) {
-        }
-
-        public MongoRepositoryContext(String connectionString, String databaseName) {
-            //mongodb://�û���:����@ip:�˿�/���ӵ�Ĭ�����ݿ�
-            var match = Regex.Match(connectionString, ConnectionStringPattern);
-            if (!match.Success) {
-                throw new ArgumentOutOfRangeException("connectionString");
-            }
-            _client = new MongoClient(connectionString);
-            if (databaseName == null) {
-                databaseName = match.Groups["db"].Value;
-            }
-
-            Database = _client.GetDatabase(databaseName);
+        public MongoRepositoryContext(String mongoUrl) {
+            _id = Guid.NewGuid();
+            var mongoUri = new MongoUrl(mongoUrl);
+            _client = new MongoClient(mongoUri);
+            Database = _client.GetDatabase(mongoUri.DatabaseName);
         }
     }
 }

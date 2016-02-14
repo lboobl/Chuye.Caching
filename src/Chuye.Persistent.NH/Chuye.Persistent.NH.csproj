@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="NHibernateRepositoryContext.cs" />
     <Compile Include="NHibernateRepository.cs" />
+    <Compile Include="NHibernateRepository`.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="NHibernateInterceptor.cs" />
   </ItemGroup>

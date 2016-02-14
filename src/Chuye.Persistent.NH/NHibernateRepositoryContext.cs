@@ -9,7 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Chuye.Persistent.NH {
-    public class NHibernateRepositoryContext : DisposableObject, IRepositoryContext {
+
+    public class NHibernateRepositoryContext : DisposableObject, IRepositoryContext, INHibernateRepository {
         private static Int32 _count = 0;
         private readonly Guid _id = Guid.NewGuid();
         private readonly ISessionFactory _sessionFactory;
@@ -106,5 +107,15 @@ namespace Chuye.Persistent.NH {
                 }
             }
         }
+
+        public void Evict<TEntry>(params TEntry[] entries) {
+            if (_session != null) {
+                foreach (var entry in entries) {
+                    _session.Evict(entry);
+                }
+            }
+        }
     }
+
+    
 }

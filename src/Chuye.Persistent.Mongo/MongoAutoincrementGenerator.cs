@@ -15,29 +15,26 @@ namespace Chuye.Persistent.Mongo {
             }
         }
 
-        public Int32 GetNewId(String entryName) {
+        public Int64 GetNewId(String entryName) {
             var collection = _context.Database.GetCollection<NewId>("_NewId");
-            var famArgs = new FindOneAndUpdateOptions<NewId, NewId>
-            {
+            var famArgs = new FindOneAndUpdateOptions<NewId, NewId> {
                 IsUpsert = true,
                 ReturnDocument = ReturnDocument.After,
-                Sort =  new SortDefinitionBuilder<NewId>().Descending(r => r.Id)
+                Sort = new SortDefinitionBuilder<NewId>().Descending(r => r.Id)
             };
 
             var result = collection.FindOneAndUpdate(
                 new FilterDefinitionBuilder<NewId>().Eq(r => r.Entry, entryName),
                 new UpdateDefinitionBuilder<NewId>().Inc(r => r.Last, 1),
                 famArgs);
-
-
-            return (int)result.ToBsonDocument().GetElement("Last").Value;
+            return (Int64)result.ToBsonDocument().GetElement("Last").Value;
         }
 
         public class NewId {
             [BsonId]
             public ObjectId Id { get; set; }
             public String Entry { get; set; }
-            public Int32 Last { get; set; }
+            public Int64 Last { get; set; }
         }
     }
 }

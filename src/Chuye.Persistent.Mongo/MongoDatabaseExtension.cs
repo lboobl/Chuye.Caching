@@ -1,6 +1,7 @@
 ﻿using MongoDB.Driver;
 
 namespace Chuye.Persistent.Mongo {
+
     public static class MongoDatabaseExtension {
         public static IMongoCollection<TEntry> GetCollection<TEntry>(this IMongoDatabase mongoDatabase) {
             var collectionName = mongoDatabase.CollectionName<TEntry>();
@@ -8,7 +9,7 @@ namespace Chuye.Persistent.Mongo {
         }
         
         public static string CollectionName<TEntry>(this IMongoDatabase mongoDatabase) {
-            return MongoEntryMapperFactory.Mapper.Map<TEntry>();
+            return MongoEntryMapperFactory.Default.Map<TEntry>();
         }
 
         public static void DropCollection<TEntry>(this IMongoDatabase mongoDatabase) {

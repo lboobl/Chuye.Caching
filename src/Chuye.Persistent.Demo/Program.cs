@@ -1,49 +1,218 @@
-﻿using System;
-using System.Configuration;
-using System.Diagnostics;
-using System.Linq;
-using Chuye.Persistent.Mongo;
+﻿using Chuye.Persistent.Mongo;
 using Chuye.Persistent.NH;
-using MongoDB.Driver;
 using NHibernate;
 using NHibernate.Linq;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Diagnostics;
+using System.Diagnostics.Contracts;
+using System.Linq;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace Chuye.Persistent.Demo {
     class Program {
         static void Main(string[] args) {
             Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
-            GuidAggregateRoot();
             //NHibernateBasicCrud();
-            //Null_could_evict();
-            //Dupliate_entity_update_need_evict();
-            //Dupliate_entity_mock_web_cache();
-            //Dupliate_entity_use_trans();
+            NHibernateGuidAggregateRoot();
+            //NHibernate_Dupliate_entity_need_evict_and_Statistics();
+            //NHibernate_Dupliate_entity_need_evict_before_update();
+
             //MongoBasicCrud();
-            //Mongo_Sort_Limit();
+            //MongoAggregateRoot();
         }
 
-        private static void GuidAggregateRoot() {
+        private static void NHibernateBasicCrud() {
             var context = new PubsContext();
-            var deptRepo = new NHibernateRepository<Department>(context);
-
             context.Begin();
-            var list = deptRepo.All.ToArray();
-            foreach(var item in list) {
-                deptRepo.Delete(item);
+
+            //Delete from job
+            Console.WriteLine("Remove all jobs");
+            context.EnsureSession().CreateSQLQuery("delete from Employee").ExecuteUpdate();
+
+            //Fill jobs
+            var jobTitles = new[] { "Java", "C", "C++", "Objective-C", "C#", "JavaScript", "PHP", "Python" };
+            var jobRepo = new NHibernateRepository<Job>(context);
+            for (int i = 0; i < jobTitles.Length; i++) {
+                var job = new Job {
+                    Title = jobTitles[i],
+                    Salary = Math.Abs(Guid.NewGuid().GetHashCode() % 8000 + 8000),
+                };
+                jobRepo.Create(job);
             }
 
-            for (int i = 0; i < 10; i++) {
-                deptRepo.Create(new Department {
-                    Id = Guid.NewGuid(),
-                    Name = Guid.NewGuid().ToString("n")
-                });
+            //delete from employee
+            Console.WriteLine("Remove all employee");
+            context.EnsureSession().CreateSQLQuery("delete from Employee").ExecuteUpdate();
+
+            //query jobs
+            Console.WriteLine("Query all jobs");
+            var jobs = jobRepo.Fetch(q => q.ToList());
+
+            //Fill employee
+            var employeeNames = "Charles、Mark、Bill、Vincent、William、Joseph、James、Henry、Gary、Martin"
+             .Split('、', ' ');
+            var employeeRepo = new NHibernateRepository<Employee>(context);
+            for (int i = 0; i < employeeNames.Length; i++) {
+                var entry = new Employee {
+                    Name = employeeNames[i],
+                    Address = Guid.NewGuid().ToString().Substring(0, 8),
+                    Birth = DateTime.UtcNow,
+                    Job = jobs[Math.Abs(Guid.NewGuid().GetHashCode() % jobs.Count)],
+                };
+                employeeRepo.Create(entry);
             }
+
+            //query employee
+            Console.WriteLine("Query employee where salary > 3000");
+            var list = employeeRepo.Fetch(q => q.Where(r => r.Job.Salary > 3000));
+
+            //update employee.Birth
+            foreach (var entry in list) {
+                entry.Birth = entry.Birth.AddYears(-1);
+                jobRepo.Update(entry.Job);
+            }
+
             context.Commit();
             context.Dispose();
         }
 
-        private static void Dupliate_entity_use_trans() {
+        private static void MongoBasicCrud() {
+            var conStr = ConfigurationManager.ConnectionStrings["PubsMongo"].ConnectionString;
+            var context = new MongoRepositoryContext(conStr);
+
+            //Delete from job
+            Console.WriteLine("Remove all jobs");
+            context.Database.DropCollection<Job>();
+
+            //Fill jobs
+            var jobTitles = new[] { "Java", "C", "C++", "Objective-C", "C#", "JavaScript", "PHP", "Python" };
+            var jobRepo = new MongoRepository<Job>(context);
+            for (int i = 0; i < jobTitles.Length; i++) {
+                var job = new Job {
+                    Title = jobTitles[i],
+                    Salary = Math.Abs(Guid.NewGuid().GetHashCode() % 8000 + 8000),
+                };
+                jobRepo.Create(job);
+            }
+
+            //delete from employee
+            Console.WriteLine("Remove all employee");
+            context.Database.DropCollection<Employee>();
+
+            //query jobs
+            Console.WriteLine("Query all jobs");
+            var jobs = jobRepo.Fetch(q => q.ToList());
+
+            //Fill employee
+            var employeeNames = "Charles、Mark、Bill、Vincent、William、Joseph、James、Henry、Gary、Martin"
+             .Split('、', ' ');
+            var employeeRepo = new MongoRepository<Employee>(context);
+            for (int i = 0; i < employeeNames.Length; i++) {
+                var entry = new Employee {
+                    Name = employeeNames[i],
+                    Address = Guid.NewGuid().ToString().Substring(0, 8),
+                    Birth = DateTime.UtcNow,
+                    Job = jobs[Math.Abs(Guid.NewGuid().GetHashCode() % jobs.Count)],
+                };
+                employeeRepo.Create(entry);
+            }
+
+            //query employee
+            Console.WriteLine("Query employee where salary > 3000");
+            var list = employeeRepo.Fetch(q => q.Where(r => r.Job.Salary > 3000));
+
+            //update employee.Birth
+            foreach (var entry in list) {
+                entry.Birth = entry.Birth.AddYears(-1);
+                jobRepo.Update(entry.Job);
+            }
+
+            context.Dispose();
+        }
+
+        private static void NHibernateGuidAggregateRoot() {           
+            var context = new PubsContext();
+            context.EventDispatcher.PostLoad += EventDispatcher_PostLoad;
+            var deptRepo = new NHibernateRepository<Department, Guid>(context);
+
+            context.Begin();
+            var list = deptRepo.All.ToArray();
+            foreach (var item in list) {
+                deptRepo.Delete(item);
+            }
+
+            var deptNames = new[] { "Alfreds Futterkiste", "Ana Trujillo Emparedados y helados",
+                "Berglunds snabbk", "Blauer See Delikatessen", "Blondesddsl p",
+                "Die Wandernde Kuh", "Drachenblut Delikatessen" };
+
+            foreach (var item in deptNames) {
+                deptRepo.Create(new Department {
+                    Id = Guid.NewGuid(),
+                    Name = item,
+                });
+            }
+
+            context.Commit();
+            context.Dispose();
+        }
+
+        private static void EventDispatcher_PostLoad(Object sender, NHibernate.Event.PostLoadEvent e) {
+            Console.WriteLine("{0}#{1} loaded", e.Entity, e.Id);
+        }
+
+        private static void MongoAggregateRoot() {
+            var conStr = ConfigurationManager.ConnectionStrings["PubsMongo"].ConnectionString;
+            var context = new MongoRepositoryContext(conStr);
+            context.Database.DropCollection<Department>();
+
+            var deptNames = new[] { "Alfreds Futterkiste", "Ana Trujillo Emparedados y helados",
+                "Berglunds snabbk", "Blauer See Delikatessen", "Blondesddsl p",
+                "Die Wandernde Kuh", "Drachenblut Delikatessen" };
+
+            var deptRepo = new MongoRepository<Department, Guid>(context);
+            foreach (var item in deptNames) {
+                deptRepo.Create(new Department {
+                    Id = Guid.NewGuid(),
+                    Name = item,
+                });
+            }
+
+            context.Database.DropCollection<Shipper>();
+            var shipperRepo = new MongoRepository<Shipper, ObjectId>(context);
+            var shippers = new List<Shipper>();
+            shippers.Add(new Shipper {
+                CompanyName = "Speedy Express",
+                Phone = "(503) 555-9831",
+            });
+            shippers.Add(new Shipper {
+                CompanyName = "United Package",
+                Phone = "(503) 555-3199",
+            });
+            shippers.Add(new Shipper {
+                CompanyName = "Federal Shipping",
+                Phone = "(503) 555-9931",
+            });
+            foreach (var entry in shippers) {
+                shipperRepo.Create(entry);
+            }
+
+            var shipper2 = shippers[2];
+            shipper2.CompanyName += " LC.";
+            shipperRepo.Update(shipper2);
+
+            shipperRepo.Delete(shippers[1]);
+
+            var shipper0 = shipperRepo.Retrive(shippers[0].Id);
+            Contract.Assert(shippers[0].CompanyName == shipper0.CompanyName);
+            Contract.Assert(shippers[0].Phone == shipper0.Phone);
+            context.Dispose();
+        }
+
+        private static void NHibernate_Dupliate_entity_use_trans() {
             ISessionFactory sessionFactory = PubsContext.DbFactory;
             using (var session = sessionFactory.OpenSession())
             using (session.BeginTransaction()) {
@@ -63,7 +232,7 @@ namespace Chuye.Persistent.Demo {
             }
         }
 
-        private static void Dupliate_entity_use_linq() {
+        private static void NHibernate_Dupliate_entity_need_evict_before_update() {
             ISessionFactory sessionFactory = PubsContext.DbFactory;
             using (var session = sessionFactory.OpenSession()) {
                 var j1 = session.Get<Job>(1);
@@ -74,6 +243,27 @@ namespace Chuye.Persistent.Demo {
                 };
 
                 //update j2 失败，先Evict j1
+                session.Evict(j1);
+                session.Update(j2);
+            }
+
+            using (var session = sessionFactory.OpenSession()) {
+                IQueryable<Job> query = new NhQueryable<Job>(session.GetSessionImplementation());
+                var jobs = query.Where(r => r.Id >= 1).Take(2).ToList();
+                var j1 = jobs.First();
+                var j2 = new Job {
+                    Id = j1.Id,
+                    Salary = j1.Salary,
+                    Title = j1.Title
+                };
+
+                try {
+                    session.Update(j2);
+                }
+                catch (NHibernate.NonUniqueObjectException) {
+                    Console.WriteLine("update j2 失败，先Evict j1");
+                }
+
                 session.Evict(j1);
                 session.Update(j2);
             }
@@ -151,74 +341,7 @@ namespace Chuye.Persistent.Demo {
             }
         }
 
-        private static void Dupliate_entity_mock_web_cache() {
-            ISessionFactory sessionFactory = PubsContext.DbFactory;
-            Job cache;
-
-            using (var session = sessionFactory.OpenSession())
-            /*using (session.BeginTransaction())*/ {
-                var job1 = session.Get<Job>(1);
-                var job2 = session.Get<Job>(1);
-
-                Console.WriteLine("job1 == job2 ? {0}", job1 == job2); // true, 1级缓存默认生效
-                cache = job1; //模仿 HttpRuntime.Cache
-                //或者模仿 Memcached 等分布式 Cache
-                //cache = new Job {
-                //    Guid   = job1.Guid,
-                //    Id     = job1.Id,
-                //    Salary = job1.Salary,
-                //    Title  = job1.Title
-                //};
-                Console.WriteLine();
-            }
-
-            using (var session = sessionFactory.OpenSession())
-            using (session.BeginTransaction()) {
-                //假设某场景仍然查出了 Job#1，
-                var job = session.Get<Job>(1);
-                Console.WriteLine("job == cache ? {0}", job == cache); // false，没有启用2级缓存
-                Console.WriteLine();
-
-                //但更新操作针对的是 cache, 此时抛出异常
-                try {
-                    session.Update(cache);
-                    Debug.Fail("Should failed for NHibernate.NonUniqueObjectException");
-                }
-                catch (NHibernate.NonUniqueObjectException ex) {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Got NHibernate.NonUniqueObjectException with Entity {0}", ex.EntityName);
-                    Console.ResetColor();
-                }
-
-                //Evict cache 没有用
-                session.Evict(cache);
-                try {
-                    session.Update(cache);
-                    Debug.Fail("Should failed for NHibernate.NonUniqueObjectException");
-                }
-                catch (NHibernate.NonUniqueObjectException ex) {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Got NHibernate.NonUniqueObjectException with Entity {0}", ex.EntityName);
-                    Console.ResetColor();
-                }
-
-                //Evict Job#1 才有效
-                session.Evict(job);
-                session.Update(cache);
-            }
-        }
-
-        private static void ShowSessionFactoryStatistics(ISessionFactory sessionFactory) {
-            var props = sessionFactory.Statistics.GetType().GetProperties();
-            foreach (var prop in props) {
-                if (prop.PropertyType == typeof(Int64)) {
-                    Console.WriteLine("{0, 30} = {1}",
-                        prop.Name, prop.GetValue(sessionFactory.Statistics));
-                }
-            }
-        }
-
-        private static void Dupliate_entity_update_need_evict() {
+        private static void NHibernate_Dupliate_entity_need_evict_and_Statistics() {
             var context = new PubsContext();
             var jobRepo = new NHibernateRepository<Job>(context);
 
@@ -285,109 +408,5 @@ namespace Chuye.Persistent.Demo {
             Console.WriteLine();
         }
 
-        private static void Null_could_evict() {
-            var context = new PubsContext();
-            var jobRepo = new NHibernateRepository<Job>(context);
-
-            var session = context.EnsureSession();
-            session.Evict(null);
-
-            var jobNotExist = jobRepo.Retrive(-100);
-            session.Evict(jobNotExist);
-        }
-
-        private static void MongoBasicCrud() {
-            var conStr = ConfigurationManager.ConnectionStrings["PubsMongo"].ConnectionString;
-            var context = new MongoRepositoryContext(conStr);
-            var employeeRepo = new MongoRepository<Employee>(context);
-
-            Console.WriteLine("Remove all employee");
-//            var collection = context.Database.GetCollection<Employee>();
-//            .DeleteMany(new BsonDocument());
-            context.Database.DropCollection(context.Database.CollectionName<Employee>());
-            Console.WriteLine();
-
-            var jobTitles = new[] { "Java", "C", "C++", "Objective-C", "C#", "JavaScript", "PHP", "Python" };
-            var employeeNames = new[] { "Charles", "Mark", "Bill", "Vincent", "William", "Joseph", "James", "Henry", "Gary", "Martin" };
-
-            for (int i = 0; i < employeeNames.Length; i++) {
-                var entry = new Employee {
-                    Name = employeeNames[i],
-                    Address = Guid.NewGuid().ToString().Substring(0, 8),
-                    Birth = DateTime.UtcNow,
-                    Job = new Job {
-                        Title = jobTitles[Math.Abs(Guid.NewGuid().GetHashCode() % jobTitles.Length)],
-                        Salary = Math.Abs(Guid.NewGuid().GetHashCode() % 8000)
-                    }
-                };
-                employeeRepo.Create(entry);
-            }
-
-            Console.WriteLine("Query all employee");
-            var list = employeeRepo.Fetch(q => q.Where(r => r.Job.Salary > 3000).AsEnumerable());
-            foreach (var entry in list) {
-                Console.WriteLine("{0,-10} {1}", entry.Name, entry.Job.Salary);
-            }
-            Console.WriteLine();
-        }
-
-        private static void NHibernateBasicCrud() {
-            var context = new PubsContext();
-            var jobRepo = new NHibernateRepository<Job>(context);
-            var jobTitles = new[] { "Java", "C", "C++", "Objective-C", "C#", "JavaScript", "PHP", "Python" };
-
-            context.Begin();
-            Console.WriteLine("Remove all jobs");
-            context.EnsureSession().CreateSQLQuery("delete from Employee").ExecuteUpdate();
-
-            for (int i = 0; i < jobTitles.Length; i++) {
-                var job = new Job {
-                    Title = jobTitles[i],
-                    Salary = Math.Abs(Guid.NewGuid().GetHashCode() % 8000 + 8000),
-                };
-                jobRepo.Create(job);
-            }
-
-            var jobs = jobRepo.Fetch(q => q.ToList());
-            var employeeRepo = new NHibernateRepository<Employee>(context);
-            Console.WriteLine("Remove all employee");
-            context.EnsureSession().CreateSQLQuery("delete from Employee").ExecuteUpdate();
-            Console.WriteLine();
-
-            var names = "Charles、Mark、Bill、Vincent、William、Joseph、James、Henry、Gary、Martin"
-                .Split('、', ' ');
-            for (int i = 0; i < names.Length; i++) {
-                var entry = new Employee {
-                    Name = names[i],
-                    Address = Guid.NewGuid().ToString().Substring(0, 8),
-                    Birth = DateTime.UtcNow,
-                    Job = jobs[Math.Abs(Guid.NewGuid().GetHashCode() % jobs.Count)],
-                };
-                employeeRepo.Create(entry);
-            }
-
-            Console.WriteLine("Query all employee");
-            var list = employeeRepo.Fetch(q => q.Where(r => r.Job.Salary > 3000));
-            foreach (var entry in list) {
-                Console.WriteLine("{0,-10} {1}", entry.Name, entry.Job.Salary);
-            }
-            Console.WriteLine();
-
-            context.Commit();
-            context.Dispose();
-        }
-
-        private static void Mongo_Sort_Limit() {
-            var conStr = ConfigurationManager.ConnectionStrings["PubsMongo"].ConnectionString;
-            var context = new MongoRepositoryContext(conStr);
-            var employeeRepo = new MongoRepository<Employee>(context);
-
-            var arr = employeeRepo.Fetch(all => all.Where(r => r.Id > 2).Take(2));
-            var arr2 =
-                context.Database.GetCollection<Employee>()
-                    .Find(new FilterDefinitionBuilder<Employee>().Gt("_id", 3))
-                    .Limit(2)
-                    .ToList();
-        }
     }
 }

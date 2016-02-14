@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace Chuye.Persistent {
 
-    public interface IAggregate : IEntry<Int32> {
+    public interface IAggregate<TKey> : IEntry<TKey> {
     }
 
-    public interface IAggregate<TKey> : IEntry<TKey> {
-
+    public interface IAggregate : IAggregate<Int32> {
     }
 }
