@@ -16,13 +16,13 @@ namespace Chuye.Persistent.Demo {
         static void Main(string[] args) {
             Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
-            //NHibernateBasicCrud();
+            NHibernateBasicCrud();
             NHibernateGuidAggregateRoot();
             //NHibernate_Dupliate_entity_need_evict_and_Statistics();
             //NHibernate_Dupliate_entity_need_evict_before_update();
 
-            //MongoBasicCrud();
-            //MongoAggregateRoot();
+            MongoBasicCrud();
+            MongoAggregateRoot();
         }
 
         private static void NHibernateBasicCrud() {
@@ -31,7 +31,7 @@ namespace Chuye.Persistent.Demo {
 
             //Delete from job
             Console.WriteLine("Remove all jobs");
-            context.EnsureSession().CreateSQLQuery("delete from Employee").ExecuteUpdate();
+            context.EnsureSession().CreateSQLQuery("delete from job").ExecuteUpdate();
 
             //Fill jobs
             var jobTitles = new[] { "Java", "C", "C++", "Objective-C", "C#", "JavaScript", "PHP", "Python" };
@@ -48,9 +48,13 @@ namespace Chuye.Persistent.Demo {
             Console.WriteLine("Remove all employee");
             context.EnsureSession().CreateSQLQuery("delete from Employee").ExecuteUpdate();
 
-            //query jobs
-            Console.WriteLine("Query all jobs");
+            //query all jobs
+            Console.WriteLine("Query part jobs");
             var jobs = jobRepo.Fetch(q => q.ToList());
+
+            //query part jobs
+            var halfJobTitles = jobTitles.Take(jobTitles.Length / 2).ToArray();
+            var halfJobs = jobRepo.Retrive(j => j.Title, halfJobTitles);
 
             //Fill employee
             var employeeNames = "Charles、Mark、Bill、Vincent、William、Joseph、James、Henry、Gary、Martin"
@@ -103,9 +107,13 @@ namespace Chuye.Persistent.Demo {
             Console.WriteLine("Remove all employee");
             context.Database.DropCollection<Employee>();
 
-            //query jobs
+            //query all jobs
             Console.WriteLine("Query all jobs");
             var jobs = jobRepo.Fetch(q => q.ToList());
+
+            //query part jobs
+            var halfJobTitles = jobTitles.Take(jobTitles.Length / 2).ToArray();
+            var halfJobs = jobRepo.Retrive(j => j.Title, halfJobTitles);
 
             //Fill employee
             var employeeNames = "Charles、Mark、Bill、Vincent、William、Joseph、James、Henry、Gary、Martin"
@@ -134,7 +142,7 @@ namespace Chuye.Persistent.Demo {
             context.Dispose();
         }
 
-        private static void NHibernateGuidAggregateRoot() {           
+        private static void NHibernateGuidAggregateRoot() {
             var context = new PubsContext();
             context.EventDispatcher.PostLoad += EventDispatcher_PostLoad;
             var deptRepo = new NHibernateRepository<Department, Guid>(context);

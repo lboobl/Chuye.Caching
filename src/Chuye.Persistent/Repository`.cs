@@ -22,8 +22,8 @@ namespace Chuye.Persistent {
         public abstract Boolean Any(params Expression<Func<TEntry, Boolean>>[] predicates);
         public abstract TEntry Retrive(TKey id);
         public abstract IEnumerable<TEntry> Retrive(params TKey[] keys);
-        public abstract IEnumerable<TEntry> Retrive(String field, params TKey[] keys);
-        public abstract IEnumerable<TEntry> Retrive(Expression<Func<TEntry, TKey>> selector, params TKey[] keys);
+        public abstract IEnumerable<TEntry> Retrive<TMember>(String field, params TMember[] keys);
+        public abstract IEnumerable<TEntry> Retrive<TMember>(Expression<Func<TEntry, TMember>> selector, params TMember[] keys);
 
         public abstract void Create(TEntry entry);
         public abstract void Update(TEntry entry);

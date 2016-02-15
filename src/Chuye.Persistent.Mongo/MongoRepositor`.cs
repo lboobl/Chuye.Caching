@@ -47,13 +47,13 @@ namespace Chuye.Persistent.Mongo {
             return Retrive("_id", keys);
         }
 
-        public override IEnumerable<TEntry> Retrive(String field, params TKey[] keys) {
+        public override IEnumerable<TEntry> Retrive<TMember>(String field, params TMember[] keys) {
             var docs = _context.Database.GetCollection<TEntry>();
             return docs.Find(new FilterDefinitionBuilder<TEntry>().In(field,
                 keys.Select(k => BsonValue.Create(k)))).ToList();
         }
 
-        public override IEnumerable<TEntry> Retrive(Expression<Func<TEntry, TKey>> selector, params TKey[] keys) {
+        public override IEnumerable<TEntry> Retrive<TMember>(Expression<Func<TEntry, TMember>> selector, params TMember[] keys) {
             var docs = _context.Database.GetCollection<TEntry>();
             return docs.Find(new FilterDefinitionBuilder<TEntry>().In(selector, keys)).ToList();
         }

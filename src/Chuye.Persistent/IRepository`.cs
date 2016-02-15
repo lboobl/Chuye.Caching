@@ -20,6 +20,6 @@ namespace Chuye.Persistent {
         TReutrn Fetch<TReutrn>(Func<IQueryable<TResult>, TReutrn> query);
         TResult Retrive(TKey id);
         IEnumerable<TResult> Retrive(params TKey[] keys);
-        IEnumerable<TResult> Retrive(String field, params TKey[] keys);
+        IEnumerable<TResult> Retrive<TMember>(String field, params TMember[] keys);
     }
 }

@@ -78,11 +78,11 @@ namespace Chuye.Persistent {
             return _all.Where(r => keys.Contains(r.Id));
         }
 
-        public override IEnumerable<TEntry> Retrive(String field, params Int32[] keys) {
+        public override IEnumerable<TEntry> Retrive<TMember>(String field, params TMember[] keys) {
             throw new NotImplementedException();
         }
 
-        public override IEnumerable<TEntry> Retrive(Expression<Func<TEntry, Int32>> selector, params Int32[] keys) {
+        public override IEnumerable<TEntry> Retrive<TMember>(Expression<Func<TEntry, TMember>> selector, params TMember[] keys) {
             var predicate = selector.Compile();
             return _all.Where(r => keys.Contains(predicate(r))).ToList();
         }

@@ -80,7 +80,7 @@ namespace Chuye.Persistent.NH {
             return SafeProceed(() => Retrive("Id", keys));
         }
 
-        public override IEnumerable<TEntry> Retrive(String field, params TKey[] keys) {
+        public override IEnumerable<TEntry> Retrive<TMember>(String field, params TMember[] keys) {
             return SafeProceed(session => {
                 ICriteria criteria = session.CreateCriteria<TEntry>()
                     .Add(Restrictions.In(field, keys.ToArray()));
@@ -88,7 +88,7 @@ namespace Chuye.Persistent.NH {
             });
         }
 
-        public override IEnumerable<TEntry> Retrive(Expression<Func<TEntry, TKey>> selector, params TKey[] keys) {
+        public override IEnumerable<TEntry> Retrive<TMember>(Expression<Func<TEntry, TMember>> selector, params TMember[] keys) {
             return SafeProceed(() => {
                 var field = ExpressionBuilder.GetPropertyInfo(selector).Name;
                 return Retrive(field, keys);
