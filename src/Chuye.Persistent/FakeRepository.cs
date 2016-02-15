@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Chuye.Persistent {
 
-    public class FakeRepository<TEntry> : Repository<TEntry, Int32> where TEntry : class, IAggregate<Int32> {
+    public class FakeRepository<TEntry> : Repository<TEntry> where TEntry : class, IAggregate<Int32> {
         private static Int32 _id = 0;
         private readonly List<TEntry> _all = new List<TEntry>();
         private readonly Boolean _autoIncrement;
