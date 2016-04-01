@@ -1,13 +1,12 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Chuye.Caching;
-using Chuye.Caching.Memcached;
-using System.Threading;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using Chuye.Caching.Memcached;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Chuye.Caching.Tests {
+namespace Chuye.Caching.Tests.Memcached {
     [TestClass]
     public class MemcachedCacheProviderTest {
         [TestMethod]
@@ -15,7 +14,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider();
+            IHttpRuntimeCacheProvider cacheProvider = MemcachedCacheProvider.Default;
             var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
             Assert.AreEqual(result, val);
 
@@ -39,7 +38,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider();
+            IHttpRuntimeCacheProvider cacheProvider = MemcachedCacheProvider.Default;
             var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
             Assert.AreEqual(result, val);
 
@@ -57,13 +56,12 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider();
+            IHttpRuntimeCacheProvider cacheProvider = MemcachedCacheProvider.Default;
 
-            //DateTime.Now
+            //DateTime.Now]
             Guid result;
-            cacheProvider.Overwrite(key, val, TimeSpan.FromSeconds(8D));
+            cacheProvider.Overwrite(key, val, TimeSpan.FromSeconds(3D));
             {
-                Thread.Sleep(TimeSpan.FromSeconds(5D));
                 var exist = cacheProvider.TryGet<Guid>(key, out result);
                 Assert.IsTrue(exist);
                 Assert.AreEqual(result, val);
@@ -80,16 +78,15 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider();
+            IHttpRuntimeCacheProvider cacheProvider = MemcachedCacheProvider.Default;
             var t1 = DateTime.Now.AddSeconds(8D);
             var t2 = DateTime.UtcNow.AddSeconds(8D);
             Assert.AreEqual(t1.ToTimestamp(), t2.ToTimestamp());
 
             //DateTime.Now
             Guid result;
-            cacheProvider.Overwrite(key, val, DateTime.Now.AddSeconds(8D));
+            cacheProvider.Overwrite(key, val, DateTime.Now.AddSeconds(3D));
             {
-                Thread.Sleep(TimeSpan.FromSeconds(5D));
                 var exist = cacheProvider.TryGet<Guid>(key, out result);
                 Assert.IsTrue(exist);
                 Assert.AreEqual(result, val);
@@ -101,9 +98,8 @@ namespace Chuye.Caching.Tests {
             }
 
             //DateTime.UtcNow
-            cacheProvider.Overwrite(key, val, DateTime.UtcNow.AddSeconds(8D));
+            cacheProvider.Overwrite(key, val, DateTime.UtcNow.AddSeconds(3D));
             {
-                Thread.Sleep(TimeSpan.FromSeconds(5D));
                 var exist = cacheProvider.TryGet<Guid>(key, out result);
                 Assert.IsTrue(exist);
                 Assert.AreEqual(result, val);
@@ -120,7 +116,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider();
+            IHttpRuntimeCacheProvider cacheProvider = MemcachedCacheProvider.Default;
             var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
             Assert.AreEqual(result, val);
 
@@ -136,7 +132,7 @@ namespace Chuye.Caching.Tests {
 
         [TestMethod]
         public void DistributedLock() {
-            IDistributedLock memcached = new MemcachedCacheProvider();
+            IDistributedLock memcached = MemcachedCacheProvider.Default;
             var key = "DistributedLock1";
             
             {

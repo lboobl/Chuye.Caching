@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace Chuye.Caching {
 
     public interface IDistributedLock {
-        IDisposable ReleasableLock(String key, Int32 expire = DistributedLockTime.DisposeMillisecond);
-        void Lock(String key, Int32 expire);
-        Boolean TryLock(String key, Int32 expire);
+        IDisposable ReleasableLock(String key, Int32 milliseconds = DistributedLockTime.DisposeMillisecond);
+        void Lock(String key, Int32 milliseconds);
+        Boolean TryLock(String key, Int32 milliseconds);
         void UnLock(String key);
     }
 

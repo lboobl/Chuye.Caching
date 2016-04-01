@@ -1,11 +1,9 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading;
-using Chuye.Caching;
 using System.Web.Caching;
-using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Chuye.Caching.Tests {
+namespace Chuye.Caching.Tests.HttpRuntimeCache {
     [TestClass]
     public class HttpRuntimeCacheProviderTest {
 

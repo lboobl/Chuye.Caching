@@ -1,9 +1,8 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Web;
-using Chuye.Caching;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Chuye.Caching.Tests {
+namespace Chuye.Caching.Tests.HttpContextCache {
     [TestClass]
     public class HttpContextCacheProviderTest {
         [TestMethod]

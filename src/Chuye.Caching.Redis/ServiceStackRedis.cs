@@ -9,7 +9,7 @@ using ServiceStack.Text;
 
 namespace Chuye.Caching.Redis {
 
-    public class ServiceStackRedis : IDistributedLock, IRedis, IDisposable {
+    public class ServiceStackRedis : IDistributedLock, IDisposable {
         private static ServiceStackRedis _default;
         private IRedisClientsManager _redisFactory;
         private readonly Byte[] _mutexBytes;

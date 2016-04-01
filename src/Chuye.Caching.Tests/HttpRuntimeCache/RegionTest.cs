@@ -1,14 +1,10 @@
-﻿using Chuye.Caching;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Chuye.Caching.Tests {
+namespace Chuye.Caching.Tests.HttpRuntimeCache {
     [TestClass]
     public class RegionTest {
         [TestMethod]

@@ -7,19 +7,15 @@ using System.Threading.Tasks;
 namespace Chuye.Caching.Redis {
 
     public class RedisCacheProvider : CacheProvider, IHttpRuntimeCacheProvider, IRegion {
-        private readonly IRedis _redis;
+        private readonly StackExchangeRedis _redis;
 
         public String Region { get; private set; }
 
-        public IRedis Redis {
-            get { return _redis; }
-        }
-
-        public RedisCacheProvider(IRedis redis)
+        public RedisCacheProvider(StackExchangeRedis redis)
             : this(redis, null) {
         }
 
-        public RedisCacheProvider(IRedis redis, String region) {
+        public RedisCacheProvider(StackExchangeRedis redis, String region) {
             _redis = redis;
             Region = region;
         }
@@ -29,11 +25,11 @@ namespace Chuye.Caching.Redis {
         }
 
         public override void Expire(String key) {
-            _redis.KeyDelete(BuildCacheKey(key));
+            _redis.Database.KeyDelete(BuildCacheKey(key));
         }
 
         public override bool TryGet<T>(String key, out T entry) {
-            var val = _redis.StringGet(BuildCacheKey(key));
+            var val = _redis.Database.StringGet(BuildCacheKey(key));
             if (!val.HasValue) {
                 entry = default(T);
                 return false;
@@ -64,19 +60,19 @@ namespace Chuye.Caching.Redis {
         }
 
         public override void Overwrite<T>(String key, T value) {
-            _redis.StringSet(BuildCacheKey(key), NewtonsoftJsonUtil.Stringify(value));
+            _redis.Database.StringSet(BuildCacheKey(key), NewtonsoftJsonUtil.Stringify(value));
         }
 
         public void Overwrite<T>(String key, T value, DateTime absoluteExpiration) {
             var key2 = BuildCacheKey(key);
-            _redis.StringSet(key2, NewtonsoftJsonUtil.Stringify(value));
-            _redis.KeyExpire(key2, absoluteExpiration);
+            _redis.Database.StringSet(key2, NewtonsoftJsonUtil.Stringify(value));
+            _redis.Database.KeyExpire(key2, absoluteExpiration);
         }
 
         public void Overwrite<T>(String key, T value, TimeSpan slidingExpiration) {
             var key2 = BuildCacheKey(key);
-            _redis.StringSet(key2, NewtonsoftJsonUtil.Stringify(value));
-            _redis.KeyExpire(key2, slidingExpiration);
+            _redis.Database.StringSet(key2, NewtonsoftJsonUtil.Stringify(value));
+            _redis.Database.KeyExpire(key2, slidingExpiration);
         }
     }
 }

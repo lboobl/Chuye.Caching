@@ -3,7 +3,7 @@ using System.Threading;
 using Chuye.Caching.Redis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Chuye.Caching.Tests {
+namespace Chuye.Caching.Tests.Redis {
     [TestClass]
     public class RedisCacheProviderTest {
         [TestMethod]
@@ -11,7 +11,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
             
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(ServiceStackRedis.Default);
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default);
             var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
             Assert.AreEqual(result, val);
 
@@ -35,7 +35,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(ServiceStackRedis.Default);
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default);
             var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
             Assert.AreEqual(result, val);
 
@@ -53,7 +53,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(ServiceStackRedis.Default);
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default);
 
             //DateTime.Now
             Guid result;
@@ -76,10 +76,7 @@ namespace Chuye.Caching.Tests {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(ServiceStackRedis.Default);
-            var t1 = DateTime.Now.AddSeconds(8D);
-            var t2 = DateTime.UtcNow.AddSeconds(8D);
-            Assert.AreEqual(t1.ToTimestamp(), t2.ToTimestamp());
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default);
 
             //DateTime.Now
             Guid result;
@@ -115,8 +112,8 @@ namespace Chuye.Caching.Tests {
         public void ExpireTest() {
             var key = Guid.NewGuid().ToString("n");
             var val = Guid.NewGuid();
+            var redis = StackExchangeRedis.Default;
 
-            IRedis redis = ServiceStackRedis.Default;
             IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(redis);
 
             {

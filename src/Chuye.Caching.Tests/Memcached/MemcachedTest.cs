@@ -1,13 +1,13 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Enyim.Caching;
-using Enyim.Caching.Memcached;
+using System.Collections.Generic;
 using System.Reflection;
 using Chuye.Caching.Memcached;
-using System.Collections.Generic;
+using Enyim.Caching;
+using Enyim.Caching.Memcached;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 
-namespace Chuye.Caching.Tests {
+namespace Chuye.Caching.Tests.Memcached {
     [TestClass]
     public class MemcachedTest {
         [TestMethod]
@@ -95,7 +95,7 @@ namespace Chuye.Caching.Tests {
 
         [TestMethod]
         public void Compatibility2() {
-            var cache = new MemcachedCacheProvider("Test");
+            var cache = MemcachedCacheProvider.Default;
             var person = new Person {
                 Id = 2,
                 Name = "Rattz",
@@ -113,19 +113,6 @@ namespace Chuye.Caching.Tests {
             Assert.IsNotNull(personOut);
         }
 
-    }
-
-    [Serializable]
-    public class Person {
-        public int Id { get; set; }
-        public String Name { get; set; }
-        public Address Address { get; set; }
-    }
-
-    [Serializable]
-    public class Address {
-        public String Line1 { get; set; }
-        public String Line2 { get; set; }
     }
 }
 

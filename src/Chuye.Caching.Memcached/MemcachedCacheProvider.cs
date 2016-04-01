@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Threading;
 using Enyim.Caching;
 using Enyim.Caching.Memcached;
@@ -9,14 +10,26 @@ using Newtonsoft.Json.Serialization;
 namespace Chuye.Caching.Memcached {
 
     public class MemcachedCacheProvider : CacheProvider, IHttpRuntimeCacheProvider, IRegion, IDistributedLock {
-        private static readonly MemcachedClient _client = new MemcachedClient("enyim.com/memcached");
-        
-        public String Region { get; private set; }
+        private static MemcachedCacheProvider _default;
+        private readonly MemcachedClient _client;
+        private readonly String LOCK = "lock";
 
-        public MemcachedCacheProvider() {
+        public static MemcachedCacheProvider Default {
+            get {
+                if (_default != null) {
+                    return _default;
+                }
+
+                var defaultInstance = new MemcachedCacheProvider("enyim.com/memcached", null);
+                Interlocked.CompareExchange(ref _default, defaultInstance, null);
+                return _default;
+            }
         }
 
-        public MemcachedCacheProvider(String region) {
+        public String Region { get; private set; }
+
+        public MemcachedCacheProvider(String configSection, String region = null) {
+            _client = new MemcachedClient("enyim.com/memcached");
             Region = region;
         }
 
