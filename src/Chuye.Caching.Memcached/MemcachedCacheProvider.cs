@@ -12,7 +12,6 @@ namespace Chuye.Caching.Memcached {
     public class MemcachedCacheProvider : CacheProvider, IHttpRuntimeCacheProvider, IRegion, IDistributedLock {
         private static MemcachedCacheProvider _default;
         private readonly MemcachedClient _client;
-        private readonly String LOCK = "lock";
 
         public static MemcachedCacheProvider Default {
             get {

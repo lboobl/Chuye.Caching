@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Chuye.Caching.Memcached</id>
-    <version>2.0</version>
+    <version>2.1</version>
     <title>Chuye.Caching.Memcached</title>
     <authors>jusfr</authors>
     <owners>jusfr</owners>
@@ -20,9 +20,9 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="..\src\Chuye.Caching.Memcached\bin\Release\Chuye.Caching.dll" target="lib\net45" /> 
-    <file src="..\src\Chuye.Caching.Memcached\bin\Release\Chuye.Caching.Memcached.dll" target="lib\net45" /> 
-    <file src="..\src\Chuye.Caching.Memcached\bin\Release\Enyim.Caching.dll" target="lib\net45" /> 
-    <file src="..\src\Chuye.Caching.Memcached\bin\Release\Newtonsoft.Json.dll" target="lib\net45" /> 
+    <file src="..\release\Chuye.Caching.Memcached\Chuye.Caching.dll" target="lib\net45" /> 
+    <file src="..\release\Chuye.Caching.Memcached\Chuye.Caching.Memcached.dll" target="lib\net45" /> 
+    <file src="..\release\Chuye.Caching.Memcached\Enyim.Caching.dll" target="lib\net45" /> 
+    <file src="..\release\Chuye.Caching.Memcached\Newtonsoft.Json.dll" target="lib\net45" /> 
   </files>
 </package>
