@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Chuye.Caching.Redis</id>
+    <version>2.0</version>
+    <title>Chuye.Caching.Redis</title>
+    <authors>jusfr</authors>
+    <owners>jusfr</owners>
+    <licenseUrl>http://somewhere_coming_soon</licenseUrl>
+    <projectUrl>http://somewhere_coming_soon</projectUrl>
+    <iconUrl>http://static01.cloud7.com.cn/assets/7a63d1b9/content/image/chuye-site/logo.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Wrapper for ServiceStack.Redis</description>
+    <releaseNotes>This is a initial release.</releaseNotes>
+    <copyright>Copyright 2016</copyright>
+    <tags>Chuye Caching Redis</tags>
+    <dependencies>
+        <dependency id="Newtonsoft.Json" version="6.0.8" />
+        <dependency id="ServiceStack.Common" version="3.9.71" />
+        <dependency id="ServiceStack.Redis" version="3.9.71" />
+        <dependency id="ServiceStack.Text" version="3.9.71" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\src\Chuye.Caching.Redis\bin\Release\Chuye.Caching.dll" target="lib\net45" /> 
+    <file src="..\src\Chuye.Caching.Redis\bin\Release\Chuye.Caching.Redis.dll" target="lib\net45" /> 
+    <file src="..\src\Chuye.Caching.Redis\bin\Release\Newtonsoft.Json.dll" target="lib\net45" /> 
+    <file src="..\src\Chuye.Caching.Redis\bin\Release\ServiceStack.Common.dll" target="lib\net45" /> 
+    <file src="..\src\Chuye.Caching.Redis\bin\Release\ServiceStack.Interfaces.dll" target="lib\net45" /> 
+    <file src="..\src\Chuye.Caching.Redis\bin\Release\ServiceStack.Redis.dll" target="lib\net45" /> 
+    <file src="..\src\Chuye.Caching.Redis\bin\Release\ServiceStack.Text.dll" target="lib\net45" /> 
+  </files>
+</package>
