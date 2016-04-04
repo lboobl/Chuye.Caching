@@ -6,11 +6,11 @@
     <title>Chuye.Caching.Memcached</title>
     <authors>jusfr</authors>
     <owners>jusfr</owners>
-    <licenseUrl>http://somewhere_coming_soon</licenseUrl>
-    <projectUrl>http://somewhere_coming_soon</projectUrl>
+    <licenseUrl>https://github.com/jusfr/Chuye.Caching/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/jusfr/Chuye.Caching</licenseUrl>
     <iconUrl>http://static01.cloud7.com.cn/assets/7a63d1b9/content/image/chuye-site/logo.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Wrapper for EnyimMemcached</description>
+    <description>.net cache wrapper for redis using EnyimMemcached</description>
     <releaseNotes>This is a initial release.</releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>Chuye Caching Memcached</tags>
