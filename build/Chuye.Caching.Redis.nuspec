@@ -10,7 +10,7 @@
     <projectUrl>https://github.com/jusfr/Chuye.Caching</projectUrl>
     <iconUrl>http://static01.cloud7.com.cn/assets/7a63d1b9/content/image/chuye-site/logo.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Wrapper for ServiceStack.Redis</description>
+    <description>.net cache wrapper for redis using StackExchange.Redis</description>
     <releaseNotes>This is a initial release.</releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>Chuye Caching Redis</tags>

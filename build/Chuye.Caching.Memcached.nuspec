@@ -7,10 +7,10 @@
     <authors>jusfr</authors>
     <owners>jusfr</owners>
     <licenseUrl>http://somewhere_coming_soon</licenseUrl>
-    <projectUrl>http://somewhere_coming_soon</projectUrl>
+    <projectUrl>https://github.com/jusfr/Chuye.Caching</projectUrl>
     <iconUrl>http://static01.cloud7.com.cn/assets/7a63d1b9/content/image/chuye-site/logo.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Wrapper for EnyimMemcached</description>
+    <description>.Net memcached wrapper using EnyimMemcached</description>
     <releaseNotes>This is a initial release.</releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>Chuye Caching Memcached</tags>
