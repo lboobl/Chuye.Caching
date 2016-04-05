@@ -2,11 +2,11 @@
 <package >
   <metadata>
     <id>Chuye.Caching.Redis</id>
-    <version>2.1</version>
+    <version>2.1.1</version>
     <title>Chuye.Caching.Redis</title>
     <authors>jusfr</authors>
     <owners>jusfr</owners>
-    <licenseUrl>http://somewhere_coming_soon</licenseUrl>
+    <licenseUrl>https://github.com/jusfr/Chuye.Caching/blob/release/LICENSE</licenseUrl>
     <projectUrl>https://github.com/jusfr/Chuye.Caching</projectUrl>
     <iconUrl>http://static01.cloud7.com.cn/assets/7a63d1b9/content/image/chuye-site/logo.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
