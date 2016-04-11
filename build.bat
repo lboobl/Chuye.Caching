@@ -15,6 +15,7 @@ robocopy "%local%src\Chuye.Caching.Redis\bin\Release" "%local%release\Chuye.Cach
 
 :pack
 @pushd "%local%"
+.nuget\NuGet.exe pack build\Chuye.Caching.nuspec -Prop Configuration=Release -OutputDirectory release
 .nuget\NuGet.exe pack build\Chuye.Caching.Memcached.nuspec -Prop Configuration=Release -OutputDirectory release
 .nuget\NuGet.exe pack build\Chuye.Caching.Redis.nuspec -Prop Configuration=Release -OutputDirectory release
 @goto end
