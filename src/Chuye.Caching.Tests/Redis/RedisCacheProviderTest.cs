@@ -12,7 +12,7 @@ namespace Chuye.Caching.Tests.Redis {
             var val = Guid.NewGuid();
             
             IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default);
-            var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
+            var result = cacheProvider.GetOrCreate<Guid>(key, _ => val);
             Assert.AreEqual(result, val);
 
             {
@@ -22,7 +22,7 @@ namespace Chuye.Caching.Tests.Redis {
             }
 
             {
-                var result2 = cacheProvider.GetOrCreate<Guid>(key, () => {
+                var result2 = cacheProvider.GetOrCreate<Guid>(key, _ => {
                     Assert.Fail();
                     return Guid.NewGuid();
                 });
@@ -36,7 +36,7 @@ namespace Chuye.Caching.Tests.Redis {
             var val = Guid.NewGuid();
 
             IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default);
-            var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
+            var result = cacheProvider.GetOrCreate<Guid>(key, _ => val);
             Assert.AreEqual(result, val);
 
             var val2 = Guid.NewGuid();
@@ -117,7 +117,7 @@ namespace Chuye.Caching.Tests.Redis {
             IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(redis);
 
             {
-                var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
+                var result = cacheProvider.GetOrCreate<Guid>(key, _ => val);
                 Assert.AreEqual(result, val);
 
                 var exist = cacheProvider.TryGet<Guid>(key, out val);
@@ -132,7 +132,7 @@ namespace Chuye.Caching.Tests.Redis {
 
 
             {
-                var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
+                var result = cacheProvider.GetOrCreate<Guid>(key, _ => val);
                 Assert.AreEqual(result, val);
 
                 var exist = cacheProvider.TryGet<Guid>(key, out val);

@@ -85,22 +85,22 @@ namespace Chuye.Caching.Memcached {
             return true;
         }
 
-        public T GetOrCreate<T>(String key, Func<T> function, TimeSpan slidingExpiration) {
+        public T GetOrCreate<T>(String key, Func<String, T> func, TimeSpan slidingExpiration) {
             T value;
-            if (TryGet<T>(key, out value)) {
+            if (TryGet(key, out value)) {
                 return value;
             }
-            value = function();
+            value = func(key);
             Overwrite(key, value, slidingExpiration);
             return value;
         }
 
-        public T GetOrCreate<T>(String key, Func<T> function, DateTime absoluteExpiration) {
+        public T GetOrCreate<T>(String key, Func<String, T> func, DateTime absoluteExpiration) {
             T value;
-            if (TryGet<T>(key, out value)) {
+            if (TryGet(key, out value)) {
                 return value;
             }
-            value = function();
+            value = func(key);
             Overwrite(key, value, absoluteExpiration);
             return value;
         }
@@ -193,21 +193,6 @@ namespace Chuye.Caching.Memcached {
                     }
                 }
                 return false;
-            }
-        }
-
-        internal class NewtonsoftJsonUtil {
-            public static T EnsureObjectType<T>(Object obj) {
-                if (obj is T) {
-                    return (T)obj;
-                }
-                else if (obj is JObject) {
-                    return ((JObject)obj).ToObject<T>();
-                }
-                else {
-                    //return (T)Convert.ChangeType(obj, typeof(T));  // Guid 类型将失败
-                    return JToken.FromObject(obj).ToObject<T>();
-                }
             }
         }
     }

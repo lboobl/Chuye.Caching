@@ -15,7 +15,7 @@ namespace Chuye.Caching.Tests.Memcached {
             var val = Guid.NewGuid();
 
             IHttpRuntimeCacheProvider cacheProvider = MemcachedCacheProvider.Default;
-            var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
+            var result = cacheProvider.GetOrCreate<Guid>(key, _ => val);
             Assert.AreEqual(result, val);
 
             {
@@ -25,7 +25,7 @@ namespace Chuye.Caching.Tests.Memcached {
             }
 
             {
-                var result2 = cacheProvider.GetOrCreate<Guid>(key, () => {
+                var result2 = cacheProvider.GetOrCreate<Guid>(key, _ => {
                     Assert.Fail();
                     return Guid.NewGuid();
                 });
@@ -39,7 +39,7 @@ namespace Chuye.Caching.Tests.Memcached {
             var val = Guid.NewGuid();
 
             IHttpRuntimeCacheProvider cacheProvider = MemcachedCacheProvider.Default;
-            var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
+            var result = cacheProvider.GetOrCreate<Guid>(key, _ => val);
             Assert.AreEqual(result, val);
 
             var val2 = Guid.NewGuid();
@@ -117,7 +117,7 @@ namespace Chuye.Caching.Tests.Memcached {
             var val = Guid.NewGuid();
 
             IHttpRuntimeCacheProvider cacheProvider = MemcachedCacheProvider.Default;
-            var result = cacheProvider.GetOrCreate<Guid>(key, () => val);
+            var result = cacheProvider.GetOrCreate<Guid>(key, _ => val);
             Assert.AreEqual(result, val);
 
             var exist = cacheProvider.TryGet<Guid>(key, out val);
