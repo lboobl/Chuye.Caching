@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Chuye.Caching.Tests.HttpRuntimeCache {
     [TestClass]
-    public class RegionTest {
+    public class HttpRuntimeCacheProviderRegionTest {
         [TestMethod]
         public void Duplicate() {
             var key = Guid.NewGuid().ToString();
@@ -33,7 +33,7 @@ namespace Chuye.Caching.Tests.HttpRuntimeCache {
             //region a 创建 key->val1
             var cacheProvider1 = new HttpRuntimeCacheProvider("c");
             cacheProvider1.GetOrCreate<Guid>(key, k => Guid.NewGuid());
-            Assert.IsTrue(((HttpRuntimeCacheProvider)cacheProvider1).Count() == 1);
+            Assert.IsTrue(cacheProvider1.Count() == 1);
 
             //reigon b 创建 key-val2
             var cacheProvider2 = new HttpRuntimeCacheProvider("d");

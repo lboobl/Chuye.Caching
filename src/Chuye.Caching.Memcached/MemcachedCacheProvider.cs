@@ -37,38 +37,36 @@ namespace Chuye.Caching.Memcached {
         }
 
         // Will not last expire time
-        public Boolean TryGetObject(string key, out object entry) {
-            return _client.TryGet(BuildCacheKey(key), out entry);
+        public Boolean TryGetObject(string key, out object value) {
+            return _client.TryGet(BuildCacheKey(key), out value);
         }
 
-        public override bool TryGet<T>(string key, out T entry) {
-            Object cacheEntry;
-            Boolean exist = TryGetObject(key, out cacheEntry);
-            if (!exist) {
-                //不存在
-                entry = default(T);
+        public override bool TryGet<T>(string key, out T value) {
+            String cacheKey = BuildCacheKey(key);
+            Object cacheValue;
+
+            var exists = TryGetObject(cacheKey, out cacheValue);
+            if (!exists) {
+                value = default(T);
                 return false;
             }
-            if (cacheEntry == null) {
-                //存在但为 null
-                entry = (T)((Object)null);
+            if (cacheValue is T) {
+                value = (T)cacheValue;
                 return true;
             }
-            if (cacheEntry is T) {
-                //存在，直接返回
-                entry = (T)cacheEntry;
+            if (cacheValue == null) {
+                value = (T)((Object)null);
                 return true;
             }
-
             //使用与不使用 NewtonsoftJsonTranscoder 的情况下都支持
             SlidingCacheWrapper<T> slidingCache;
-            if (SlidingCacheWrapper<T>.IsSlidingCache(cacheEntry, out slidingCache)) {
+            if (SlidingCacheWrapper<T>.IsSlidingCache(cacheValue, out slidingCache)) {
                 //尝试以 SlidingCacheWrapper<T> 处理
                 var diffSpan = DateTime.Now.Subtract(slidingCache.SettingTime);
                 //当前时间-设置时间>滑动时间, 已经过期
                 if (diffSpan > slidingCache.SlidingExpiration) {
                     Expire(key);
-                    entry = default(T);
+                    value = default(T);
                     return false;
                 }
 
@@ -76,31 +74,31 @@ namespace Chuye.Caching.Memcached {
                 if (diffSpan.Add(diffSpan) > slidingCache.SlidingExpiration) {
                     Overwrite(key, slidingCache.Value, slidingCache.SlidingExpiration);
                 }
-                entry = slidingCache.Value;
+                value = slidingCache.Value;
             }
             else {
                 //尝试以普通JSON处理
-                entry = NewtonsoftJsonUtil.EnsureObjectType<T>(cacheEntry);
+                value = NewtonsoftJsonUtil.EnsureObjectType<T>(cacheValue);
             }
             return true;
         }
 
-        public T GetOrCreate<T>(String key, Func<T> function, TimeSpan slidingExpiration) {
+        public T GetOrCreate<T>(String key, Func<String, T> func, TimeSpan slidingExpiration) {
             T value;
-            if (TryGet<T>(key, out value)) {
+            if (TryGet(key, out value)) {
                 return value;
             }
-            value = function();
+            value = func(key);
             Overwrite(key, value, slidingExpiration);
             return value;
         }
 
-        public T GetOrCreate<T>(String key, Func<T> function, DateTime absoluteExpiration) {
+        public T GetOrCreate<T>(String key, Func<String, T> func, DateTime absoluteExpiration) {
             T value;
-            if (TryGet<T>(key, out value)) {
+            if (TryGet(key, out value)) {
                 return value;
             }
-            value = function();
+            value = func(key);
             Overwrite(key, value, absoluteExpiration);
             return value;
         }
@@ -193,21 +191,6 @@ namespace Chuye.Caching.Memcached {
                     }
                 }
                 return false;
-            }
-        }
-
-        internal class NewtonsoftJsonUtil {
-            public static T EnsureObjectType<T>(Object obj) {
-                if (obj is T) {
-                    return (T)obj;
-                }
-                else if (obj is JObject) {
-                    return ((JObject)obj).ToObject<T>();
-                }
-                else {
-                    //return (T)Convert.ChangeType(obj, typeof(T));  // Guid 类型将失败
-                    return JToken.FromObject(obj).ToObject<T>();
-                }
             }
         }
     }

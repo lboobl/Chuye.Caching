@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace Chuye.Caching.Redis {
     internal class NewtonsoftJsonUtil {
         private static readonly JsonSerializerSettings _jsonSettings;

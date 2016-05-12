@@ -3,6 +3,7 @@ using System.Web;
 
 namespace Chuye.Caching {
     public class HttpContextCacheProvider : CacheProvider, ICacheProvider {
+        private static readonly Object _nullEntry = new Object();
         private const String _prefix = "HCCP_";
 
         public HttpContextCacheProvider() {
@@ -11,46 +12,47 @@ namespace Chuye.Caching {
             }
         }
 
-        protected internal override String BuildCacheKey(String key) {
+        protected override String BuildCacheKey(String key) {
             return String.Concat(_prefix, key);
         }
 
-        private Boolean InnerTryGet(String key, out Object entry) {
-            Boolean exist = false;
-            entry = null;
-            if (HttpContext.Current.Items.Contains(key)) {
-                exist = true;
-                entry = HttpContext.Current.Items[key];
+        protected override Object BuildCacheValue<T>(T value) {
+            if (value == null) {
+                return _nullEntry;
             }
-            return exist;
+            return value;
         }
 
-        public override bool TryGet<T>(string key, out T entry) {
+        private Boolean InnerTryGet(String key, out Object value) {
+            value = HttpContext.Current.Items[key];
+            return value != null;
+        }
+
+        public override Boolean TryGet<T>(String key, out T value) {
             String cacheKey = BuildCacheKey(key);
-            Object cacheEntry;
-            Boolean exist = InnerTryGet(cacheKey, out cacheEntry);
-            if (!exist) {
-                entry = default(T);
+            Object cacheValue;
+
+            var exists = InnerTryGet(cacheKey, out cacheValue);
+            if (!exists) {
+                value = default(T);
                 return false;
             }
+            if (cacheValue == _nullEntry) {
+                value = (T)((Object)null);
+                return true;
+            }
+            if (cacheValue is T) {
+                value = (T)cacheValue;
+                return true;
+            }
 
-            if (cacheEntry == null) {
-                entry = (T)((Object)null);
-                return true;
-            }
-            if (cacheEntry is T) {
-                entry = (T)cacheEntry;
-                return true;
-            }
-            else {
-                //cacheEntry is not a t
-                throw new InvalidOperationException(String.Format("缓存项`[{0}]`类型错误, {1} or {2} ?",
-                    key, cacheEntry.GetType().FullName, typeof(T).FullName));
-            }
+            //cacheEntry is not a t
+            throw new InvalidOperationException(String.Format("Cache entry`[{0}]` type error, {1} or {2} ?",
+                key, cacheValue.GetType().FullName, typeof(T).FullName));
         }
 
         public override void Overwrite<T>(String key, T entry) {
-            HttpContext.Current.Items[BuildCacheKey(key)] = entry;
+            HttpContext.Current.Items[BuildCacheKey(key)] = BuildCacheValue(entry);
         }
 
         public override void Expire(String key) {
