@@ -50,13 +50,14 @@ namespace Chuye.Caching.Tests.HttpContextCache {
         public void Save_null_then_get() {
             var key = "key-object-null";
             ICacheProvider cache = new HttpContextCacheProvider();
+
             Object id1 = null;
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.IsNull(id2);
 
             Object id3;
             var exists = cache.TryGet(key, out id3);
-            Assert.IsFalse(exists);
+            Assert.IsTrue(exists);
         }
     }
 }

@@ -25,26 +25,24 @@ namespace Chuye.Caching {
 
         private Boolean InnerTryGet(String key, out Object value) {
             value = HttpContext.Current.Items[key];
-            return value != null && value != _nullEntry;
-            //value = HttpContext.Current.Items[key];
-            //return HttpContext.Current.Items.Contains(key);
+            return value != null;
         }
 
-        public override Boolean TryGet<T>(String key, out T entry) {
+        public override Boolean TryGet<T>(String key, out T value) {
             String cacheKey = BuildCacheKey(key);
             Object cacheValue;
 
             var exists = InnerTryGet(cacheKey, out cacheValue);
-            if (!exists || cacheValue == _nullEntry) {
-                entry = default(T);
+            if (!exists) {
+                value = default(T);
                 return false;
             }
-            if (cacheValue is T) {
-                entry = (T)cacheValue;
+            if (cacheValue == _nullEntry) {
+                value = (T)((Object)null);
                 return true;
             }
-            if (cacheValue == null) {
-                entry = (T)((Object)null);
+            if (cacheValue is T) {
+                value = (T)cacheValue;
                 return true;
             }
 

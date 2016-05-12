@@ -43,7 +43,6 @@ namespace Chuye.Caching.Redis {
             }
         }
 
-
         public StackExchangeRedis(String connectionString) {
             if (String.IsNullOrWhiteSpace(connectionString)) {
                 throw new ArgumentOutOfRangeException("connectionString");

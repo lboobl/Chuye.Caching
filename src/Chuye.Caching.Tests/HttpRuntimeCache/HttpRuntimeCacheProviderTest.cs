@@ -43,160 +43,89 @@ namespace Chuye.Caching.Tests.HttpRuntimeCache {
         public void Save_null_then_get() {
             var key = "key-object-null";
             ICacheProvider cache = new HttpRuntimeCacheProvider();
-            Object id1 = null;
+
+            Person id1 = null;
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.IsNull(id2);
 
-            Object id3;
+            Person id3;
             var exists = cache.TryGet(key, out id3);
-            Assert.IsFalse(exists);
+            Assert.IsTrue(exists);
+        }
+
+        [TestMethod]
+        public void Set_with_slidingExpiration_then_get() {
+            var key = Guid.NewGuid().ToString();
+            var value = Guid.NewGuid();
+
+            IHttpRuntimeCacheProvider cacheProvider = new HttpRuntimeCacheProvider();
+            cacheProvider.Overwrite(key, value, TimeSpan.FromSeconds(3D));
+
+            {
+                Guid value2;
+                Thread.Sleep(2000);
+                var exist = cacheProvider.TryGet<Guid>(key, out value2);
+                Assert.IsTrue(exist);
+                Assert.AreEqual(value2, value);
+            }
+            {
+                Guid value2;
+                Thread.Sleep(2000);
+                var exist = cacheProvider.TryGet(key, out value2);
+                Assert.IsTrue(exist);
+                Assert.AreEqual(value2, value);
+            }
+            {
+                Guid value2;
+                Thread.Sleep(4000);
+                var exist = cacheProvider.TryGet(key, out value2);
+                Assert.IsFalse(exist);
+            }
+        }
+
+        [TestMethod]
+        public void Set_with_absoluteExpiration_then_get() {
+            var key = Guid.NewGuid().ToString();
+            var value = Guid.NewGuid();
+
+            IHttpRuntimeCacheProvider cacheProvider = new HttpRuntimeCacheProvider();
+            cacheProvider.Overwrite(key, value, DateTime.Now.AddSeconds(3D));
+
+            {
+                Guid value2;
+                Thread.Sleep(2000);
+                var exist = cacheProvider.TryGet<Guid>(key, out value2);
+                Assert.IsTrue(exist);
+                Assert.AreEqual(value2, value);
+            }
+            {
+                Guid value2;
+                Thread.Sleep(2000);
+                var exist = cacheProvider.TryGet(key, out value2);
+                Assert.IsFalse(exist);
+            }
+        }
+
+        [TestMethod]
+        public void Set_then_expire() {
+            var key = Guid.NewGuid().ToString();
+            var value = Guid.NewGuid();
+
+            var cacheProvider = new HttpRuntimeCacheProvider();
+            cacheProvider.Overwrite(key, value);
+
+            cacheProvider.Expire(key);
+            Guid value2;
+            var exist = cacheProvider.TryGet(key, out value2);
+            Assert.IsFalse(exist);
+            Assert.AreEqual(value2, Guid.Empty);
+
+            cacheProvider.ExpireAll();
+            Assert.AreEqual(cacheProvider.Count(), 0);
         }
         
         [TestMethod]
-        public void GetOrCreateWithslidingExpiration() {
-            var key = Guid.NewGuid().ToString();
-            var val = Guid.NewGuid();
-
-            IHttpRuntimeCacheProvider cacheProvider = new HttpRuntimeCacheProvider();
-            var result = cacheProvider.GetOrCreate<Guid>(key, _ => val, TimeSpan.FromSeconds(1.5D));
-            Assert.AreEqual(result, val);
-            {
-                Thread.Sleep(1000);
-                var exist = cacheProvider.TryGet<Guid>(key, out val);
-                Assert.IsTrue(exist);
-                Assert.AreEqual(result, val);
-            }
-            {
-                Thread.Sleep(1000);
-                var exist = cacheProvider.TryGet<Guid>(key, out val);
-                Assert.IsTrue(exist);
-                Assert.AreEqual(result, val);
-            }
-            {
-                Thread.Sleep(2000);
-                var exist = cacheProvider.TryGet<Guid>(key, out val);
-                Assert.IsFalse(exist);
-                Assert.AreEqual(val, Guid.Empty);
-            }
-        }
-
-        [TestMethod]
-        public void GetOrCreateWithAbsoluteExpiration() {
-            var key = Guid.NewGuid().ToString();
-            var val = Guid.NewGuid();
-
-            IHttpRuntimeCacheProvider cacheProvider = new HttpRuntimeCacheProvider();
-            var result = cacheProvider.GetOrCreate<Guid>(key, _ => val, DateTime.UtcNow.AddSeconds(2D));
-            Assert.AreEqual(result, val);
-
-            var exist = cacheProvider.TryGet<Guid>(key, out val);
-            Assert.IsTrue(exist);
-            Assert.AreEqual(result, val);
-
-            Thread.Sleep(2000);
-            exist = cacheProvider.TryGet<Guid>(key, out val);
-            Assert.IsFalse(exist);
-            Assert.AreEqual(val, Guid.Empty);
-        }
-
-        [TestMethod]
-        public void OverwriteWithslidingExpiration() {
-            var key = Guid.NewGuid().ToString();
-            var val = Guid.NewGuid();
-
-            IHttpRuntimeCacheProvider cacheProvider = new HttpRuntimeCacheProvider();
-            var result = cacheProvider.GetOrCreate<Guid>(key, _ => val);
-            Assert.AreEqual(result, val);
-
-            var val2 = Guid.NewGuid();
-            cacheProvider.Overwrite<Guid>(key, val2, TimeSpan.FromSeconds(1D));
-
-            Thread.Sleep(2000);
-            Guid val3;
-            var exist = cacheProvider.TryGet<Guid>(key, out val3);
-            Assert.IsFalse(exist);
-            Assert.AreEqual(val3, Guid.Empty);
-
-        }
-
-        [TestMethod]
-        public void OverwriteWithAbsoluteExpiration() {
-            var key = Guid.NewGuid().ToString();
-            var val = Guid.NewGuid();
-
-            IHttpRuntimeCacheProvider cacheProvider = new HttpRuntimeCacheProvider();
-            var result = cacheProvider.GetOrCreate<Guid>(key, _ => val);
-            Assert.AreEqual(result, val);
-
-            var val2 = Guid.NewGuid();
-            cacheProvider.Overwrite<Guid>(key, val2, DateTime.UtcNow.AddSeconds(1D));
-
-            Thread.Sleep(2000);
-            Guid val3;
-            var exist = cacheProvider.TryGet<Guid>(key, out val3);
-            Assert.IsFalse(exist);
-            Assert.AreEqual(val3, Guid.Empty);
-
-        }
-
-        [TestMethod]
-        public void Expire() {
-            var key = Guid.NewGuid().ToString();
-            var val = Guid.NewGuid();
-
-            IHttpRuntimeCacheProvider cacheProvider = new HttpRuntimeCacheProvider();
-            var result = cacheProvider.GetOrCreate<Guid>(key, _ => val);
-            Assert.AreEqual(result, val);
-
-            cacheProvider.Expire(key);
-            Guid val2;
-            var exist = cacheProvider.TryGet<Guid>(key, out val2);
-            Assert.IsFalse(exist);
-            Assert.AreEqual(val2, Guid.Empty);
-        }
-
-        [TestMethod]
-        public void ExpireAll() {
-            var key = Guid.NewGuid().ToString();
-            var val = Guid.NewGuid();
-
-            HttpRuntimeCacheProvider cacheProvider = new HttpRuntimeCacheProvider();
-            var result = cacheProvider.GetOrCreate<Guid>(key, _ => val);
-            Assert.AreEqual(result, val);
-            Assert.IsTrue(cacheProvider.Count() > 0);
-
-
-            cacheProvider.ExpireAll();
-            Guid val2;
-            var exist = cacheProvider.TryGet<Guid>(key, out val2);
-            Assert.IsFalse(exist);
-            Assert.AreEqual(val2, Guid.Empty);
-
-            Assert.IsTrue(cacheProvider.Count() == 0);
-        }
-
-
-        [TestMethod]
-        public void Callback() {
-            var key = Guid.NewGuid().ToString();
-            var val = Guid.NewGuid();
-
-            HttpRuntimeCacheProvider cacheProvider = new HttpRuntimeCacheProvider();
-            var expireCallback = new CacheItemUpdateCallback(Callback);
-            cacheProvider.Overwrite(key, val, DateTime.Now.AddSeconds(4D), expireCallback);
-            Thread.Sleep(5000);
-        }
-
-        private void Callback(string key, CacheItemUpdateReason reason, out object expensiveObject, out CacheDependency dependency, out DateTime absoluteExpiration, out TimeSpan slidingExpiration) {
-            expensiveObject = null;
-            dependency = null;
-            absoluteExpiration = Cache.NoAbsoluteExpiration;
-            slidingExpiration = Cache.NoSlidingExpiration;
-            Console.WriteLine("{0} key expired", key);
-        }
-
-        [TestMethod]
-        public void Flush() {
+        public void Set_then_flush() {
             var cacheProvider = new HttpRuntimeCacheProvider();
             cacheProvider.Overwrite("id", 21685);
             cacheProvider.Overwrite("begin", DateTime.Now);
