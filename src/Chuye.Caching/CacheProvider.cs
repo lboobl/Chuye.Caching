@@ -7,29 +7,22 @@ using System.Threading.Tasks;
 
 namespace Chuye.Caching {
     public abstract class CacheProvider : ICacheProvider {
-        protected internal virtual String BuildCacheKey(String key) {
+        protected virtual String BuildCacheKey(String key) {
             return key;
         }
-        
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public abstract Boolean TryGet<T>(String key, out T entry);        
 
-        public virtual T GetOrCreate<T>(String key, Func<T> function) {
-            T entry;
-            if (TryGet(key, out entry)) {
-                return entry;
-            }
-            entry = function();
-            Overwrite(key, entry);
-            return entry;
+        protected virtual Object BuildCacheValue<T>(T value) {
+            return value;
         }
 
-        public virtual T GetOrCreate<T>(String key, Func<String, T> factory) {
+        public abstract Boolean TryGet<T>(String key, out T value);
+
+        public virtual T GetOrCreate<T>(String key, Func<String, T> func) {
             T entry;
             if (TryGet(key, out entry)) {
                 return entry;
             }
-            entry = factory(key);
+            entry = func(key);
             Overwrite(key, entry);
             return entry;
         }

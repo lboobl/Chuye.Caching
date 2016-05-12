@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace Chuye.Caching {
     public interface ICacheProvider {
-        Boolean TryGet<T>(String key, out T entry);
-        T GetOrCreate<T>(String key, Func<T> function);
-        T GetOrCreate<T>(String key, Func<String, T> factory);
-        void Overwrite<T>(String key, T entry);
+        Boolean TryGet<T>(String key, out T value);
+        T GetOrCreate<T>(String key, Func<String, T> func);
+        void Overwrite<T>(String key, T value);
         void Expire(String key);
     }
 }

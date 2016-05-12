@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Chuye.Caching {
-
     public interface IDistributedLock {
         IDisposable ReleasableLock(String key, Int32 milliseconds = DistributedLockTime.DisposeMillisecond);
         void Lock(String key, Int32 milliseconds);
