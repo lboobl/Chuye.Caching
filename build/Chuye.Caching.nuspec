@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Chuye.Caching</id>
-    <version>2.1.1</version>
+    <version>2.2</version>
     <title>Chuye.Caching</title>
     <authors>jusfr</authors>
     <owners>jusfr</owners>
@@ -17,6 +17,6 @@
     <dependencies /> 
   </metadata>
   <files>
-    <file src="..\release\Chuye.Caching.Memcached\Chuye.Caching.dll" target="lib\net45" />
+    <file src="..\release\Chuye.Caching\Chuye.Caching.dll" target="lib\net45" />
   </files>
 </package>

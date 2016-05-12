@@ -9,6 +9,7 @@ msbuild "%local%src\Chuye.Caching.sln" /t:Rebuild /P:Configuration=Release
 @goto copy
 
 :copy
+robocopy "%local%src\Chuye.Caching\bin\Release" "%local%release\Chuye.Caching" /mir
 robocopy "%local%src\Chuye.Caching.Memcached\bin\Release" "%local%release\Chuye.Caching.Memcached" /mir
 robocopy "%local%src\Chuye.Caching.Redis\bin\Release" "%local%release\Chuye.Caching.Redis" /mir
 @pack end

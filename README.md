@@ -31,7 +31,7 @@ More detail in [HttpRuntimeCacheProviderTest](src/Chuye.Caching.Tests/HttpRuntim
 ```c
     IDistributedLock cache 
         = MemcachedCacheProvider.Default; 
-        //= StackExchangeRedis.Default;   //or using redis
+        //= new RedisCacheProvider(StackExchangeRedis.Default);   //U could using redis directly though
     var key = "DistributedLock";
 
     var list = new List<int>();
@@ -52,4 +52,4 @@ More detail in [HttpRuntimeCacheProviderTest](src/Chuye.Caching.Tests/HttpRuntim
 ```
 
 More detail in [MemcachedCacheProviderTest](src/Chuye.Caching.Tests/Memcached/MemcachedCacheProviderTest.cs)
-  or [RedisTest](src/Chuye.Caching.Tests/Redis/RedisTest.cs)
+  or [RedisCacheProviderTest](src/Chuye.Caching.Tests/Redis/RedisCacheProviderTest.cs)
