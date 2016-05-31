@@ -123,12 +123,17 @@ namespace Chuye.Caching.Tests.Memcached {
         [TestMethod]
         public void Lock_then_modify_list() {
             IDistributedLock memcached = new MemcachedCacheProvider("enyim.com/memcached", "region7");
-            var key = "DistributedLock1";
+            var key = Guid.NewGuid().ToString();
 
             {
                 var list = new List<int>();
-                var except = new Random().Next(1000, 2000);
+                var except = new Random().Next(100, 200);
                 var stopwatch = Stopwatch.StartNew();
+
+                using (memcached.ReleasableLock(key)) {
+                    list.Add(0);
+                }
+                list.Clear();
 
                 Parallel.For(0, except, i => {
                     using (memcached.ReleasableLock(key)) {

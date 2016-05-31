@@ -122,7 +122,7 @@ namespace Chuye.Caching.Memcached {
             while (!TryLock(key, expire)) {
                 Thread.Sleep(DistributedLockTime.IntervalMillisecond);
             }
-            return new MemcachedLockReleaser(_client, key);
+            return new MemcachedLockReleaser(this, key);
         }
 
         public void Lock(String key, Int32 expire) {
@@ -137,20 +137,20 @@ namespace Chuye.Caching.Memcached {
         }
 
         public void UnLock(String key) {
-            Expire(BuildCacheKey(key));
+            Expire(key);
         }
 
         private struct MemcachedLockReleaser : IDisposable {
-            private MemcachedClient _client;
+            private MemcachedCacheProvider _client;
             private String _key;
 
-            public MemcachedLockReleaser(MemcachedClient client, String key) {
+            public MemcachedLockReleaser(MemcachedCacheProvider client, String key) {
                 _client = client;
                 _key = key;
             }
 
             public void Dispose() {
-                _client.ExecuteRemove(_key);
+                _client.UnLock(_key);
             }
         }
 

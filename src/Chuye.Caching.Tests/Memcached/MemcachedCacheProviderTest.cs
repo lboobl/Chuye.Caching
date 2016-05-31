@@ -127,7 +127,7 @@ namespace Chuye.Caching.Tests.Memcached {
 
             {
                 var list = new List<int>();
-                var except = new Random().Next(1000, 2000);
+                var except = new Random().Next(100, 200);
                 var stopwatch = Stopwatch.StartNew();
 
                 Parallel.For(0, except, i => {
