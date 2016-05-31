@@ -18,7 +18,7 @@ namespace Chuye.Caching {
 
         public HttpRuntimeCacheProvider(String region) {
             Region = region;
-            _prefix = String.Concat("HRCP_", Region, "_");
+            _prefix = String.Concat("HRCP-", Region, "-");
         }
 
         private Boolean InnerTryGet(String key, out Object value) {

@@ -8,7 +8,6 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace Chuye.Caching.Memcached {
-
     public class MemcachedCacheProvider : CacheProvider, IHttpRuntimeCacheProvider, IRegion, IDistributedLock {
         private static MemcachedCacheProvider _default;
         private readonly MemcachedClient _client;
@@ -33,19 +32,14 @@ namespace Chuye.Caching.Memcached {
         }
 
         protected override String BuildCacheKey(String key) {
-            return Region == null ? key : String.Concat(Region, "_", key);
-        }
-
-        // Will not last expire time
-        public Boolean TryGetObject(string key, out object value) {
-            return _client.TryGet(BuildCacheKey(key), out value);
+            return Region == null ? key : String.Concat(Region, "-", key);
         }
 
         public override bool TryGet<T>(string key, out T value) {
             String cacheKey = BuildCacheKey(key);
             Object cacheValue;
 
-            var exists = TryGetObject(cacheKey, out cacheValue);
+            var exists = _client.TryGet(cacheKey, out cacheValue);
             if (!exists) {
                 value = default(T);
                 return false;
@@ -128,7 +122,7 @@ namespace Chuye.Caching.Memcached {
             while (!TryLock(key, expire)) {
                 Thread.Sleep(DistributedLockTime.IntervalMillisecond);
             }
-            return new MemcachedLockReleaser(_client, key);
+            return new MemcachedLockReleaser(this, key);
         }
 
         public void Lock(String key, Int32 expire) {
@@ -143,20 +137,20 @@ namespace Chuye.Caching.Memcached {
         }
 
         public void UnLock(String key) {
-            Expire(BuildCacheKey(key));
+            Expire(key);
         }
 
         private struct MemcachedLockReleaser : IDisposable {
-            private MemcachedClient _client;
+            private MemcachedCacheProvider _client;
             private String _key;
 
-            public MemcachedLockReleaser(MemcachedClient client, String key) {
+            public MemcachedLockReleaser(MemcachedCacheProvider client, String key) {
                 _client = client;
                 _key = key;
             }
 
             public void Dispose() {
-                _client.ExecuteRemove(_key);
+                _client.UnLock(_key);
             }
         }
 

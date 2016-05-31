@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Chuye.Caching.Redis;
+using Chuye.Caching.Memcached;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Chuye.Caching.Tests.Redis {
+namespace Chuye.Caching.Tests.Memcached {
     [TestClass]
-    public class RedisCacheProviderRegionTest {
+    public class MemcachedCacheProviderRegionTest {
         [TestMethod]
         public void Save_ValueType_then_get() {
             var key = "key-guid";
-            ICacheProvider cache = new RedisCacheProvider(StackExchangeRedis.Default, "region1");
+            ICacheProvider cache = new MemcachedCacheProvider("enyim.com/memcached", "region1");
             var id1 = Guid.NewGuid();
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.AreEqual(id1, id2);
@@ -28,7 +28,7 @@ namespace Chuye.Caching.Tests.Redis {
         [TestMethod]
         public void Save_ReferenceType_then_get() {
             var key = "key-object";
-            ICacheProvider cache = new RedisCacheProvider(StackExchangeRedis.Default, "region2");
+            ICacheProvider cache = new MemcachedCacheProvider("enyim.com/memcached", "region2");
             var id1 = new Object();
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.AreEqual(id1, id2);
@@ -44,7 +44,7 @@ namespace Chuye.Caching.Tests.Redis {
         [TestMethod]
         public void Save_null_then_get() {
             var key = "key-object-null";
-            ICacheProvider cache = new RedisCacheProvider(StackExchangeRedis.Default, "region3");
+            ICacheProvider cache = new MemcachedCacheProvider("enyim.com/memcached", "region3");
 
             cache.Overwrite(key, (Person)null);
             Person id1;
@@ -57,7 +57,7 @@ namespace Chuye.Caching.Tests.Redis {
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default, "region4");
+            IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider("enyim.com/memcached", "region4");
             cacheProvider.Overwrite(key, value, TimeSpan.FromSeconds(3D));
 
             {
@@ -71,6 +71,13 @@ namespace Chuye.Caching.Tests.Redis {
                 Guid value2;
                 Thread.Sleep(2000);
                 var exist = cacheProvider.TryGet(key, out value2);
+                Assert.IsTrue(exist);
+                Assert.AreEqual(value2, value);
+            }
+            {
+                Guid value2;
+                Thread.Sleep(4000);
+                var exist = cacheProvider.TryGet(key, out value2);
                 Assert.IsFalse(exist);
             }
         }
@@ -80,7 +87,7 @@ namespace Chuye.Caching.Tests.Redis {
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default, "region5");
+            IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider("enyim.com/memcached", "region5");
             cacheProvider.Overwrite(key, value, DateTime.Now.AddSeconds(3D));
 
             {
@@ -103,7 +110,7 @@ namespace Chuye.Caching.Tests.Redis {
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default, "region6");
+            IHttpRuntimeCacheProvider cacheProvider = new MemcachedCacheProvider("enyim.com/memcached", "region6");
             cacheProvider.Overwrite(key, value);
 
             cacheProvider.Expire(key);
@@ -115,13 +122,18 @@ namespace Chuye.Caching.Tests.Redis {
 
         [TestMethod]
         public void Lock_then_modify_list() {
-            IDistributedLock memcached = new RedisCacheProvider(StackExchangeRedis.Default, "region7");
-            var key = "DistributedLock1";
+            IDistributedLock memcached = new MemcachedCacheProvider("enyim.com/memcached", "region7");
+            var key = Guid.NewGuid().ToString();
 
             {
                 var list = new List<int>();
                 var except = new Random().Next(100, 200);
                 var stopwatch = Stopwatch.StartNew();
+
+                using (memcached.ReleasableLock(key)) {
+                    list.Add(0);
+                }
+                list.Clear();
 
                 Parallel.For(0, except, i => {
                     using (memcached.ReleasableLock(key)) {
@@ -155,3 +167,4 @@ namespace Chuye.Caching.Tests.Redis {
         }
     }
 }
+
