@@ -4,7 +4,7 @@ using System.Web;
 namespace Chuye.Caching {
     public class HttpContextCacheProvider : CacheProvider, ICacheProvider {
         private static readonly Object _nullEntry = new Object();
-        private const String _prefix = "HCCP_";
+        private const String _prefix = "HCCP-";
 
         public HttpContextCacheProvider() {
             if (HttpContext.Current == null) {

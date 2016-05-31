@@ -1,109 +1,155 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Web.Caching;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Chuye.Caching.Tests.HttpRuntimeCache {
     [TestClass]
     public class HttpRuntimeCacheProviderRegionTest {
         [TestMethod]
-        public void Duplicate() {
-            var key = Guid.NewGuid().ToString();
-            var val1 = Guid.NewGuid();
+        public void Save_ValueType_then_get() {
+            var key = "key-guid";
+            ICacheProvider cache = new HttpRuntimeCacheProvider("region1");
+            var id1 = Guid.NewGuid();
+            var id2 = cache.GetOrCreate(key, _ => id1);
+            Assert.AreEqual(id1, id2);
 
-            //region a 创建 key->val1
-            HttpRuntimeCacheProvider cacheProvider1 = new HttpRuntimeCacheProvider("a");
-            var result = cacheProvider1.GetOrCreate<Guid>(key, k => val1);
-            Assert.AreEqual(result, val1);
-            Assert.IsTrue(((HttpRuntimeCacheProvider)cacheProvider1).Count() == 1);
-
-            //reigon b 确认不存在键 key
-            HttpRuntimeCacheProvider cacheProvider2 = new HttpRuntimeCacheProvider("b");
-            Assert.IsTrue(cacheProvider2.Count() == 0);
-            Guid val2;
-            var exist = cacheProvider2.TryGet<Guid>(key, out val2);
-            Assert.IsFalse(exist);
-            Assert.AreEqual(val2, Guid.Empty);
+            cache.Expire(key);
+            Guid id3;
+            var exists = cache.TryGet(key, out id3);
+            Assert.IsFalse(exists);
+            Assert.AreNotEqual(id1, id3);
+            Assert.AreEqual(id3, Guid.Empty);
         }
 
         [TestMethod]
-        public void Duplicate2() {
-            var key = Guid.NewGuid().ToString();
-            //region a 创建 key->val1
-            var cacheProvider1 = new HttpRuntimeCacheProvider("c");
-            cacheProvider1.GetOrCreate<Guid>(key, k => Guid.NewGuid());
-            Assert.IsTrue(cacheProvider1.Count() == 1);
+        public void Save_ReferenceType_then_get() {
+            var key = "key-object";
+            ICacheProvider cache = new HttpRuntimeCacheProvider("region2");
+            var id1 = new Object();
+            var id2 = cache.GetOrCreate(key, _ => id1);
+            Assert.AreEqual(id1, id2);
 
-            //reigon b 创建 key-val2
-            var cacheProvider2 = new HttpRuntimeCacheProvider("d");
-            cacheProvider2.GetOrCreate<Guid>(key, k => Guid.NewGuid());
-            Assert.IsTrue(cacheProvider2.Count() == 1);
-
-
-            //确认reigon a 键 key 与 region b 键 key 对应值不同
-            Guid val1;
-            var exist1 = cacheProvider1.TryGet<Guid>(key, out val1);
-            Assert.IsTrue(exist1);
-
-            Guid val2;
-            var exist2 = cacheProvider2.TryGet<Guid>(key, out val2);
-            Assert.IsTrue(exist2);
-
-            Assert.AreNotEqual(val1, val2);
+            cache.Expire(key);
+            Object id3;
+            var exists = cache.TryGet(key, out id3);
+            Assert.IsFalse(exists);
+            Assert.AreNotEqual(id1, id3);
+            Assert.AreEqual(id3, null);
         }
 
         [TestMethod]
-        public void ExpireAll() {
-            var key = Guid.NewGuid().ToString();
-            //region a 创建 key->val1
-            var cacheProvider1 = new HttpRuntimeCacheProvider("e");
-            cacheProvider1.GetOrCreate<Guid>(key, k => Guid.NewGuid());
+        public void Save_null_then_get() {
+            var key = "key-object-null";
+            ICacheProvider cache = new HttpRuntimeCacheProvider("region3");
 
-            //reigon b 创建 key-val2
-            var cacheProvider2 = new HttpRuntimeCacheProvider("f");
-            cacheProvider2.GetOrCreate<Guid>(key, k => Guid.NewGuid());
+            Person id1 = null;
+            var id2 = cache.GetOrCreate(key, _ => id1);
+            Assert.IsNull(id2);
 
-            //region a 过期全部, 确认 region b 未被过期
-            cacheProvider1.ExpireAll();
-            Guid val1;
-            var exist = cacheProvider1.TryGet<Guid>(key, out val1);
-            Assert.IsFalse(exist);
-            Assert.AreEqual(val1, Guid.Empty);
-
-            Guid val2;
-            var exist2 = cacheProvider2.TryGet<Guid>(key, out val2);
-            Assert.IsTrue(exist2);
+            Person id3;
+            var exists = cache.TryGet(key, out id3);
+            Assert.IsTrue(exists);
         }
 
         [TestMethod]
-        public void Concurrency() {
-            var cacheProvider1 = new HttpRuntimeCacheProvider("g");
-            var cacheProvider2 = new HttpRuntimeCacheProvider("h");
+        public void Set_with_slidingExpiration_then_get() {
+            var key = Guid.NewGuid().ToString();
+            var value = Guid.NewGuid();
 
-            var tasks = new List<Task>();
-            var total = 10;
-            for (int i = 0; i < total; i++) {
-                if ((Guid.NewGuid().GetHashCode() & 1) == 0) {
-                    tasks.Add(new Task(action: x => cacheProvider1.GetOrCreate(x.ToString(), k => x), state: i));
-                }
-                else {
-                    tasks.Add(new Task(action: x => cacheProvider2.GetOrCreate(x.ToString(), k => x), state: i));
-                }
+            IHttpRuntimeCacheProvider cacheProvider = new HttpRuntimeCacheProvider("region4");
+            cacheProvider.Overwrite(key, value, TimeSpan.FromSeconds(3D));
+
+            {
+                Guid value2;
+                Thread.Sleep(2000);
+                var exist = cacheProvider.TryGet<Guid>(key, out value2);
+                Assert.IsTrue(exist);
+                Assert.AreEqual(value2, value);
             }
-            foreach (var task in tasks) {
-                task.Start();
+            {
+                Guid value2;
+                Thread.Sleep(2000);
+                var exist = cacheProvider.TryGet(key, out value2);
+                Assert.IsTrue(exist);
+                Assert.AreEqual(value2, value);
             }
-            Task.WaitAll(tasks.ToArray(), CancellationToken.None);
+            {
+                Guid value2;
+                Thread.Sleep(4000);
+                var exist = cacheProvider.TryGet(key, out value2);
+                Assert.IsFalse(exist);
+            }
+        }
 
-            var count1 = cacheProvider1.Count();
-            var count2 = cacheProvider2.Count();
-            Assert.AreEqual(count1 + count2, total);
-            
-            cacheProvider1.ExpireAll();
-            Assert.IsTrue(cacheProvider1.Count() == 0);
-            Assert.IsTrue(cacheProvider2.Count() == count2);
+        [TestMethod]
+        public void Set_with_absoluteExpiration_then_get() {
+            var key = Guid.NewGuid().ToString();
+            var value = Guid.NewGuid();
 
+            IHttpRuntimeCacheProvider cacheProvider = new HttpRuntimeCacheProvider("region5");
+            cacheProvider.Overwrite(key, value, DateTime.Now.AddSeconds(3D));
+
+            {
+                Guid value2;
+                Thread.Sleep(2000);
+                var exist = cacheProvider.TryGet<Guid>(key, out value2);
+                Assert.IsTrue(exist);
+                Assert.AreEqual(value2, value);
+            }
+            {
+                Guid value2;
+                Thread.Sleep(2000);
+                var exist = cacheProvider.TryGet(key, out value2);
+                Assert.IsFalse(exist);
+            }
+        }
+
+        [TestMethod]
+        public void Set_then_expire() {
+            var key = Guid.NewGuid().ToString();
+            var value = Guid.NewGuid();
+
+            var cacheProvider = new HttpRuntimeCacheProvider("region6");
+            cacheProvider.Overwrite(key, value);
+
+            cacheProvider.Expire(key);
+            Guid value2;
+            var exist = cacheProvider.TryGet(key, out value2);
+            Assert.IsFalse(exist);
+            Assert.AreEqual(value2, Guid.Empty);
+
+            cacheProvider.ExpireAll();
+            Assert.AreEqual(cacheProvider.Count(), 0);
+        }
+        
+        [TestMethod]
+        public void Set_then_flush() {
+            var cacheProvider = new HttpRuntimeCacheProvider("region7");
+            cacheProvider.Overwrite("id", 21685);
+            cacheProvider.Overwrite("begin", DateTime.Now);
+            var file1 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache1.db");
+            cacheProvider.Flush(file1, _ => true);
+
+            cacheProvider = new HttpRuntimeCacheProvider("User");
+            cacheProvider.Overwrite("13", new User { Id = 13, Name = "Rattz", Age = 20, Address = new[] { "Beijing", "Wuhan" } });
+            cacheProvider.Overwrite("14", new User { Id = 14, Name = "Kate", Age = 18, Address = new[] { "Tokyo", "Los Angeles" } });
+            var file2 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache2.db");
+            cacheProvider.Flush(file2, _ => true);
+
+            cacheProvider = new HttpRuntimeCacheProvider("Job");
+            cacheProvider.Overwrite("52", new { Id = 52, Title = "Software Engineer", Salary = 10000 });
+            cacheProvider.Overwrite("100", new { Id = 100, Title = "Gwhilsttroenterologist", Salary = 12000 });
+            var file3 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache3.db");
+            cacheProvider.Flush(file3, _ => true);
+        }
+
+        class User {
+            public Int32 Id { get; set; }
+            public String Name { get; set; }
+            public Int32 Age { get; set; }
+            public String[] Address { get; set; }
         }
     }
 }

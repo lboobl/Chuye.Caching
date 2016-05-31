@@ -8,7 +8,6 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace Chuye.Caching.Memcached {
-
     public class MemcachedCacheProvider : CacheProvider, IHttpRuntimeCacheProvider, IRegion, IDistributedLock {
         private static MemcachedCacheProvider _default;
         private readonly MemcachedClient _client;
@@ -33,19 +32,14 @@ namespace Chuye.Caching.Memcached {
         }
 
         protected override String BuildCacheKey(String key) {
-            return Region == null ? key : String.Concat(Region, "_", key);
-        }
-
-        // Will not last expire time
-        public Boolean TryGetObject(string key, out object value) {
-            return _client.TryGet(BuildCacheKey(key), out value);
+            return Region == null ? key : String.Concat(Region, "-", key);
         }
 
         public override bool TryGet<T>(string key, out T value) {
             String cacheKey = BuildCacheKey(key);
             Object cacheValue;
 
-            var exists = TryGetObject(cacheKey, out cacheValue);
+            var exists = _client.TryGet(cacheKey, out cacheValue);
             if (!exists) {
                 value = default(T);
                 return false;

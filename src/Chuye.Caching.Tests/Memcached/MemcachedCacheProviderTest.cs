@@ -46,12 +46,9 @@ namespace Chuye.Caching.Tests.Memcached {
             var key = "key-object-null";
             ICacheProvider cache = MemcachedCacheProvider.Default;
 
-            Person id1 = null;
-            var id2 = cache.GetOrCreate(key, _ => id1);
-            Assert.IsNull(id2);
-
-            Person id3;
-            var exists = cache.TryGet(key, out id3);
+            cache.Overwrite(key, (Person)null);
+            Person id1;
+            var exists = cache.TryGet(key, out id1);
             Assert.IsTrue(exists);
         }
 
@@ -124,7 +121,7 @@ namespace Chuye.Caching.Tests.Memcached {
         }
 
         [TestMethod]
-        public void DistributedLock() {
+        public void Lock_then_modify_list() {
             IDistributedLock memcached = MemcachedCacheProvider.Default;
             var key = "DistributedLock1";
 
