@@ -8,11 +8,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Chuye.Caching.Tests.Redis {
     [TestClass]
-    public class RedisCacheProviderRegionTest {
+    public class RedisCacheProviderTest {
         [TestMethod]
         public void Save_ValueType_then_get() {
             var key = "key-guid";
-            ICacheProvider cache = new RedisCacheProvider(StackExchangeRedis.Default, "region1");
+            ICacheProvider cache = new RedisCacheProvider(StackExchangeRedis.Default);
             var id1 = Guid.NewGuid();
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.AreEqual(id1, id2);
@@ -28,7 +28,7 @@ namespace Chuye.Caching.Tests.Redis {
         [TestMethod]
         public void Save_ReferenceType_then_get() {
             var key = "key-object";
-            ICacheProvider cache = new RedisCacheProvider(StackExchangeRedis.Default, "region2");
+            ICacheProvider cache = new RedisCacheProvider(StackExchangeRedis.Default);
             var id1 = new Object();
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.AreEqual(id1, id2);
@@ -44,7 +44,7 @@ namespace Chuye.Caching.Tests.Redis {
         [TestMethod]
         public void Save_null_then_get() {
             var key = "key-object-null";
-            ICacheProvider cache = new RedisCacheProvider(StackExchangeRedis.Default, "region3");
+            ICacheProvider cache = new RedisCacheProvider(StackExchangeRedis.Default);
 
             cache.Overwrite(key, (Person)null);
             Person id1;
@@ -57,7 +57,7 @@ namespace Chuye.Caching.Tests.Redis {
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default, "region4");
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default);
             cacheProvider.Overwrite(key, value, TimeSpan.FromSeconds(3D));
 
             {
@@ -80,7 +80,7 @@ namespace Chuye.Caching.Tests.Redis {
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default, "region5");
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default);
             cacheProvider.Overwrite(key, value, DateTime.Now.AddSeconds(3D));
 
             {
@@ -103,7 +103,7 @@ namespace Chuye.Caching.Tests.Redis {
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default, "region6");
+            IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default);
             cacheProvider.Overwrite(key, value);
 
             cacheProvider.Expire(key);
@@ -115,7 +115,7 @@ namespace Chuye.Caching.Tests.Redis {
 
         [TestMethod]
         public void Lock_then_modify_list() {
-            IDistributedLock memcached = new RedisCacheProvider(StackExchangeRedis.Default, "region7");
+            IDistributedLock memcached = new RedisCacheProvider(StackExchangeRedis.Default);
             var key = "DistributedLock1";
 
             {

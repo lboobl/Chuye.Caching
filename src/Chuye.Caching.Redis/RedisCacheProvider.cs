@@ -23,7 +23,7 @@ namespace Chuye.Caching.Redis {
         }
 
         protected override String BuildCacheKey(String key) {
-            return Region == null ? key : String.Concat(Region, "_", key);
+            return Region == null ? key : String.Concat(Region, "-", key);
         }
 
         public override void Expire(String key) {
@@ -33,7 +33,7 @@ namespace Chuye.Caching.Redis {
 
         public override bool TryGet<T>(String key, out T value) {
             var db = _connection.GetDatabase();
-            var entry= db.StringGet(BuildCacheKey(key));
+            var entry = db.StringGet(BuildCacheKey(key));
             if (!entry.HasValue) {
                 value = default(T);
                 return false;
@@ -43,7 +43,7 @@ namespace Chuye.Caching.Redis {
 
         }
 
-        public T GetOrCreate<T>(String key, Func<String,T> func, DateTime absoluteExpiration) {
+        public T GetOrCreate<T>(String key, Func<String, T> func, DateTime absoluteExpiration) {
             T value;
             if (TryGet<T>(key, out value)) {
                 return value;
