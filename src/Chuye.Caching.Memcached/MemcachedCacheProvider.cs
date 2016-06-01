@@ -11,7 +11,7 @@ namespace Chuye.Caching.Memcached {
     public class MemcachedCacheProvider : CacheProvider, IHttpRuntimeCacheProvider, IRegion, IDistributedLock {
         private static MemcachedCacheProvider _default;
         private readonly MemcachedClient _client;
-        private readonly CacheItemBuilder _regionPatternProvider;
+        private readonly CacheItemBuilder _cacheItemBuilder;
 
         public static MemcachedCacheProvider Default {
             get {
@@ -30,11 +30,11 @@ namespace Chuye.Caching.Memcached {
         public MemcachedCacheProvider(String configSection, String region = null) {
             _client = new MemcachedClient("enyim.com/memcached");
             Region = region;
-            _regionPatternProvider = new CacheItemBuilder(this.GetType());
+            _cacheItemBuilder = new CacheItemBuilder(this.GetType());
         }
 
         protected override String BuildCacheKey(String key) {
-            return _regionPatternProvider.BuildCacheKey(Region, key);
+            return _cacheItemBuilder.BuildCacheKey(Region, key);
         }
 
         public override bool TryGet<T>(string key, out T value) {
@@ -100,7 +100,13 @@ namespace Chuye.Caching.Memcached {
         }
 
         public override void Overwrite<T>(String key, T value) {
-            _client.Store(StoreMode.Set, BuildCacheKey(key), value);
+            var expiration = _cacheItemBuilder.GetMaxExpiration();
+            if (expiration.HasValue) {
+                Overwrite(key, value, expiration.Value);
+            }
+            else {
+                _client.Store(StoreMode.Set, BuildCacheKey(key), value);
+            }
         }
 
         //slidingExpiration 时间内无访问则过期

@@ -30,7 +30,7 @@ namespace Chuye.Caching {
             set { this[maxExpiration] = value; }
         }
 
-        [ConfigurationCollection(typeof(CacheItemDetailElement), AddItemName = "Add")]
+        [ConfigurationCollection(typeof(CacheItemDetailElement), AddItemName = "add")]
         [ConfigurationProperty(details)]
         public CacheItemElementCollection Details {
             get { return (CacheItemElementCollection)this[details]; }
