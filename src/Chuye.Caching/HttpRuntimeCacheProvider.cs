@@ -13,7 +13,8 @@ namespace Chuye.Caching {
 
         public virtual String Region { get; private set; }
 
-        public HttpRuntimeCacheProvider() : this(null) {
+        public HttpRuntimeCacheProvider()
+            : this(null) {
         }
 
         public HttpRuntimeCacheProvider(String region) {
@@ -50,7 +51,7 @@ namespace Chuye.Caching {
         }
 
         protected override String BuildCacheKey(String key) {
-            return String.Concat(_prefix, key);
+            return String.Concat(_prefix, "-", key);
         }
 
         protected override Object BuildCacheValue<T>(T value) {
@@ -113,8 +114,6 @@ namespace Chuye.Caching {
         public void Flush(String file, Func<String, Boolean> predicate) {
             using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             using (var writer = new StreamWriter(stream)) {
-
-
                 stream.SetLength(0L);
                 var entries = HttpRuntime.Cache.OfType<DictionaryEntry>().Where(Hit);
                 if (predicate != null) {
