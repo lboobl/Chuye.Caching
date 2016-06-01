@@ -39,17 +39,39 @@ namespace Chuye.Caching {
 
     public class CacheItemConfigurationSection : CacheItemSharedSection {
         private const String details = "details";
-        
+
         [ConfigurationCollection(typeof(CacheItemDetailElement), AddItemName = "add")]
         [ConfigurationProperty(details)]
         public CacheItemElementCollection Details {
             get { return (CacheItemElementCollection)this[details]; }
             set { this[details] = value; }
         }
+
+        public CacheItemDetailElement SelectEffectiveDetail(String provider, String region) {
+            var items = Details.OfType<CacheItemDetailElement>();
+            foreach (var item in items) {
+                if (item.Provider == provider && item.Region == region) {
+                    return item;
+                }
+            }
+            foreach (var item in items) {
+                if (item.Provider == provider) {
+                    return item;
+                }
+            }
+            return new CacheItemDetailElement {
+                Region = null,
+                Provider = null,
+                Readonly = this.Readonly,
+                MaxExpiration = this.MaxExpiration,
+                Pattern = this.Pattern,
+                LeaveDashForEmtpyRegion = this.LeaveDashForEmtpyRegion,
+            };
+        }
     }
 
     public class CacheItemDetailElement : CacheItemSharedSection {
-        private const String region = "region";        
+        private const String region = "region";
         private const String provider = "provider";
 
         [ConfigurationProperty(region)]
@@ -71,14 +93,15 @@ namespace Chuye.Caching {
         }
 
         protected override object GetElementKey(ConfigurationElement element) {
-            return ((CacheItemDetailElement)element).Provider;
+            var detail = (CacheItemDetailElement)element;
+            return String.Format("{0}, {1}", detail.Provider, detail.Region);
         }
 
         public void Add(CacheItemDetailElement element) {
             base.BaseAdd(element);
         }
 
-        public CacheItemDetailElement Get(String provider) {
+        internal CacheItemDetailElement Get(String provider) {
             return base.BaseGet(provider) as CacheItemDetailElement;
         }
     }

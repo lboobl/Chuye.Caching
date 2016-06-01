@@ -2,7 +2,7 @@
 using Chuye.Caching.Redis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Chuye.Caching.Tests {
+namespace Chuye.Caching.Tests.Redis {
     [TestClass]
     public class RegionConfigurationSectionTest {
         [TestMethod]
@@ -41,22 +41,18 @@ namespace Chuye.Caching.Tests {
             };
 
             var region = Guid.NewGuid().ToString();
-            var builder = new CacheItemBuilder(typeof(RedisCacheProvider), region);
+            var builder = new CacheItemBuilder(typeof(RedisCacheProvider), region, section);
+            Assert.IsNull(builder.GetMaxExpiration());
+            Assert.IsFalse(builder.IsReadonly());
             Assert.IsNull(builder.GetMaxExpiration());
             Assert.IsFalse(builder.IsReadonly());
 
-            section.MaxExpiration = Math.Abs(Guid.NewGuid().GetHashCode() % 100);
-            Assert.AreEqual(builder.GetMaxExpiration().Value.Days, section.MaxExpiration);
-
-            section.Readonly = true;
-            Assert.IsTrue(builder.IsReadonly());
-
-            var key = builder.BuildCacheKey("key");
-            Assert.AreEqual(key, region + "-key");
+            var key1 = builder.BuildCacheKey("key1");
+            Assert.AreEqual(key1, region + "-key1");
         }
 
         [TestMethod]
-        public void Set_region_then_build() {
+        public void Set_null_region_then_build() {
             var section = new CacheItemConfigurationSection {
                 Pattern = "{region}-{key}",
                 LeaveDashForEmtpyRegion = true,
@@ -65,12 +61,25 @@ namespace Chuye.Caching.Tests {
                 Readonly = true
             };
 
-            var builder = new CacheItemBuilder(typeof(RedisCacheProvider), null);
+            var builder = new CacheItemBuilder(typeof(RedisCacheProvider), null, section);
             Assert.IsTrue(builder.IsReadonly());
             Assert.AreEqual(builder.GetMaxExpiration().Value.Days, section.MaxExpiration);
 
-            var key = builder.BuildCacheKey("key");
-            Assert.AreEqual(key, "key");
+            var key1 = builder.BuildCacheKey("key1");
+            Assert.AreEqual(key1, "-key1");
+        }
+
+        [TestMethod]
+        public void Set_null_region_and_dash_then_build() {
+            var section = new CacheItemConfigurationSection {
+                Pattern = "{region}-{key}",
+                LeaveDashForEmtpyRegion = false,
+            };
+
+            var builder = new CacheItemBuilder(typeof(RedisCacheProvider), null, section);
+
+            var key1 = builder.BuildCacheKey("key1");
+            Assert.AreEqual(key1, "key1");
         }
     }
 }
