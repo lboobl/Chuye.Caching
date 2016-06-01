@@ -10,7 +10,6 @@ namespace Chuye.Caching {
     public class HttpRuntimeCacheProvider : CacheProvider, IHttpRuntimeCacheProvider, IRegion {
         private static readonly Object _nullEntry = new Object();
         private readonly String _prefix;
-        private readonly CacheItemBuilder _cacheItemBuilder;
 
         public virtual String Region { get; private set; }
 
@@ -21,7 +20,6 @@ namespace Chuye.Caching {
         public HttpRuntimeCacheProvider(String region) {
             Region = region;
             _prefix = String.Concat("HRCP-", Region, "-");
-            _cacheItemBuilder = new CacheItemBuilder(this.GetType());
         }
 
         private Boolean InnerTryGet(String key, out Object value) {
@@ -53,7 +51,7 @@ namespace Chuye.Caching {
         }
 
         protected override String BuildCacheKey(String key) {
-            return _cacheItemBuilder.BuildCacheKey(Region, key);
+            return String.Concat(_prefix, "-", key);
         }
 
         protected override Object BuildCacheValue<T>(T value) {
@@ -84,13 +82,7 @@ namespace Chuye.Caching {
         }
 
         public override void Overwrite<T>(String key, T value) {
-            var expiration = _cacheItemBuilder.GetMaxExpiration();
-            if (expiration.HasValue) {
-                Overwrite(key, value, expiration.Value);
-            }
-            else {
-                HttpRuntime.Cache.Insert(BuildCacheKey(key), BuildCacheValue(value));
-            }
+            HttpRuntime.Cache.Insert(BuildCacheKey(key), BuildCacheValue(value));
         }
 
         //slidingExpiration 时间内无访问则过期

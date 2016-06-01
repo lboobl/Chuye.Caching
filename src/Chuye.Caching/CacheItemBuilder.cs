@@ -8,34 +8,48 @@ namespace Chuye.Caching {
     public class CacheItemBuilder {
         private readonly CacheItemConfigurationSection _section;
         private readonly Type _cacheProviderType;
+        private readonly String _region;
 
-        static CacheItemConfigurationSection Default {
-            get {
-                return new ConfigurationResolver().Read<CacheItemConfigurationSection>("regionPattern");
-            }
+        static CacheItemConfigurationSection ReadDefaultSection() {
+            return new ConfigurationResolver().Read<CacheItemConfigurationSection>("regionPattern");
         }
 
-        public CacheItemBuilder(Type cacheProviderType)
-            : this(Default, cacheProviderType) {
+        public CacheItemBuilder(Type cacheProviderType, String region)
+            : this(cacheProviderType, region, ReadDefaultSection()) {
         }
 
-        public CacheItemBuilder(CacheItemConfigurationSection section, Type cacheProviderType) {
+        public CacheItemBuilder(Type cacheProviderType, String region, CacheItemConfigurationSection section) {
             _cacheProviderType = cacheProviderType;
+            _region = region;
             _section = section;
         }
 
-        public String BuildCacheKey(String region, String key) {
+        public String BuildCacheKey(String key) {
             var pattern = "{0}-{1}";
             var leaveDashForEmtpyRegion = true;
             if (_section != null) {
                 pattern = ResolvePattern(out leaveDashForEmtpyRegion);
             }
-            if (String.IsNullOrWhiteSpace(region) && !leaveDashForEmtpyRegion) {
+            if (String.IsNullOrWhiteSpace(_region) && !leaveDashForEmtpyRegion) {
                 return key;
             }
             else {
-                return String.Format(pattern, region, key);
+                return String.Format(pattern, _region, key);
             }
+        }
+
+        public Boolean IsReadonly() {
+            var detail = _section.Details.Get(_cacheProviderType.FullName);
+            if (detail != null) {
+                if (String.IsNullOrWhiteSpace(detail.Region)) {
+                    return detail.Readonly;
+                }
+                else {
+                    return detail.Readonly
+                        && detail.Region.Equals(_region, StringComparison.Ordinal);
+                }
+            }
+            return _section.Readonly;
         }
 
         public TimeSpan? GetMaxExpiration() {

@@ -21,14 +21,17 @@ namespace Chuye.Caching.Redis {
         public RedisCacheProvider(IConnectionMultiplexer connection, String region) {
             _connection = connection;
             Region = region;
-            _cacheItemBuilder = new CacheItemBuilder(this.GetType());
+            _cacheItemBuilder = new CacheItemBuilder(this.GetType(), region);
         }
 
         protected override String BuildCacheKey(String key) {
-            return _cacheItemBuilder.BuildCacheKey(Region, key);
+            return _cacheItemBuilder.BuildCacheKey(key);
         }
 
         public override void Expire(String key) {
+            if (_cacheItemBuilder.IsReadonly()) {
+                throw new InvalidOperationException();
+            }
             var db = _connection.GetDatabase();
             db.KeyDelete(BuildCacheKey(key));
         }
@@ -66,6 +69,9 @@ namespace Chuye.Caching.Redis {
         }
 
         public override void Overwrite<T>(String key, T value) {
+            if (_cacheItemBuilder.IsReadonly()) {
+                throw new InvalidOperationException();
+            }
             var expiration = _cacheItemBuilder.GetMaxExpiration();
             if (expiration.HasValue) {
                 Overwrite(key, value, expiration.Value);
@@ -77,6 +83,9 @@ namespace Chuye.Caching.Redis {
         }
 
         public void Overwrite<T>(String key, T value, DateTime absoluteExpiration) {
+            if (_cacheItemBuilder.IsReadonly()) {
+                throw new InvalidOperationException();
+            }
             var cacheKey = BuildCacheKey(key);
             var db = _connection.GetDatabase();
             db.StringSet(cacheKey, NewtonsoftJsonUtil.Stringify(value));
@@ -84,13 +93,14 @@ namespace Chuye.Caching.Redis {
         }
 
         public void Overwrite<T>(String key, T value, TimeSpan slidingExpiration) {
+            if (_cacheItemBuilder.IsReadonly()) {
+                throw new InvalidOperationException();
+            }
             var cacheKey = BuildCacheKey(key);
             var db = _connection.GetDatabase();
             db.StringSet(cacheKey, NewtonsoftJsonUtil.Stringify(value));
             db.KeyExpire(cacheKey, slidingExpiration);
         }
-
-
 
         public IDisposable ReleasableLock(String key, Int32 milliseconds = DistributedLockTime.DisposeMillisecond) {
             Lock(key, milliseconds);

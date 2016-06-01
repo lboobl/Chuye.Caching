@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using System.Configuration;
 
 namespace Chuye.Caching {
-    public class CacheItemConfigurationSection : ConfigurationSection {
+    public class CacheItemSharedSection : ConfigurationSection {
         private const String pattern = "pattern";
-        private const String details = "details";
         private const String maxExpiration = "maxExpiration";
+        private const String @readonly = "readonly";
         private const String leaveDashForEmtpyRegion = "leaveDashForEmtpyRegion";
 
         [ConfigurationProperty(pattern, IsRequired = true)]
@@ -18,18 +18,28 @@ namespace Chuye.Caching {
             set { this[pattern] = value; }
         }
 
-        [ConfigurationProperty(leaveDashForEmtpyRegion)]
-        public Boolean LeaveDashForEmtpyRegion {
-            get { return (Boolean)this[leaveDashForEmtpyRegion]; }
-            set { this[leaveDashForEmtpyRegion] = value; }
-        }
-
         [ConfigurationProperty(maxExpiration)]
         public Double MaxExpiration {
             get { return (Double)this[maxExpiration]; }
             set { this[maxExpiration] = value; }
         }
 
+        [ConfigurationProperty(@readonly)]
+        public Boolean Readonly {
+            get { return (Boolean)this[@readonly]; }
+            set { this[@readonly] = value; }
+        }
+
+        [ConfigurationProperty(leaveDashForEmtpyRegion)]
+        public Boolean LeaveDashForEmtpyRegion {
+            get { return (Boolean)this[leaveDashForEmtpyRegion]; }
+            set { this[leaveDashForEmtpyRegion] = value; }
+        }
+    }
+
+    public class CacheItemConfigurationSection : CacheItemSharedSection {
+        private const String details = "details";
+        
         [ConfigurationCollection(typeof(CacheItemDetailElement), AddItemName = "add")]
         [ConfigurationProperty(details)]
         public CacheItemElementCollection Details {
@@ -38,34 +48,20 @@ namespace Chuye.Caching {
         }
     }
 
-    public class CacheItemDetailElement : ConfigurationElement {
+    public class CacheItemDetailElement : CacheItemSharedSection {
+        private const String region = "region";        
         private const String provider = "provider";
-        private const String pattern = "pattern";
-        private const String maxExpiration = "maxExpiration";
-        private const String leaveDashForEmtpyRegion = "leaveDashForEmtpyRegion";
 
-        [ConfigurationProperty(pattern, IsRequired = true)]
-        public String Pattern {
-            get { return (String)this[pattern]; }
-            set { this[pattern] = value; }
+        [ConfigurationProperty(region)]
+        public String Region {
+            get { return (String)this[region]; }
+            set { this[region] = value; }
         }
 
         [ConfigurationProperty(provider, IsRequired = true)]
         public String Provider {
             get { return (String)this[provider]; }
             set { this[provider] = value; }
-        }
-
-        [ConfigurationProperty(maxExpiration)]
-        public Double MaxExpiration {
-            get { return (Double)this[maxExpiration]; }
-            set { this[maxExpiration] = value; }
-        }
-
-        [ConfigurationProperty(leaveDashForEmtpyRegion)]
-        public Boolean LeaveDashForEmtpyRegion {
-            get { return (Boolean)this[leaveDashForEmtpyRegion]; }
-            set { this[leaveDashForEmtpyRegion] = value; }
         }
     }
 

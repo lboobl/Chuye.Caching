@@ -1,4 +1,5 @@
 ﻿using System;
+using Chuye.Caching.Redis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Chuye.Caching.Tests {
@@ -16,7 +17,7 @@ namespace Chuye.Caching.Tests {
             sectionWrite.MaxExpiration = 30D;
             sectionWrite.Details.Add(new CacheItemDetailElement {
                 Pattern = "{region}-{key}",
-                Provider = typeof(HttpRuntimeCacheProvider).FullName,
+                Provider = typeof(RedisCacheProvider).FullName,
                 LeaveDashForEmtpyRegion = false,
             });
             resolver.Save(sectionWrite, "regionPattern");
@@ -28,34 +29,48 @@ namespace Chuye.Caching.Tests {
             Assert.IsNotNull(sectionRead.Details);
             Assert.AreEqual(sectionRead.Details.Count, sectionWrite.Details.Count);
             Assert.AreEqual(
-                sectionRead.Details.Get(typeof(HttpRuntimeCacheProvider).FullName),
-                sectionWrite.Details.Get(typeof(HttpRuntimeCacheProvider).FullName)
+                sectionRead.Details.Get(typeof(RedisCacheProvider).FullName),
+                sectionWrite.Details.Get(typeof(RedisCacheProvider).FullName)
             );
         }
 
         [TestMethod]
-        public void Set_configrationSection_then_build_cache_key() {
+        public void Set_default_value_then_build() {
             var section = new CacheItemConfigurationSection {
                 Pattern = "{region}-{key}",
-                LeaveDashForEmtpyRegion = false,
-                Details = new CacheItemElementCollection()
             };
 
-            var provider = new CacheItemBuilder(section, typeof(HttpRuntimeCacheProvider));
-            Assert.AreEqual("key", provider.BuildCacheKey(null, "key"));
-            Assert.AreEqual("region-key", provider.BuildCacheKey("region", "key"));
+            var region = Guid.NewGuid().ToString();
+            var builder = new CacheItemBuilder(typeof(RedisCacheProvider), region);
+            Assert.IsNull(builder.GetMaxExpiration());
+            Assert.IsFalse(builder.IsReadonly());
 
-            section.LeaveDashForEmtpyRegion = true;
-            Assert.AreEqual("-key", provider.BuildCacheKey(null, "key"));
+            section.MaxExpiration = Math.Abs(Guid.NewGuid().GetHashCode() % 100);
+            Assert.AreEqual(builder.GetMaxExpiration().Value.Days, section.MaxExpiration);
 
-            section.Details.Add(new CacheItemDetailElement {
-                Pattern = "{key}+{region}",
-                Provider = typeof(HttpRuntimeCacheProvider).FullName,
-                LeaveDashForEmtpyRegion = false,
-            });
+            section.Readonly = true;
+            Assert.IsTrue(builder.IsReadonly());
 
-            Assert.AreEqual("key", provider.BuildCacheKey(null, "key"));
-            Assert.AreEqual("key+region", provider.BuildCacheKey("region", "key"));
+            var key = builder.BuildCacheKey("key");
+            Assert.AreEqual(key, region + "-key");
+        }
+
+        [TestMethod]
+        public void Set_region_then_build() {
+            var section = new CacheItemConfigurationSection {
+                Pattern = "{region}-{key}",
+                LeaveDashForEmtpyRegion = true,
+                Details = new CacheItemElementCollection(),
+                MaxExpiration = Math.Abs(Guid.NewGuid().GetHashCode() % 100),
+                Readonly = true
+            };
+
+            var builder = new CacheItemBuilder(typeof(RedisCacheProvider), null);
+            Assert.IsTrue(builder.IsReadonly());
+            Assert.AreEqual(builder.GetMaxExpiration().Value.Days, section.MaxExpiration);
+
+            var key = builder.BuildCacheKey("key");
+            Assert.AreEqual(key, "key");
         }
     }
 }
