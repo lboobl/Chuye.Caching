@@ -10,6 +10,7 @@ namespace Chuye.Caching.Redis {
     public class RedisCacheProvider : CacheProvider, IDistributedLock, IHttpRuntimeCacheProvider, IRegion {
         private readonly IConnectionMultiplexer _connection;
         private readonly String LOCK = "lock";
+        private readonly CacheItemBuilder _regionPatternProvider;
 
         public String Region { get; private set; }
 
@@ -20,10 +21,11 @@ namespace Chuye.Caching.Redis {
         public RedisCacheProvider(IConnectionMultiplexer connection, String region) {
             _connection = connection;
             Region = region;
+            _regionPatternProvider = new CacheItemBuilder(this.GetType());
         }
 
         protected override String BuildCacheKey(String key) {
-            return Region == null ? key : String.Concat(Region, "-", key);
+            return _regionPatternProvider.BuildCacheKey(Region, key);
         }
 
         public override void Expire(String key) {

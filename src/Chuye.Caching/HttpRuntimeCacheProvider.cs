@@ -10,15 +10,19 @@ namespace Chuye.Caching {
     public class HttpRuntimeCacheProvider : CacheProvider, IHttpRuntimeCacheProvider, IRegion {
         private static readonly Object _nullEntry = new Object();
         private readonly String _prefix;
+        private readonly CacheItemBuilder _regionPatternProvider;
 
         public virtual String Region { get; private set; }
 
-        public HttpRuntimeCacheProvider() : this(null) {
+        public HttpRuntimeCacheProvider() 
+            : this(null) {
         }
 
         public HttpRuntimeCacheProvider(String region) {
             Region = region;
             _prefix = String.Concat("HRCP-", Region, "-");
+
+            _regionPatternProvider = new CacheItemBuilder(this.GetType());
         }
 
         private Boolean InnerTryGet(String key, out Object value) {
@@ -50,7 +54,7 @@ namespace Chuye.Caching {
         }
 
         protected override String BuildCacheKey(String key) {
-            return String.Concat(_prefix, key);
+            return _regionPatternProvider.BuildCacheKey(Region, key);
         }
 
         protected override Object BuildCacheValue<T>(T value) {

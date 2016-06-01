@@ -11,6 +11,7 @@ namespace Chuye.Caching.Memcached {
     public class MemcachedCacheProvider : CacheProvider, IHttpRuntimeCacheProvider, IRegion, IDistributedLock {
         private static MemcachedCacheProvider _default;
         private readonly MemcachedClient _client;
+        private readonly CacheItemBuilder _regionPatternProvider;
 
         public static MemcachedCacheProvider Default {
             get {
@@ -29,10 +30,11 @@ namespace Chuye.Caching.Memcached {
         public MemcachedCacheProvider(String configSection, String region = null) {
             _client = new MemcachedClient("enyim.com/memcached");
             Region = region;
+            _regionPatternProvider = new CacheItemBuilder(this.GetType());
         }
 
         protected override String BuildCacheKey(String key) {
-            return Region == null ? key : String.Concat(Region, "-", key);
+            return _regionPatternProvider.BuildCacheKey(Region, key);
         }
 
         public override bool TryGet<T>(string key, out T value) {
