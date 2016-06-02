@@ -50,10 +50,10 @@
     <Compile Include="ICacheProvider.cs" />
     <Compile Include="IDistributedLock.cs" />
     <Compile Include="IHttpRuntimeCacheProvider.cs" />
-    <Compile Include="IRegion.cs" />
+    <Compile Include="IRegionHttpRuntimeCacheProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CacheItemConfigurationSection.cs" />
-    <Compile Include="CacheItemBuilder.cs" />
+    <Compile Include="CacheConfigurationSection.cs" />
+    <Compile Include="CacheBuilder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

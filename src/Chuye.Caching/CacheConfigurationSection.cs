@@ -37,7 +37,7 @@ namespace Chuye.Caching {
         }
     }
 
-    public class CacheItemConfigurationSection : CacheItemSharedSection {
+    public class CacheConfigurationSection : CacheItemSharedSection {
         private const String details = "details";
 
         [ConfigurationCollection(typeof(CacheItemDetailElement), AddItemName = "add")]

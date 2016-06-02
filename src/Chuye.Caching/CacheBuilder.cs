@@ -5,20 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Chuye.Caching {
-    public class CacheItemBuilder {
+    public class CacheBuilder {
         private readonly CacheItemDetailElement _config;
         private readonly Type _cacheProviderType;
         private readonly String _region;
 
-        static CacheItemConfigurationSection ReadDefaultSection() {
-            return new ConfigurationResolver().Read<CacheItemConfigurationSection>("regionPattern");
+        static CacheConfigurationSection ReadDefaultSection() {
+            return new ConfigurationResolver().Read<CacheConfigurationSection>("cacheBuilder");
         }
 
-        public CacheItemBuilder(Type cacheProviderType, String region)
+        public CacheBuilder(Type cacheProviderType, String region)
             : this(cacheProviderType, region, ReadDefaultSection()) {
         }
 
-        public CacheItemBuilder(Type cacheProviderType, String region, CacheItemConfigurationSection section) {
+        public CacheBuilder(Type cacheProviderType, String region, CacheConfigurationSection section) {
             _cacheProviderType = cacheProviderType;
             _region = region;
             _config = section.SelectEffectiveDetail(_cacheProviderType.FullName, _region);
