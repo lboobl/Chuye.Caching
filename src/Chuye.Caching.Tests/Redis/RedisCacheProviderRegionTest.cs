@@ -54,7 +54,7 @@ namespace Chuye.Caching.Tests.Redis {
 
         [TestMethod]
         public void Set_with_slidingExpiration_then_get() {
-            var key = Guid.NewGuid().ToString();
+            var key = "key-sliding-expiration";
             var value = Guid.NewGuid();
 
             IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default);
@@ -77,7 +77,7 @@ namespace Chuye.Caching.Tests.Redis {
 
         [TestMethod]
         public void Set_with_absoluteExpiration_then_get() {
-            var key = Guid.NewGuid().ToString();
+            var key = "key-absolute-expiration";
             var value = Guid.NewGuid();
 
             IHttpRuntimeCacheProvider cacheProvider = new RedisCacheProvider(StackExchangeRedis.Default);
@@ -85,14 +85,14 @@ namespace Chuye.Caching.Tests.Redis {
 
             {
                 Guid value2;
-                Thread.Sleep(2000);
+                Thread.Sleep(1000);
                 var exist = cacheProvider.TryGet<Guid>(key, out value2);
                 Assert.IsTrue(exist);
                 Assert.AreEqual(value2, value);
             }
             {
                 Guid value2;
-                Thread.Sleep(2000);
+                Thread.Sleep(3000);
                 var exist = cacheProvider.TryGet(key, out value2);
                 Assert.IsFalse(exist);
             }

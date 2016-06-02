@@ -7,7 +7,7 @@ using System.Linq;
 using System.Web.Script.Serialization;
 
 namespace Chuye.Caching {
-    public class HttpRuntimeCacheProvider : CacheProvider, IHttpRuntimeCacheProvider, IRegion {
+    public class HttpRuntimeCacheProvider : CacheProvider, IRegionHttpRuntimeCacheProvider {
         private static readonly Object _nullEntry = new Object();
         private readonly String _prefix;
 
@@ -20,6 +20,13 @@ namespace Chuye.Caching {
         public HttpRuntimeCacheProvider(String region) {
             Region = region;
             _prefix = String.Concat("HRCP-", Region, "-");
+        }
+
+        public IRegionHttpRuntimeCacheProvider Switch(String region) {
+            if (!String.IsNullOrWhiteSpace(Region)) {
+                throw new InvalidOperationException();
+            }
+            return new HttpRuntimeCacheProvider(region);
         }
 
         private Boolean InnerTryGet(String key, out Object value) {
