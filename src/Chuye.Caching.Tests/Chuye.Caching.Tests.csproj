@@ -80,6 +80,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Redis\RedisCacheProviderRegionTest.cs" />
     <Compile Include="Redis\RedisCacheProviderTest.cs" />
+    <Compile Include="Region\RegionConfigurationSectionTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Chuye.Caching.Memcached\Chuye.Caching.Memcached.csproj">
@@ -102,6 +103,7 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

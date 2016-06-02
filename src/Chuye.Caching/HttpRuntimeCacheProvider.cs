@@ -7,18 +7,29 @@ using System.Linq;
 using System.Web.Script.Serialization;
 
 namespace Chuye.Caching {
-    public class HttpRuntimeCacheProvider : CacheProvider, IHttpRuntimeCacheProvider, IRegion {
+    public class HttpRuntimeCacheProvider : CacheProvider, IRegionHttpRuntimeCacheProvider {
         private static readonly Object _nullEntry = new Object();
         private readonly String _prefix;
+        private readonly String _region;
 
-        public virtual String Region { get; private set; }
+        public String Region {
+            get { return _region; }
+        }
 
-        public HttpRuntimeCacheProvider() : this(null) {
+        public HttpRuntimeCacheProvider()
+            : this(null) {
         }
 
         public HttpRuntimeCacheProvider(String region) {
-            Region = region;
-            _prefix = String.Concat("HRCP-", Region, "-");
+            _region = region;
+            _prefix = BuildCacheKey(null);
+        }
+
+        public IRegionHttpRuntimeCacheProvider Switch(String region) {
+            if (!String.IsNullOrWhiteSpace(_region)) {
+                throw new InvalidOperationException();
+            }
+            return new HttpRuntimeCacheProvider(region);
         }
 
         private Boolean InnerTryGet(String key, out Object value) {
@@ -50,7 +61,7 @@ namespace Chuye.Caching {
         }
 
         protected override String BuildCacheKey(String key) {
-            return String.Concat(_prefix, key);
+            return String.Concat(_region, "-", key);
         }
 
         protected override Object BuildCacheValue<T>(T value) {
@@ -113,8 +124,6 @@ namespace Chuye.Caching {
         public void Flush(String file, Func<String, Boolean> predicate) {
             using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             using (var writer = new StreamWriter(stream)) {
-
-
                 stream.SetLength(0L);
                 var entries = HttpRuntime.Cache.OfType<DictionaryEntry>().Where(Hit);
                 if (predicate != null) {

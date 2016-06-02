@@ -7,11 +7,15 @@ using System.Threading.Tasks;
 using StackExchange.Redis;
 
 namespace Chuye.Caching.Redis {
-    public class RedisCacheProvider : CacheProvider, IDistributedLock, IHttpRuntimeCacheProvider, IRegion {
+    public class RedisCacheProvider : CacheProvider, IDistributedLock, IRegionHttpRuntimeCacheProvider {
         private readonly IConnectionMultiplexer _connection;
         private readonly String LOCK = "lock";
+        private readonly String _region;
+        private readonly CacheBuilder _cacheBuilder;
 
-        public String Region { get; private set; }
+        public String Region {
+            get { return _region; }
+        }
 
         public RedisCacheProvider(IConnectionMultiplexer connection)
             : this(connection, null) {
@@ -19,14 +23,32 @@ namespace Chuye.Caching.Redis {
 
         public RedisCacheProvider(IConnectionMultiplexer connection, String region) {
             _connection = connection;
-            Region = region;
+            _region = region;
+            _cacheBuilder = new CacheBuilder(this.GetType(), region);
+        }
+
+        internal RedisCacheProvider(IConnectionMultiplexer connection, String region, CacheBuilder cacheBuilder) {
+            _connection = connection;
+            _region = region;
+            _cacheBuilder = cacheBuilder;
+        }
+
+        public IRegionHttpRuntimeCacheProvider Switch(String region) {
+            if (!String.IsNullOrWhiteSpace(Region)) {
+                throw new InvalidOperationException();
+            }
+            var cacheBuilder = new CacheBuilder(_cacheBuilder, region);
+            return new RedisCacheProvider(_connection, region, cacheBuilder);
         }
 
         protected override String BuildCacheKey(String key) {
-            return Region == null ? key : String.Concat(Region, "-", key);
+            return _cacheBuilder.BuildCacheKey(key);
         }
 
         public override void Expire(String key) {
+            if (_cacheBuilder.IsReadonly()) {
+                throw new InvalidOperationException();
+            }
             var db = _connection.GetDatabase();
             db.KeyDelete(BuildCacheKey(key));
         }
@@ -64,11 +86,23 @@ namespace Chuye.Caching.Redis {
         }
 
         public override void Overwrite<T>(String key, T value) {
-            var db = _connection.GetDatabase();
-            db.StringSet(BuildCacheKey(key), NewtonsoftJsonUtil.Stringify(value));
+            if (_cacheBuilder.IsReadonly()) {
+                throw new InvalidOperationException();
+            }
+            var expiration = _cacheBuilder.GetMaxExpiration();
+            if (expiration.HasValue) {
+                Overwrite(key, value, expiration.Value);
+            }
+            else {
+                var db = _connection.GetDatabase();
+                db.StringSet(BuildCacheKey(key), NewtonsoftJsonUtil.Stringify(value));
+            }
         }
 
         public void Overwrite<T>(String key, T value, DateTime absoluteExpiration) {
+            if (_cacheBuilder.IsReadonly()) {
+                throw new InvalidOperationException();
+            }
             var cacheKey = BuildCacheKey(key);
             var db = _connection.GetDatabase();
             db.StringSet(cacheKey, NewtonsoftJsonUtil.Stringify(value));
@@ -76,13 +110,14 @@ namespace Chuye.Caching.Redis {
         }
 
         public void Overwrite<T>(String key, T value, TimeSpan slidingExpiration) {
+            if (_cacheBuilder.IsReadonly()) {
+                throw new InvalidOperationException();
+            }
             var cacheKey = BuildCacheKey(key);
             var db = _connection.GetDatabase();
             db.StringSet(cacheKey, NewtonsoftJsonUtil.Stringify(value));
             db.KeyExpire(cacheKey, slidingExpiration);
         }
-
-
 
         public IDisposable ReleasableLock(String key, Int32 milliseconds = DistributedLockTime.DisposeMillisecond) {
             Lock(key, milliseconds);

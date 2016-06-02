@@ -5,7 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Chuye.Caching {
-    public interface IRegion {
+    public interface IRegionHttpRuntimeCacheProvider : IHttpRuntimeCacheProvider {
         String Region { get; }
+        IRegionHttpRuntimeCacheProvider Switch(String region);
     }
 }
