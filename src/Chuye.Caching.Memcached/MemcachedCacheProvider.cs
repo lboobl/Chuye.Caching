@@ -57,7 +57,8 @@ namespace Chuye.Caching.Memcached {
             if (!String.IsNullOrWhiteSpace(Region)) {
                 throw new InvalidOperationException();
             }
-            return new MemcachedCacheProvider(_client, region, _cacheBuilder);
+            var cacheBuilder = new CacheBuilder(_cacheBuilder, region);
+            return new MemcachedCacheProvider(_client, region, cacheBuilder);
         }
 
         protected override String BuildCacheKey(String key) {

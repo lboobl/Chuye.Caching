@@ -10,20 +10,23 @@ namespace Chuye.Caching {
     public class HttpRuntimeCacheProvider : CacheProvider, IRegionHttpRuntimeCacheProvider {
         private static readonly Object _nullEntry = new Object();
         private readonly String _prefix;
+        private readonly String _region;
 
-        public virtual String Region { get; private set; }
+        public String Region {
+            get { return _region; }
+        }
 
         public HttpRuntimeCacheProvider()
             : this(null) {
         }
 
         public HttpRuntimeCacheProvider(String region) {
-            Region = region;
-            _prefix = String.Concat("HRCP-", Region, "-");
+            _region = region;
+            _prefix = BuildCacheKey(null);
         }
 
         public IRegionHttpRuntimeCacheProvider Switch(String region) {
-            if (!String.IsNullOrWhiteSpace(Region)) {
+            if (!String.IsNullOrWhiteSpace(_region)) {
                 throw new InvalidOperationException();
             }
             return new HttpRuntimeCacheProvider(region);
@@ -58,7 +61,7 @@ namespace Chuye.Caching {
         }
 
         protected override String BuildCacheKey(String key) {
-            return String.Concat(_prefix, "-", key);
+            return String.Concat(_region, "-", key);
         }
 
         protected override Object BuildCacheValue<T>(T value) {
