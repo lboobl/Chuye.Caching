@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Chuye.Caching {
     public class CacheBuilder {
-        private readonly CacheItemDetailElement _config;
+        private readonly CacheConfigurationSection _section;
         private readonly Type _cacheProviderType;
         private readonly String _region;
+        private CacheItemDetailElement _config;
 
         static CacheConfigurationSection ReadDefaultSection() {
             return new ConfigurationResolver().Read<CacheConfigurationSection>("cacheBuilder");
@@ -21,13 +23,33 @@ namespace Chuye.Caching {
         public CacheBuilder(Type cacheProviderType, String region, CacheConfigurationSection section) {
             _cacheProviderType = cacheProviderType;
             _region = region;
-            _config = section.SelectEffectiveDetail(_cacheProviderType.FullName, _region);
-            if (_config.Pattern.IndexOf("{region}") == -1 || _config.Pattern.IndexOf("{key}") == -1) {
-                throw new ArgumentOutOfRangeException("pattern");
+            _section = section;
+            RefreshConfig();
+        }
+
+        private void RefreshConfig() {
+            _config = null;
+            if (_section != null) {
+                _config = _section.SelectEffectiveDetail(_cacheProviderType.FullName, _region);
+                if (_config.Pattern.IndexOf("{region}") == -1 || _config.Pattern.IndexOf("{key}") == -1) {
+                    throw new ArgumentOutOfRangeException("pattern");
+                }
+                _config.Pattern = _config.Pattern
+                    .Replace("{region}", "{0}")
+                    .Replace("{key}", "{1}");
             }
-            _config.Pattern = _config.Pattern
-                .Replace("{region}", "{0}")
-                .Replace("{key}", "{1}");
+            else {
+                _config = new CacheItemDetailElement {
+                    Pattern = "{0}-{1}"
+                };
+            }
+        }
+
+        public CacheBuilder(CacheBuilder cacheBuidler, String region) {
+            _cacheProviderType = cacheBuidler._cacheProviderType;
+            _section = cacheBuidler._section;
+            _region = region;
+            RefreshConfig();
         }
 
         public String BuildCacheKey(String key) {
@@ -41,14 +63,9 @@ namespace Chuye.Caching {
 
         public Boolean IsReadonly() {
             return _config != null && _config.Readonly;
-
         }
 
         public TimeSpan? GetMaxExpiration() {
-            if (_config != null && _config.MaxExpiration > 0) {
-                return TimeSpan.FromDays(_config.MaxExpiration);
-            }
-
             if (_config.MaxExpiration > 0) {
                 return TimeSpan.FromDays(_config.MaxExpiration);
             }

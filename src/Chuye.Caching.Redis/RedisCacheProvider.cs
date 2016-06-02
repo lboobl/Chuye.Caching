@@ -37,7 +37,8 @@ namespace Chuye.Caching.Redis {
             if (!String.IsNullOrWhiteSpace(Region)) {
                 throw new InvalidOperationException();
             }
-            return new RedisCacheProvider(_connection, region, _cacheBuilder);
+            var cacheBuilder = new CacheBuilder(_cacheBuilder, region);
+            return new RedisCacheProvider(_connection, region, cacheBuilder);
         }
 
         protected override String BuildCacheKey(String key) {
