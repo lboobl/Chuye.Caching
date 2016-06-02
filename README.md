@@ -29,7 +29,7 @@
 // prepare
 {
     var builder = new ContainerBuilder();
-    builder.Register(_ => new HttpRuntimeCacheProvider())
+    builder.RegisterType<HttpRuntimeCacheProvider>()
         //.Register(_ => MemcachedCacheProvider.Default) //use memcached from config
         //.Register(_ => new RedisCacheProvider(StackExchangeRedis.Default)) //use redis from config
         .As<IRegionHttpRuntimeCacheProvider>();
