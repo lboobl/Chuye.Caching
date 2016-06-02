@@ -61,7 +61,7 @@ namespace Chuye.Caching {
         }
 
         protected override String BuildCacheKey(String key) {
-            return String.Concat(_region, "-", key);
+            return String.Concat("HRCP-", _region, "-", key);
         }
 
         protected override Object BuildCacheValue<T>(T value) {
