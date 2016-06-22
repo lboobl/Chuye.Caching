@@ -42,7 +42,7 @@ namespace Chuye.Caching.Memcached {
         }
 
         public MemcachedCacheProvider(MemcachedClient client, String region)
-            : this(client, region, CacheConfig.Empty) {
+            : this(client, region, CacheConfigBuilder.Build(typeof(MemcachedCacheProvider), region)) {
         }
 
         public MemcachedCacheProvider(MemcachedClient client, String region, CacheConfig config) {
