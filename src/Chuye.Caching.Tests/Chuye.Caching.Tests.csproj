@@ -71,6 +71,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="CacheConfigBuilderTest.cs" />
+    <Compile Include="CacheConfigTest.cs" />
     <Compile Include="HttpContextCacheProviderTest.cs" />
     <Compile Include="Memory\MemoryCacheProviderTest.cs" />
     <Compile Include="Memory\MemoryCacheProviderRegionTest.cs" />
@@ -102,10 +104,7 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Http\" />
-    <Folder Include="Memcached\" />
-  </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

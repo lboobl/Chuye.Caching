@@ -23,10 +23,13 @@ namespace Chuye.Caching {
         }
 
         public CacheConfig(String pattern = "{region}-{key}", Boolean readOnly = false, Boolean leaveExraConnector = false, TimeSpan? maxExpiration = null) {
+            if (pattern.IndexOf("{region}") == -1 || pattern.IndexOf("{key}") == -1) {
+                throw new ArgumentOutOfRangeException("pattern");
+            }
+            Pattern = pattern.Replace("{region}", "{0}").Replace("{key}", "{1}");
             Readonly = readOnly;
             MaxExpiration = maxExpiration;
             FormatNullRegion = leaveExraConnector;
-            Pattern = pattern.Replace("{region}", "{0}").Replace("{key}", "{1}");
         }
     }
 }

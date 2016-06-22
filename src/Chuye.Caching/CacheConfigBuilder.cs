@@ -40,7 +40,7 @@ namespace Chuye.Caching {
                 pattern = section.Pattern;
             }
             if (detail.MaxExpirationHour > 0) {
-                maxExpiration = TimeSpan.FromHours(section.MaxExpirationHour);
+                maxExpiration = TimeSpan.FromHours(detail.MaxExpirationHour);
             }
             return new CacheConfig(pattern, detail.Readonly, detail.FormatNullRegion, maxExpiration);
         }
