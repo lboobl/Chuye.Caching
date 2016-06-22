@@ -7,7 +7,7 @@ using System.Linq;
 using System.Web.Script.Serialization;
 
 namespace Chuye.Caching {
-    public class HttpRuntimeCacheProvider : CacheProvider, IRegionHttpRuntimeCacheProvider {
+    public class MemoryCacheProvider : BasicCacheProvider, IRegionCacheProvider {
         private static readonly Object _nullEntry = new Object();
         private readonly String _prefix;
         private readonly String _region;
@@ -16,20 +16,20 @@ namespace Chuye.Caching {
             get { return _region; }
         }
 
-        public HttpRuntimeCacheProvider()
+        public MemoryCacheProvider()
             : this(null) {
         }
 
-        public HttpRuntimeCacheProvider(String region) {
+        public MemoryCacheProvider(String region) {
             _region = region;
             _prefix = BuildCacheKey(null);
         }
 
-        public IRegionHttpRuntimeCacheProvider Switch(String region) {
+        public IRegionCacheProvider Switch(String region) {
             if (!String.IsNullOrWhiteSpace(_region)) {
                 throw new InvalidOperationException();
             }
-            return new HttpRuntimeCacheProvider(region);
+            return new MemoryCacheProvider(region);
         }
 
         private Boolean InnerTryGet(String key, out Object value) {

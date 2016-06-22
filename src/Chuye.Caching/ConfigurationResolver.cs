@@ -5,7 +5,7 @@ using System.Configuration;
 using SysCfg = System.Configuration.Configuration;
 
 namespace Chuye.Caching {
-    public class ConfigurationResolver {
+    internal class ConfigurationResolver {
         private SysCfg configuration;
         private String exeConfigFilename = null;
 
