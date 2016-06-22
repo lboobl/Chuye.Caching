@@ -11,7 +11,7 @@ namespace Chuye.Caching.Redis {
         private readonly IConnectionMultiplexer _connection;
         private readonly String LOCK = "lock";
         private readonly String _region;
-        private readonly CacheBuilder _cacheBuilder;
+        private readonly CacheConfig _config;
 
         public String Region {
             get { return _region; }
@@ -25,62 +25,52 @@ namespace Chuye.Caching.Redis {
             : this(configuration, null) {
         }
 
-        public RedisCacheProvider(String configuration, String region) {
-            if (String.IsNullOrWhiteSpace(configuration)) {
-                throw new ArgumentOutOfRangeException("configuration");
-            }
-            _connection   = ConnectionMultiplexer.Connect(configuration);
-            _region       = region;
-            _cacheBuilder = new CacheBuilder(this.GetType(), region);
+        public RedisCacheProvider(String configuration, String region)
+            : this(configuration, region, CacheConfig.Empty) {
         }
 
-        internal RedisCacheProvider(String configuration, String region, CacheBuilder cacheBuilder) {
+        public RedisCacheProvider(String configuration, String region, CacheConfig config) {
             if (String.IsNullOrWhiteSpace(configuration)) {
                 throw new ArgumentOutOfRangeException("configuration");
             }
-            _connection   = ConnectionMultiplexer.Connect(configuration);
-            _region       = region;
-            _cacheBuilder = cacheBuilder;
+            _connection = ConnectionMultiplexer.Connect(configuration);
+            _region = region;
+            _config = config;
         }
 
         public RedisCacheProvider(IConnectionMultiplexer connection)
             : this(connection, null) {
         }
 
-        public RedisCacheProvider(IConnectionMultiplexer connection, String region) {
-            if (connection == null) {
-                throw new ArgumentOutOfRangeException("connection");
-            }
+        public RedisCacheProvider(IConnectionMultiplexer connection, String region)
+            : this(connection, region, CacheConfig.Empty) {
 
-            _connection   = connection;
-            _region       = region;
-            _cacheBuilder = new CacheBuilder(this.GetType(), region);
         }
 
-        internal RedisCacheProvider(IConnectionMultiplexer connection, String region, CacheBuilder cacheBuilder) {
+        public RedisCacheProvider(IConnectionMultiplexer connection, String region, CacheConfig config) {
             if (connection == null) {
                 throw new ArgumentOutOfRangeException("connection");
             }
 
-            _connection   = connection;
-            _region       = region;
-            _cacheBuilder = cacheBuilder;
+            _connection = connection;
+            _region = region;
+            _config = config;
         }
 
         public IRegionCacheProvider Switch(String region) {
             if (!String.IsNullOrWhiteSpace(Region)) {
                 throw new InvalidOperationException();
             }
-            var cacheBuilder = new CacheBuilder(_cacheBuilder, region);
-            return new RedisCacheProvider(_connection, region, cacheBuilder);
+            var config = CacheConfigBuilder.Build(typeof(RedisCacheProvider), region);
+            return new RedisCacheProvider(_connection, region, config);
         }
 
         protected override String BuildCacheKey(String key) {
-            return _cacheBuilder.BuildCacheKey(key);
+            return _config.BuildCacheKey(Region, key);
         }
 
         public override void Expire(String key) {
-            if (_cacheBuilder.IsReadonly()) {
+            if (_config.Readonly) {
                 throw new InvalidOperationException();
             }
             var db = _connection.GetDatabase();
@@ -120,12 +110,11 @@ namespace Chuye.Caching.Redis {
         }
 
         public override void Overwrite<T>(String key, T value) {
-            if (_cacheBuilder.IsReadonly()) {
+            if (_config.Readonly) {
                 throw new InvalidOperationException();
             }
-            var expiration = _cacheBuilder.GetMaxExpiration();
-            if (expiration.HasValue) {
-                Overwrite(key, value, expiration.Value);
+            if (_config.MaxExpiration.HasValue) {
+                Overwrite(key, value, _config.MaxExpiration.Value);
             }
             else {
                 var db = _connection.GetDatabase();
@@ -134,7 +123,7 @@ namespace Chuye.Caching.Redis {
         }
 
         public void Overwrite<T>(String key, T value, DateTime absoluteExpiration) {
-            if (_cacheBuilder.IsReadonly()) {
+            if (_config.Readonly) {
                 throw new InvalidOperationException();
             }
             var cacheKey = BuildCacheKey(key);
@@ -144,7 +133,7 @@ namespace Chuye.Caching.Redis {
         }
 
         public void Overwrite<T>(String key, T value, TimeSpan slidingExpiration) {
-            if (_cacheBuilder.IsReadonly()) {
+            if (_config.Readonly) {
                 throw new InvalidOperationException();
             }
             var cacheKey = BuildCacheKey(key);

@@ -71,16 +71,15 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Http\HttpContextCacheProviderTest.cs" />
+    <Compile Include="HttpContextCacheProviderTest.cs" />
     <Compile Include="Memory\MemoryCacheProviderTest.cs" />
     <Compile Include="Memory\MemoryCacheProviderRegionTest.cs" />
-    <Compile Include="Memcached\MemcachedCacheProviderRegionTest.cs" />
-    <Compile Include="Memcached\MemcachedCacheProviderTest.cs" />
+    <Compile Include="MemcachedCacheProviderRegionTest.cs" />
+    <Compile Include="MemcachedCacheProviderTest.cs" />
     <Compile Include="Poco.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Redis\RedisCacheProviderRegionTest.cs" />
     <Compile Include="Redis\RedisCacheProviderTest.cs" />
-    <Compile Include="Region\RegionConfigurationSectionTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Chuye.Caching.Memcached\Chuye.Caching.Memcached.csproj">
@@ -103,7 +102,10 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Http\" />
+    <Folder Include="Memcached\" />
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>
