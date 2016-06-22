@@ -71,9 +71,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="HttpContextCache\HttpContextCacheProviderTest.cs" />
-    <Compile Include="HttpRuntimeCache\HttpRuntimeCacheProviderRegionTest.cs" />
-    <Compile Include="HttpRuntimeCache\HttpRuntimeCacheProviderTest.cs" />
+    <Compile Include="Http\HttpContextCacheProviderTest.cs" />
+    <Compile Include="Memory\MemoryCacheProviderTest.cs" />
+    <Compile Include="Memory\MemoryCacheProviderRegionTest.cs" />
     <Compile Include="Memcached\MemcachedCacheProviderRegionTest.cs" />
     <Compile Include="Memcached\MemcachedCacheProviderTest.cs" />
     <Compile Include="Poco.cs" />

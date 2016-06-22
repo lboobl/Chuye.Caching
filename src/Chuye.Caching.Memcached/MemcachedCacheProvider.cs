@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace Chuye.Caching.Memcached {
-    public class MemcachedCacheProvider : CacheProvider, IRegionHttpRuntimeCacheProvider, IDistributedLock {
+    public class MemcachedCacheProvider : BasicCacheProvider, IRegionCacheProvider, IDistributedLock {
         private static MemcachedCacheProvider _default;
         private readonly MemcachedClient _client;
         private readonly CacheBuilder _cacheBuilder;
@@ -53,7 +53,7 @@ namespace Chuye.Caching.Memcached {
             _cacheBuilder = cacheBuilder;
         }
 
-        public IRegionHttpRuntimeCacheProvider Switch(String region) {
+        public IRegionCacheProvider Switch(String region) {
             if (!String.IsNullOrWhiteSpace(Region)) {
                 throw new InvalidOperationException();
             }

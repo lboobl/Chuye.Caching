@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Chuye.Caching {
     public class CacheBuilder {
         private readonly CacheConfigurationSection _section;
-        private readonly Type _cacheProviderType;
+        private readonly Type _providerType;
         private readonly String _region;
         private CacheItemDetailElement _config;
 
@@ -16,21 +16,28 @@ namespace Chuye.Caching {
             return new ConfigurationResolver().Read<CacheConfigurationSection>("cacheBuilder");
         }
 
-        public CacheBuilder(Type cacheProviderType, String region)
-            : this(cacheProviderType, region, ReadDefaultSection()) {
+        public CacheBuilder(Type providerType, String region)
+            : this(providerType, region, ReadDefaultSection()) {
         }
 
-        public CacheBuilder(Type cacheProviderType, String region, CacheConfigurationSection section) {
-            _cacheProviderType = cacheProviderType;
-            _region = region;
-            _section = section;
+        public CacheBuilder(Type providerType, String region, CacheConfigurationSection section) {
+            _providerType = providerType;
+            _region       = region;
+            _section      = section;
+            RefreshConfig();
+        }
+
+        public CacheBuilder(CacheBuilder cacheBuidler, String region) {
+            _providerType = cacheBuidler._providerType;
+            _section      = cacheBuidler._section;
+            _region       = region;
             RefreshConfig();
         }
 
         private void RefreshConfig() {
             _config = null;
             if (_section != null) {
-                _config = _section.SelectEffectiveDetail(_cacheProviderType.FullName, _region);
+                _config = _section.SelectEffectiveDetail(_providerType.FullName, _region);
                 if (_config.Pattern.IndexOf("{region}") == -1 || _config.Pattern.IndexOf("{key}") == -1) {
                     throw new ArgumentOutOfRangeException("pattern");
                 }
@@ -43,13 +50,6 @@ namespace Chuye.Caching {
                     Pattern = "{0}-{1}"
                 };
             }
-        }
-
-        public CacheBuilder(CacheBuilder cacheBuidler, String region) {
-            _cacheProviderType = cacheBuidler._cacheProviderType;
-            _section = cacheBuidler._section;
-            _region = region;
-            RefreshConfig();
         }
 
         public String BuildCacheKey(String key) {

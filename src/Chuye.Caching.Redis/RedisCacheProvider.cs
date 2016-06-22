@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using StackExchange.Redis;
 
 namespace Chuye.Caching.Redis {
-    public class RedisCacheProvider : CacheProvider, IDistributedLock, IRegionHttpRuntimeCacheProvider {
+    public class RedisCacheProvider : BasicCacheProvider, IDistributedLock, IRegionCacheProvider {
         private readonly IConnectionMultiplexer _connection;
         private readonly String LOCK = "lock";
         private readonly String _region;
@@ -17,23 +17,57 @@ namespace Chuye.Caching.Redis {
             get { return _region; }
         }
 
+        public IConnectionMultiplexer Connection {
+            get { return _connection; }
+        }
+
+        public RedisCacheProvider(String configuration)
+            : this(configuration, null) {
+        }
+
+        public RedisCacheProvider(String configuration, String region) {
+            if (String.IsNullOrWhiteSpace(configuration)) {
+                throw new ArgumentOutOfRangeException("configuration");
+            }
+            _connection   = ConnectionMultiplexer.Connect(configuration);
+            _region       = region;
+            _cacheBuilder = new CacheBuilder(this.GetType(), region);
+        }
+
+        internal RedisCacheProvider(String configuration, String region, CacheBuilder cacheBuilder) {
+            if (String.IsNullOrWhiteSpace(configuration)) {
+                throw new ArgumentOutOfRangeException("configuration");
+            }
+            _connection   = ConnectionMultiplexer.Connect(configuration);
+            _region       = region;
+            _cacheBuilder = cacheBuilder;
+        }
+
         public RedisCacheProvider(IConnectionMultiplexer connection)
             : this(connection, null) {
         }
 
         public RedisCacheProvider(IConnectionMultiplexer connection, String region) {
-            _connection = connection;
-            _region = region;
+            if (connection == null) {
+                throw new ArgumentOutOfRangeException("connection");
+            }
+
+            _connection   = connection;
+            _region       = region;
             _cacheBuilder = new CacheBuilder(this.GetType(), region);
         }
 
         internal RedisCacheProvider(IConnectionMultiplexer connection, String region, CacheBuilder cacheBuilder) {
-            _connection = connection;
-            _region = region;
+            if (connection == null) {
+                throw new ArgumentOutOfRangeException("connection");
+            }
+
+            _connection   = connection;
+            _region       = region;
             _cacheBuilder = cacheBuilder;
         }
 
-        public IRegionHttpRuntimeCacheProvider Switch(String region) {
+        public IRegionCacheProvider Switch(String region) {
             if (!String.IsNullOrWhiteSpace(Region)) {
                 throw new InvalidOperationException();
             }

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Chuye.Caching {
-    public abstract class CacheProvider : ICacheProvider {
+    public abstract class BasicCacheProvider : IBasicCacheProvider {
         protected virtual String BuildCacheKey(String key) {
             return key;
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using Chuye.Caching.Redis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -83,7 +84,8 @@ namespace Chuye.Caching.Tests.Region {
             Assert.AreEqual(key1, "key1");
 
             var id1 = Guid.NewGuid();
-            var cache1 = new RedisCacheProvider(StackExchangeRedis.Default, null, builder);
+            var cache1 = new RedisCacheProvider(
+                ConfigurationManager.AppSettings.Get("cache:redis"), null, builder);
             try {
                 cache1.Overwrite("key2", id1);
                 Assert.Fail();

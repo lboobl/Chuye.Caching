@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Chuye.Caching {
-    public interface ICacheProvider {
-        Boolean TryGet<T>(String key, out T value);
-        T GetOrCreate<T>(String key, Func<String, T> func);
-        void Overwrite<T>(String key, T value);
-        void Expire(String key);
+    public interface ICacheProvider : IBasicCacheProvider {
+        T GetOrCreate<T>(String key, Func<String, T> func, TimeSpan slidingExpiration);
+        T GetOrCreate<T>(String key, Func<String, T> func, DateTime absoluteExpiration);
+        void Overwrite<T>(String key, T value, TimeSpan slidingExpiration);
+        void Overwrite<T>(String key, T value, DateTime absoluteExpiration);
     }
 }

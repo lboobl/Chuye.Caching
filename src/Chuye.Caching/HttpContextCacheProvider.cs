@@ -2,13 +2,18 @@
 using System.Web;
 
 namespace Chuye.Caching {
-    public class HttpContextCacheProvider : CacheProvider, ICacheProvider {
+    public class HttpContextCacheProvider : BasicCacheProvider {
         private static readonly Object _nullEntry = new Object();
         private const String _prefix = "HCCP-";
 
         public HttpContextCacheProvider() {
             if (HttpContext.Current == null) {
+#if DEBUG
                 HttpContext.Current = new HttpContext(new HttpRequest(null, "http://localhost", null), new HttpResponse(null));
+#else
+                throw new InvalidOperationException("Must under web environment");
+#endif
+
             }
         }
 
