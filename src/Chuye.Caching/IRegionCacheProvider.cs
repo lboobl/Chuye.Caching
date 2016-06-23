@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 namespace Chuye.Caching {
     public interface IRegionCacheProvider : ICacheProvider {
         String Region { get; }
-        IRegionCacheProvider Switch(String region);
+        ICacheProvider Switch(String region);
     }
 }

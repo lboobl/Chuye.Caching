@@ -1,5 +1,5 @@
 # Chuye.Caching
-.Net cache solution implemented for memcached using EnyimMemcached, for redis using StackExchange.Redis
+.Net cache solution implemented with memcached using EnyimMemcached, redis using StackExchange.Redis
 
 ## Architecture
 

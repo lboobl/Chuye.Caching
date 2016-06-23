@@ -7,7 +7,7 @@ using System.Linq;
 using System.Web.Script.Serialization;
 
 namespace Chuye.Caching {
-    public class MemoryCacheProvider : BasicCacheProvider, IRegionCacheProvider {
+    public class MemoryCacheProvider : CacheProvider, IRegionCacheProvider {
         private static readonly Object _nullEntry = new Object();
         private readonly String _prefix;
         private readonly String _region;
@@ -25,7 +25,7 @@ namespace Chuye.Caching {
             _prefix = BuildCacheKey(null);
         }
 
-        public IRegionCacheProvider Switch(String region) {
+        public ICacheProvider Switch(String region) {
             if (!String.IsNullOrWhiteSpace(_region)) {
                 throw new InvalidOperationException();
             }
@@ -71,32 +71,12 @@ namespace Chuye.Caching {
             return value;
         }
 
-        public T GetOrCreate<T>(String key, Func<String, T> func, TimeSpan slidingExpiration) {
-            T value;
-            if (TryGet(key, out value)) {
-                return value;
-            }
-            value = func(key);
-            Overwrite(key, value, slidingExpiration);
-            return value;
-        }
-
-        public T GetOrCreate<T>(String key, Func<String, T> func, DateTime absoluteExpiration) {
-            T value;
-            if (TryGet(key, out value)) {
-                return value;
-            }
-            value = func(key);
-            Overwrite(key, value, absoluteExpiration);
-            return value;
-        }
-
         public override void Overwrite<T>(String key, T value) {
             HttpRuntime.Cache.Insert(BuildCacheKey(key), BuildCacheValue(value));
         }
 
         //slidingExpiration 时间内无访问则过期
-        public void Overwrite<T>(String key, T value, TimeSpan slidingExpiration) {
+        public override void Overwrite<T>(String key, T value, TimeSpan slidingExpiration) {
             HttpRuntime.Cache.Insert(BuildCacheKey(key), BuildCacheValue(value), null,
                 Cache.NoAbsoluteExpiration, slidingExpiration);
         }
@@ -107,7 +87,7 @@ namespace Chuye.Caching {
         }
 
         //absoluteExpiration 时过期
-        public void Overwrite<T>(String key, T value, DateTime absoluteExpiration) {
+        public override void Overwrite<T>(String key, T value, DateTime absoluteExpiration) {
             HttpRuntime.Cache.Insert(BuildCacheKey(key), BuildCacheValue(value), null,
                 absoluteExpiration, Cache.NoSlidingExpiration);
         }
@@ -119,22 +99,6 @@ namespace Chuye.Caching {
 
         public override void Expire(String key) {
             HttpRuntime.Cache.Remove(BuildCacheKey(key));
-        }
-
-        public void Flush(String file, Func<String, Boolean> predicate) {
-            using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-            using (var writer = new StreamWriter(stream)) {
-                stream.SetLength(0L);
-                var entries = HttpRuntime.Cache.OfType<DictionaryEntry>().Where(Hit);
-                if (predicate != null) {
-                    entries.Where(r => predicate(RemovePrefix((String)r.Key)));
-                }
-                var json = new JavaScriptSerializer();
-                foreach (var entry in entries) {
-                    writer.WriteLine(json.Serialize(entry));
-                }
-                writer.Flush();
-            }
         }
 
         internal String RemovePrefix(String key) {

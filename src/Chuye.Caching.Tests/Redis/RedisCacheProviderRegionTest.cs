@@ -13,7 +13,7 @@ namespace Chuye.Caching.Tests.Redis {
         [TestMethod]
         public void Save_ValueType_then_get() {
             var key = "key-guid";
-            IBasicCacheProvider cache = new RedisCacheProvider(
+            ICacheProvider cache = new RedisCacheProvider(
                 ConfigurationManager.AppSettings.Get("cache:redis"));
             var id1 = Guid.NewGuid();
             var id2 = cache.GetOrCreate(key, _ => id1);
@@ -30,7 +30,7 @@ namespace Chuye.Caching.Tests.Redis {
         [TestMethod]
         public void Save_ReferenceType_then_get() {
             var key = "key-object";
-            IBasicCacheProvider cache = new RedisCacheProvider(
+            ICacheProvider cache = new RedisCacheProvider(
                 ConfigurationManager.AppSettings.Get("cache:redis"));
             var id1 = new Object();
             var id2 = cache.GetOrCreate(key, _ => id1);
@@ -47,7 +47,7 @@ namespace Chuye.Caching.Tests.Redis {
         [TestMethod]
         public void Save_null_then_get() {
             var key = "key-object-null";
-            IBasicCacheProvider cache = new RedisCacheProvider(
+            ICacheProvider cache = new RedisCacheProvider(
                 ConfigurationManager.AppSettings.Get("cache:redis"));
 
             cache.Overwrite(key, (Person)null);

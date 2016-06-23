@@ -12,7 +12,7 @@ namespace Chuye.Caching.Tests.Memcached {
         [TestMethod]
         public void Save_ValueType_then_get() {
             var key = "key-guid";
-            IBasicCacheProvider cache = new MemcachedCacheProvider("enyim.com/memcached", "region1");
+            ICacheProvider cache = new MemcachedCacheProvider("enyim.com/memcached", "region1");
             var id1 = Guid.NewGuid();
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.AreEqual(id1, id2);
@@ -28,7 +28,7 @@ namespace Chuye.Caching.Tests.Memcached {
         [TestMethod]
         public void Save_ReferenceType_then_get() {
             var key = "key-object";
-            IBasicCacheProvider cache = new MemcachedCacheProvider("enyim.com/memcached", "region2");
+            ICacheProvider cache = new MemcachedCacheProvider("enyim.com/memcached", "region2");
             var id1 = new Object();
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.AreEqual(id1, id2);
@@ -44,7 +44,7 @@ namespace Chuye.Caching.Tests.Memcached {
         [TestMethod]
         public void Save_null_then_get() {
             var key = "key-object-null";
-            IBasicCacheProvider cache = new MemcachedCacheProvider("enyim.com/memcached", "region3");
+            ICacheProvider cache = new MemcachedCacheProvider("enyim.com/memcached", "region3");
 
             cache.Overwrite(key, (Person)null);
             Person id1;
