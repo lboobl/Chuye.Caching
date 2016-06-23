@@ -2,7 +2,7 @@
 using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Chuye.Caching.Tests.HttpContextCache {
+namespace Chuye.Caching.Tests.Http {
     [TestClass]
     public class HttpContextCacheProviderTest {
         [TestMethod]
@@ -17,7 +17,7 @@ namespace Chuye.Caching.Tests.HttpContextCache {
         [TestMethod]
         public void Save_ValueType_then_get() {
             var key = "key-guid";
-            ICacheProvider cache = new HttpContextCacheProvider();
+            IBasicCacheProvider cache = new HttpContextCacheProvider();
             var id1 = Guid.NewGuid();
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.AreEqual(id1, id2);
@@ -33,7 +33,7 @@ namespace Chuye.Caching.Tests.HttpContextCache {
         [TestMethod]
         public void Save_ReferenceType_then_get() {
             var key = "key-object";
-            ICacheProvider cache = new HttpContextCacheProvider();
+            IBasicCacheProvider cache = new HttpContextCacheProvider();
             var id1 = new Object();
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.AreEqual(id1, id2);
@@ -49,7 +49,7 @@ namespace Chuye.Caching.Tests.HttpContextCache {
         [TestMethod]
         public void Save_null_then_get() {
             var key = "key-object-null";
-            ICacheProvider cache = new HttpContextCacheProvider();
+            IBasicCacheProvider cache = new HttpContextCacheProvider();
 
             Object id1 = null;
             var id2 = cache.GetOrCreate(key, _ => id1);

@@ -8,9 +8,9 @@ using System.Configuration;
 namespace Chuye.Caching {
     public class CacheItemSharedSection : ConfigurationSection {
         private const String pattern = "pattern";
-        private const String maxExpiration = "maxExpiration";
+        private const String maxExpirationHour = "maxExpirationHour";
         private const String @readonly = "readonly";
-        private const String leaveDashForEmtpyRegion = "leaveDashForEmtpyRegion";
+        private const string formatNullRegion = "formatNullRegion";
 
         [ConfigurationProperty(pattern, IsRequired = true)]
         public String Pattern {
@@ -18,10 +18,10 @@ namespace Chuye.Caching {
             set { this[pattern] = value; }
         }
 
-        [ConfigurationProperty(maxExpiration)]
-        public Double MaxExpiration {
-            get { return (Double)this[maxExpiration]; }
-            set { this[maxExpiration] = value; }
+        [ConfigurationProperty(maxExpirationHour)]
+        public Double MaxExpirationHour {
+            get { return (Double)this[maxExpirationHour]; }
+            set { this[maxExpirationHour] = value; }
         }
 
         [ConfigurationProperty(@readonly)]
@@ -30,10 +30,10 @@ namespace Chuye.Caching {
             set { this[@readonly] = value; }
         }
 
-        [ConfigurationProperty(leaveDashForEmtpyRegion)]
-        public Boolean LeaveDashForEmtpyRegion {
-            get { return (Boolean)this[leaveDashForEmtpyRegion]; }
-            set { this[leaveDashForEmtpyRegion] = value; }
+        [ConfigurationProperty(formatNullRegion)]
+        public Boolean FormatNullRegion {
+            get { return (Boolean)this[formatNullRegion]; }
+            set { this[formatNullRegion] = value; }
         }
     }
 
@@ -45,28 +45,6 @@ namespace Chuye.Caching {
         public CacheItemElementCollection Details {
             get { return (CacheItemElementCollection)this[details]; }
             set { this[details] = value; }
-        }
-
-        public CacheItemDetailElement SelectEffectiveDetail(String provider, String region) {
-            var items = Details.OfType<CacheItemDetailElement>();
-            foreach (var item in items) {
-                if (item.Provider == provider && item.Region == region) {
-                    return item;
-                }
-            }
-            foreach (var item in items) {
-                if (item.Provider == provider) {
-                    return item;
-                }
-            }
-            return new CacheItemDetailElement {
-                Region = null,
-                Provider = null,
-                Readonly = this.Readonly,
-                MaxExpiration = this.MaxExpiration,
-                Pattern = this.Pattern,
-                LeaveDashForEmtpyRegion = this.LeaveDashForEmtpyRegion,
-            };
         }
     }
 

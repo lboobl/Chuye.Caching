@@ -52,7 +52,6 @@
     <Compile Include="NewtonsoftJsonUtil.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RedisCacheProvider.cs" />
-    <Compile Include="StackExchangeRedis.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

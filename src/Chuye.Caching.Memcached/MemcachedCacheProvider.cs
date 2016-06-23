@@ -8,10 +8,10 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace Chuye.Caching.Memcached {
-    public class MemcachedCacheProvider : CacheProvider, IRegionHttpRuntimeCacheProvider, IDistributedLock {
+    public class MemcachedCacheProvider : BasicCacheProvider, IRegionCacheProvider, IDistributedLock {
         private static MemcachedCacheProvider _default;
         private readonly MemcachedClient _client;
-        private readonly CacheBuilder _cacheBuilder;
+        private readonly CacheConfig _config;
         private readonly String _region;
 
         public static MemcachedCacheProvider Default {
@@ -41,28 +41,26 @@ namespace Chuye.Caching.Memcached {
             : this(new MemcachedClient(configSection), region) {
         }
 
-        public MemcachedCacheProvider(MemcachedClient client, String region) {
-            _client = client;
-            _region = region;
-            _cacheBuilder = new CacheBuilder(this.GetType(), region);
+        public MemcachedCacheProvider(MemcachedClient client, String region)
+            : this(client, region, CacheConfigBuilder.Build(typeof(MemcachedCacheProvider), region)) {
         }
 
-        public MemcachedCacheProvider(MemcachedClient client, String region, CacheBuilder cacheBuilder) {
+        public MemcachedCacheProvider(MemcachedClient client, String region, CacheConfig config) {
             _client = client;
             _region = region;
-            _cacheBuilder = cacheBuilder;
+            _config = config;
         }
 
-        public IRegionHttpRuntimeCacheProvider Switch(String region) {
+        public IRegionCacheProvider Switch(String region) {
             if (!String.IsNullOrWhiteSpace(Region)) {
                 throw new InvalidOperationException();
             }
-            var cacheBuilder = new CacheBuilder(_cacheBuilder, region);
-            return new MemcachedCacheProvider(_client, region, cacheBuilder);
+            var config = CacheConfigBuilder.Build(typeof(MemcachedCacheProvider), region);
+            return new MemcachedCacheProvider(_client, region, config);
         }
 
         protected override String BuildCacheKey(String key) {
-            return _cacheBuilder.BuildCacheKey(key);
+            return _config.BuildCacheKey(Region, key);
         }
 
         public override bool TryGet<T>(string key, out T value) {
@@ -128,12 +126,11 @@ namespace Chuye.Caching.Memcached {
         }
 
         public override void Overwrite<T>(String key, T value) {
-            if (_cacheBuilder.IsReadonly()) {
+            if (_config.Readonly) {
                 throw new InvalidOperationException();
             }
-            var expiration = _cacheBuilder.GetMaxExpiration();
-            if (expiration.HasValue) {
-                Overwrite(key, value, expiration.Value);
+            if (_config.MaxExpiration.HasValue) {
+                Overwrite(key, value, _config.MaxExpiration.Value);
             }
             else {
                 _client.Store(StoreMode.Set, BuildCacheKey(key), value);
@@ -142,7 +139,7 @@ namespace Chuye.Caching.Memcached {
 
         //slidingExpiration 时间内无访问则过期
         public void Overwrite<T>(String key, T value, TimeSpan slidingExpiration) {
-            if (_cacheBuilder.IsReadonly()) {
+            if (_config.Readonly) {
                 throw new InvalidOperationException();
             }
             //_client.Store(StoreMode.Set, BuildCacheKey(key), value, slidingExpiration);
@@ -153,14 +150,14 @@ namespace Chuye.Caching.Memcached {
 
         //absoluteExpiration UTC或本地时间均可
         public void Overwrite<T>(String key, T value, DateTime absoluteExpiration) {
-            if (_cacheBuilder.IsReadonly()) {
+            if (_config.Readonly) {
                 throw new InvalidOperationException();
             }
             _client.Store(StoreMode.Set, BuildCacheKey(key), value, absoluteExpiration);
         }
 
         public override void Expire(String key) {
-            if (_cacheBuilder.IsReadonly()) {
+            if (_config.Readonly) {
                 throw new InvalidOperationException();
             }
             _client.Remove(BuildCacheKey(key));  // Could check result
