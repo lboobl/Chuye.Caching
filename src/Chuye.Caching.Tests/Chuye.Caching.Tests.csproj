@@ -73,7 +73,6 @@
   <ItemGroup>
     <Compile Include="CacheConfigBuilderTest.cs" />
     <Compile Include="CacheConfigTest.cs" />
-    <Compile Include="HttpContextCacheProviderTest.cs" />
     <Compile Include="Memcached\MemcachedCacheProviderRegionTest.cs" />
     <Compile Include="Memcached\MemcachedCacheProviderTest.cs" />
     <Compile Include="MemoryCacheProviderRegionTest.cs" />

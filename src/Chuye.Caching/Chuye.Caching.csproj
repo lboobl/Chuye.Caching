@@ -42,13 +42,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BasicCacheProvider.cs" />
+    <Compile Include="CacheProvider.cs" />
     <Compile Include="CacheConfig.cs" />
     <Compile Include="ConfigurationResolver.cs" />
-    <Compile Include="HttpContextCacheProvider.cs" />
     <Compile Include="MemoryCacheProvider.cs" />
     <Compile Include="MemoryCacheProviderExtensions.cs" />
-    <Compile Include="IBasicCacheProvider.cs" />
     <Compile Include="IDistributedLock.cs" />
     <Compile Include="ICacheProvider.cs" />
     <Compile Include="IRegionCacheProvider.cs" />

@@ -10,7 +10,7 @@ namespace Chuye.Caching.Tests.Memory {
         [TestMethod]
         public void Save_ValueType_then_get() {
             var key = "key-guid";
-            IBasicCacheProvider cache = new MemoryCacheProvider("region1");
+            ICacheProvider cache = new MemoryCacheProvider("region1");
             var id1 = Guid.NewGuid();
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.AreEqual(id1, id2);
@@ -26,7 +26,7 @@ namespace Chuye.Caching.Tests.Memory {
         [TestMethod]
         public void Save_ReferenceType_then_get() {
             var key = "key-object";
-            IBasicCacheProvider cache = new MemoryCacheProvider("region2");
+            ICacheProvider cache = new MemoryCacheProvider("region2");
             var id1 = new Object();
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.AreEqual(id1, id2);
@@ -42,7 +42,7 @@ namespace Chuye.Caching.Tests.Memory {
         [TestMethod]
         public void Save_null_then_get() {
             var key = "key-object-null";
-            IBasicCacheProvider cache = new MemoryCacheProvider("region3");
+            ICacheProvider cache = new MemoryCacheProvider("region3");
 
             Person id1 = null;
             var id2 = cache.GetOrCreate(key, _ => id1);

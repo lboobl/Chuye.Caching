@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using StackExchange.Redis;
 
 namespace Chuye.Caching.Redis {
-    public class RedisCacheProvider : BasicCacheProvider, IDistributedLock, IRegionCacheProvider {
+    public class RedisCacheProvider : CacheProvider, IDistributedLock, IRegionCacheProvider {
         private readonly IConnectionMultiplexer _connection;
         private readonly String LOCK = "lock";
         private readonly String _region;
@@ -57,7 +57,7 @@ namespace Chuye.Caching.Redis {
             _config = config;
         }
 
-        public IRegionCacheProvider Switch(String region) {
+        public ICacheProvider Switch(String region) {
             if (!String.IsNullOrWhiteSpace(Region)) {
                 throw new InvalidOperationException();
             }
@@ -88,27 +88,7 @@ namespace Chuye.Caching.Redis {
             return true;
 
         }
-
-        public T GetOrCreate<T>(String key, Func<String, T> func, DateTime absoluteExpiration) {
-            T value;
-            if (TryGet<T>(key, out value)) {
-                return value;
-            }
-            value = func(key);
-            Overwrite(key, value, absoluteExpiration);
-            return value;
-        }
-
-        public T GetOrCreate<T>(String key, Func<String, T> func, TimeSpan slidingExpiration) {
-            T value;
-            if (TryGet<T>(key, out value)) {
-                return value;
-            }
-            value = func(key);
-            Overwrite(key, value, slidingExpiration);
-            return value;
-        }
-
+        
         public override void Overwrite<T>(String key, T value) {
             if (_config.Readonly) {
                 throw new InvalidOperationException();
@@ -122,7 +102,7 @@ namespace Chuye.Caching.Redis {
             }
         }
 
-        public void Overwrite<T>(String key, T value, DateTime absoluteExpiration) {
+        public override void Overwrite<T>(String key, T value, DateTime absoluteExpiration) {
             if (_config.Readonly) {
                 throw new InvalidOperationException();
             }
@@ -132,7 +112,7 @@ namespace Chuye.Caching.Redis {
             db.KeyExpire(cacheKey, absoluteExpiration);
         }
 
-        public void Overwrite<T>(String key, T value, TimeSpan slidingExpiration) {
+        public override void Overwrite<T>(String key, T value, TimeSpan slidingExpiration) {
             if (_config.Readonly) {
                 throw new InvalidOperationException();
             }

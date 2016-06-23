@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace Chuye.Caching.Memcached {
-    public class MemcachedCacheProvider : BasicCacheProvider, IRegionCacheProvider, IDistributedLock {
+    public class MemcachedCacheProvider : CacheProvider, IRegionCacheProvider, IDistributedLock {
         private static MemcachedCacheProvider _default;
         private readonly MemcachedClient _client;
         private readonly CacheConfig _config;
@@ -51,7 +51,7 @@ namespace Chuye.Caching.Memcached {
             _config = config;
         }
 
-        public IRegionCacheProvider Switch(String region) {
+        public ICacheProvider Switch(String region) {
             if (!String.IsNullOrWhiteSpace(Region)) {
                 throw new InvalidOperationException();
             }
@@ -105,26 +105,6 @@ namespace Chuye.Caching.Memcached {
             return true;
         }
 
-        public T GetOrCreate<T>(String key, Func<String, T> func, TimeSpan slidingExpiration) {
-            T value;
-            if (TryGet(key, out value)) {
-                return value;
-            }
-            value = func(key);
-            Overwrite(key, value, slidingExpiration);
-            return value;
-        }
-
-        public T GetOrCreate<T>(String key, Func<String, T> func, DateTime absoluteExpiration) {
-            T value;
-            if (TryGet(key, out value)) {
-                return value;
-            }
-            value = func(key);
-            Overwrite(key, value, absoluteExpiration);
-            return value;
-        }
-
         public override void Overwrite<T>(String key, T value) {
             if (_config.Readonly) {
                 throw new InvalidOperationException();
@@ -137,8 +117,9 @@ namespace Chuye.Caching.Memcached {
             }
         }
 
+
         //slidingExpiration 时间内无访问则过期
-        public void Overwrite<T>(String key, T value, TimeSpan slidingExpiration) {
+        public override void Overwrite<T>(String key, T value, TimeSpan slidingExpiration) {
             if (_config.Readonly) {
                 throw new InvalidOperationException();
             }
@@ -149,7 +130,7 @@ namespace Chuye.Caching.Memcached {
         }
 
         //absoluteExpiration UTC或本地时间均可
-        public void Overwrite<T>(String key, T value, DateTime absoluteExpiration) {
+        public override void Overwrite<T>(String key, T value, DateTime absoluteExpiration) {
             if (_config.Readonly) {
                 throw new InvalidOperationException();
             }
