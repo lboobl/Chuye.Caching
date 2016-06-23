@@ -26,7 +26,7 @@ namespace Chuye.Caching.Redis {
         }
 
         public RedisCacheProvider(String configuration, String region)
-            : this(configuration, region, CacheConfig.Empty) {
+            : this(configuration, region, CacheConfigBuilder.Build(typeof(RedisCacheProvider), region)) {
         }
 
         public RedisCacheProvider(String configuration, String region, CacheConfig config) {
@@ -43,7 +43,7 @@ namespace Chuye.Caching.Redis {
         }
 
         public RedisCacheProvider(IConnectionMultiplexer connection, String region)
-            : this(connection, region, CacheConfig.Empty) {
+            : this(connection, region, CacheConfigBuilder.Build(typeof(RedisCacheProvider), region)) {
 
         }
 
