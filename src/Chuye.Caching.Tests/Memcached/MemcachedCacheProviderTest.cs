@@ -12,7 +12,7 @@ namespace Chuye.Caching.Tests.Memcached {
         [TestMethod]
         public void Save_ValueType_then_get() {
             var key = "key-guid";
-            ICacheProvider cache = MemcachedCacheProvider.Default;
+            IBasicCacheProvider cache = MemcachedCacheProvider.Default;
             var id1 = Guid.NewGuid();
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.AreEqual(id1, id2);
@@ -28,7 +28,7 @@ namespace Chuye.Caching.Tests.Memcached {
         [TestMethod]
         public void Save_ReferenceType_then_get() {
             var key = "key-object";
-            ICacheProvider cache = MemcachedCacheProvider.Default;
+            IBasicCacheProvider cache = MemcachedCacheProvider.Default;
             var id1 = new Object();
             var id2 = cache.GetOrCreate(key, _ => id1);
             Assert.AreEqual(id1, id2);
@@ -44,7 +44,7 @@ namespace Chuye.Caching.Tests.Memcached {
         [TestMethod]
         public void Save_null_then_get() {
             var key = "key-object-null";
-            ICacheProvider cache = MemcachedCacheProvider.Default;
+            IBasicCacheProvider cache = MemcachedCacheProvider.Default;
 
             cache.Overwrite(key, (Person)null);
             Person id1;
@@ -57,27 +57,27 @@ namespace Chuye.Caching.Tests.Memcached {
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = MemcachedCacheProvider.Default;
-            cacheProvider.Overwrite(key, value, TimeSpan.FromSeconds(3D));
+            ICacheProvider cache = MemcachedCacheProvider.Default;
+            cache.Overwrite(key, value, TimeSpan.FromSeconds(3D));
 
             {
                 Guid value2;
                 Thread.Sleep(2000);
-                var exist = cacheProvider.TryGet<Guid>(key, out value2);
+                var exist = cache.TryGet<Guid>(key, out value2);
                 Assert.IsTrue(exist);
                 Assert.AreEqual(value2, value);
             }
             {
                 Guid value2;
                 Thread.Sleep(2000);
-                var exist = cacheProvider.TryGet(key, out value2);
+                var exist = cache.TryGet(key, out value2);
                 Assert.IsTrue(exist);
                 Assert.AreEqual(value2, value);
             }
             {
                 Guid value2;
                 Thread.Sleep(4000);
-                var exist = cacheProvider.TryGet(key, out value2);
+                var exist = cache.TryGet(key, out value2);
                 Assert.IsFalse(exist);
             }
         }
@@ -87,20 +87,20 @@ namespace Chuye.Caching.Tests.Memcached {
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = MemcachedCacheProvider.Default;
-            cacheProvider.Overwrite(key, value, DateTime.Now.AddSeconds(3D));
+            ICacheProvider cache = MemcachedCacheProvider.Default;
+            cache.Overwrite(key, value, DateTime.Now.AddSeconds(3D));
 
             {
                 Guid value2;
                 Thread.Sleep(2000);
-                var exist = cacheProvider.TryGet<Guid>(key, out value2);
+                var exist = cache.TryGet<Guid>(key, out value2);
                 Assert.IsTrue(exist);
                 Assert.AreEqual(value2, value);
             }
             {
                 Guid value2;
                 Thread.Sleep(2000);
-                var exist = cacheProvider.TryGet(key, out value2);
+                var exist = cache.TryGet(key, out value2);
                 Assert.IsFalse(exist);
             }
         }
@@ -110,12 +110,12 @@ namespace Chuye.Caching.Tests.Memcached {
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid();
 
-            IHttpRuntimeCacheProvider cacheProvider = MemcachedCacheProvider.Default;
-            cacheProvider.Overwrite(key, value);
+            ICacheProvider cache = MemcachedCacheProvider.Default;
+            cache.Overwrite(key, value);
 
-            cacheProvider.Expire(key);
+            cache.Expire(key);
             Guid value2;
-            var exist = cacheProvider.TryGet(key, out value2);
+            var exist = cache.TryGet(key, out value2);
             Assert.IsFalse(exist);
             Assert.AreEqual(value2, Guid.Empty);
         }
