@@ -3,15 +3,21 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Configuration;
 using SysCfg = System.Configuration.Configuration;
+using System.Web;
+using System.Web.Configuration;
 
 namespace Chuye.Caching {
-    internal class ConfigurationResolver {
+    public class ConfigurationResolver {
         private SysCfg configuration;
         private String exeConfigFilename = null;
 
         public SysCfg Configuration {
             get {
-                if (configuration == null) {
+                if (HttpContext.Current != null) {
+                    configuration = WebConfigurationManager.OpenWebConfiguration("~");
+                }
+                else { 
+                    //configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
                     if (String.IsNullOrEmpty(exeConfigFilename)) {
                         configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
                     }
@@ -55,9 +61,9 @@ namespace Chuye.Caching {
                     section = group.Sections.Get(sectionName);
                 }
             }
-
+            // null is not T
             if (section != null && !(section is T)) {
-                throw new InvalidCastException("Section read faild");
+                throw new InvalidCastException("Section read failed");
             }
             return (T)section;
         }
