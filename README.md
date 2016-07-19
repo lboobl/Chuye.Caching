@@ -43,8 +43,11 @@ More detail in [MemcachedCacheProviderTest](src/Chuye.Caching.Tests/Memcached/Me
 	builder.RegisterInstance(new RedisCacheProvider("ubuntu-16"))
 		.As<IRegionCacheProvider>();
 }
+```
 
-// concreate
+### Region swith
+
+```c
 {
     private readonly IRegionCacheProvider _userCache;
     private readonly IRegionCacheProvider _loginCache;
@@ -87,12 +90,12 @@ More detail in [MemcachedCacheProviderTest](src/Chuye.Caching.Tests/Memcached/Me
 ### 2.5 合并与简化接口
 
 * 移除基于 HttpContext 的缓存实现;
-* 重构配置生效方式
+* 重构设计配置生效行为;
 
 ### 2.4 添加基于配置的扩展能力
 
-* Memcached 和 Redis 的 CacheProvider 加入对所有或特定 Region 实施只读策略的能力;
-* 缓存路径即 region+key 的拼接方式可以通过配置修改，以方便迁移；
-* 在没有显式指示缓存时间时，可以使用配置中的默认过期时间;
+* 加入分布式缓存对所有或特定 Region 实施只读策略的能力;
+* 缓存路径即 region+key 的拼接方式可以通过配置修改, 以方便分区与迁移；
+* 可以通过配置中的默认过期时间限制未显示提供生命周期的缓存时长;
 * 可以通过切换 region 生成新的实例以满足依赖注入的需求
   
